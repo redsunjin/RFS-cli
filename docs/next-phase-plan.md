@@ -4,6 +4,10 @@
 
 2026-03-13
 
+## Current active stage
+
+Stage 2: Agent guidance hardening
+
 ## Planning intent
 
 This plan starts from the current state of `rfs-cli` as a nearly signed-off MVP and defines the next execution order.
@@ -28,18 +32,15 @@ Goal:
 
 Close the last environment-specific MVP question and lock the release baseline.
 
-Tasks:
+Status:
 
-- run one real Obsidian vault smoke pass if a vault path becomes available
-- if no vault is available, document and approve an environment-specific waiver
-- validate `rfs llm status`, `rfs ask`, and `rfs shell` against a real LM Studio or Ollama runtime
-- keep regression checks green during that validation work
+Completed in the current environment.
 
-Exit definition:
+Notes:
 
-- MVP sign-off decision is explicit
-- runtime validation notes are captured
-- no blocking defects remain open
+- LM Studio runtime validation for `rfs llm status`, `rfs ask`, and `rfs shell` is complete
+- LM Studio/Qwen output sanitation was added after runtime validation exposed reasoning-tag leakage
+- the Obsidian real-data smoke item is waived for this environment because no real vault path is available
 
 ### Stage 2: Agent guidance hardening
 
@@ -94,5 +95,5 @@ Candidate tracks:
 ## Recommended next three tasks
 
 1. Validate `rfs ask` and `rfs shell` against the real LM Studio runtime already available in the environment.
-2. Decide and document the Obsidian real-data smoke requirement or waiver for MVP sign-off.
-3. Draft the agent persona and response-style contract that governs `rfs ask` and `rfs shell`.
+2. Draft the agent persona and response-style contract that governs `rfs ask` and `rfs shell`.
+3. Design source-aware and index-aware command suggestions for `rfs ask`.

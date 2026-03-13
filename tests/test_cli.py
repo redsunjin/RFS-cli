@@ -6,6 +6,7 @@ from typing import Optional
 from typer.testing import CliRunner
 
 from rfs_cli.config import load_config, load_shell_memory, save_config
+from rfs_cli.llm import extract_message_content, history_to_messages
 from rfs_cli.main import app, render_banner
 from rfs_cli.models import LLMConfig
 
@@ -77,6 +78,31 @@ def test_render_banner_uses_ansi_when_forced(monkeypatch) -> None:
 
     assert "\033[38;2;" in banner
     assert "~" in banner
+
+
+def test_extract_message_content_strips_reasoning_and_control_tokens() -> None:
+    content = (
+        "<think>internal reasoning</think>\n\n"
+        "실행 명령은 `rfs index add ~/vault --source obsidian` 입니다.\n"
+        "<|im_end|>"
+    )
+
+    assert extract_message_content(content) == (
+        "실행 명령은 `rfs index add ~/vault --source obsidian` 입니다."
+    )
+
+
+def test_history_to_messages_merges_extra_system_context() -> None:
+    messages = history_to_messages(
+        [
+            {"role": "system", "content": "shell context"},
+            {"role": "user", "content": "search roadmap"},
+        ]
+    )
+
+    assert messages[0]["role"] == "system"
+    assert "shell context" in messages[0]["content"]
+    assert messages[1:] == [{"role": "user", "content": "search roadmap"}]
 
 
 def test_root_without_args_starts_onboarding_then_shell_when_interactive(
@@ -305,7 +331,8 @@ def test_shell_uses_llm_and_persists_conversation(tmp_path: Path, monkeypatch) -
     assert result.exit_code == 0
     assert 'Use `rfs search "roadmap"`.' in result.stdout
     assert captured["question"] == "How do I search roadmap notes?"
-    assert captured["history"] == []
+    assert captured["history"][0]["role"] == "system"
+    assert "already active `rfs shell` session" in captured["history"][0]["content"]
 
     memory = load_shell_memory(state_dir=state_dir)
     assert memory is not None

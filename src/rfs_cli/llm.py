@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import socket
 from importlib.resources import files
 from typing import Any, Optional
@@ -81,6 +82,8 @@ PROVIDER_ALIASES = {
     "generic": "openai-compatible",
 }
 CHAT_TIMEOUT_SECONDS = 60.0
+THINK_BLOCK_PATTERN = re.compile(r"<think>.*?</think>", re.DOTALL | re.IGNORECASE)
+CONTROL_TOKEN_PATTERN = re.compile(r"<\|[^>]+\|>")
 
 
 def load_onboarding_document() -> str:
@@ -234,7 +237,7 @@ def get_llm_status(config: LLMConfig) -> dict[str, Any]:
 
 def extract_message_content(value: Any) -> str:
     if isinstance(value, str):
-        return value.strip()
+        return sanitize_assistant_text(value)
     if isinstance(value, list):
         parts = []
         for item in value:
@@ -242,19 +245,40 @@ def extract_message_content(value: Any) -> str:
                 text = item.get("text")
                 if isinstance(text, str):
                     parts.append(text)
-        return "\n".join(part for part in parts if part).strip()
+        return sanitize_assistant_text("\n".join(part for part in parts if part))
     return ""
 
 
+def sanitize_assistant_text(text: str) -> str:
+    cleaned = THINK_BLOCK_PATTERN.sub("", text)
+    cleaned = CONTROL_TOKEN_PATTERN.sub("", cleaned)
+    cleaned = cleaned.replace("<|im_end|>", "")
+    cleaned = cleaned.replace("<|endoftext|>", "")
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned.strip()
+
+
 def history_to_messages(history: Optional[list[dict[str, str]]] = None) -> list[dict[str, str]]:
-    messages = [{"role": "system", "content": build_system_prompt()}]
+    extra_system_content: list[str] = []
+    messages: list[dict[str, str]] = []
     for item in history or []:
         role = item.get("role")
         content = item.get("content", "").strip()
         if role not in {"user", "assistant", "system"} or not content:
             continue
+        if role == "system":
+            extra_system_content.append(content)
+            continue
         messages.append({"role": role, "content": content})
-    return messages
+
+    system_prompt = build_system_prompt()
+    if extra_system_content:
+        system_prompt = (
+            f"{system_prompt}\n\nAdditional runtime context:\n"
+            + "\n\n".join(extra_system_content)
+        )
+
+    return [{"role": "system", "content": system_prompt}, *messages]
 
 
 def ask_llm(

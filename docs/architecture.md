@@ -150,7 +150,8 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 2. Resolve configured LLM provider
 3. Load the packaged onboarding guide and agent persona instructions
 4. Send the user question to the provider adapter
-5. Return text or JSON with the answer payload
+5. Sanitize provider-specific reasoning or control tokens from the answer
+6. Return text or JSON with the answer payload
 
 ### Init flow
 
@@ -185,7 +186,8 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
    - `/run ...` internal command execution
    - `!<command>` external CLI execution
    - natural-language guidance request
-4. Save conversation and tool output back into shell memory
+4. Attach shell-session context so the agent knows the user is already inside the shell
+5. Save conversation and tool output back into shell memory
 
 ## Output contract strategy
 

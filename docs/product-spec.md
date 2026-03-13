@@ -47,6 +47,7 @@ Local companion projects such as NestClaw and qa_claw are also deferred until af
 - Ground suggestions in real commands, local state, and available sources
 - Ask short follow-up questions when a user request is ambiguous
 - Use an R2-D2-inspired agent persona without drifting into roleplay or losing technical clarity
+- Strip provider-specific reasoning tags or control markers before showing answers to the user
 
 ## User stories
 

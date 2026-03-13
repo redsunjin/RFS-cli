@@ -17,6 +17,22 @@
 - `uv run pytest`: pass
 - `uv run ruff check .`: pass
 
+### Real LM Studio runtime validation
+
+Commands executed successfully:
+
+- `uv run rfs llm status --state-dir .rfs --format json`
+- `uv run rfs ask "옵시디언 볼트를 추가하려면 어떻게 해야 해? 한 줄 명령 예시도 줘." --state-dir .rfs --format json`
+- `uv run rfs shell --state-dir .rfs`
+
+Observed checks:
+
+- the configured LM Studio endpoint at `http://127.0.0.1:1234` was reachable
+- the configured model `qwen3.5-9b-mlx` was available
+- `rfs ask` returned a grounded command answer against the real runtime
+- provider-specific reasoning tags such as `<think>` and control markers such as `<|im_end|>` are now stripped before output
+- shell responses now carry active-session context so the agent no longer tells the user to run `rfs shell` while already inside it
+
 ### Fixture-based smoke run
 
 Commands executed successfully:
@@ -67,8 +83,9 @@ Observed checks:
 ## Remaining limitation
 
 - The local-source smoke checklist has been executed with real user data.
-- A real Obsidian vault path was not available in this environment, so cross-source real-data sign-off is still environment-blocked.
+- A real Obsidian vault path was not available in this environment. A quick scan under `/Users/Agent` only found the test fixture vault, not a user vault.
 
 ## Recommendation
 
-Treat the current codebase as fixture-validated and local-real-data-validated. Keep final MVP sign-off pending only on one real Obsidian smoke run, or explicitly waive that step for this environment.
+Treat the current codebase as fixture-validated, local-real-data-validated, and real-LM-Studio-validated.
+Use an environment-specific waiver for the Obsidian real-data smoke step until a real vault path becomes available.

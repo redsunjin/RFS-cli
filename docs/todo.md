@@ -65,6 +65,9 @@ When scope changes, update these files in order:
 - [x] Add a packaged LLM onboarding guide
 - [x] Apply the R2-D2-inspired agent persona to the prompt layer
 - [x] Make bare `rfs` launch onboarding or shell automatically in interactive sessions
+- [x] Validate `rfs ask` and `rfs shell` against a real LM Studio runtime
+- [x] Strip provider-specific reasoning and control tokens from surfaced answers
+- [x] Ground shell guidance in the fact that the user is already inside `rfs shell`
 - [ ] Define agent persona and response-style contract
 - [ ] Add source-aware and index-aware command suggestions to `rfs ask`
 - [ ] Add a short follow-up question path for ambiguous requests
@@ -101,9 +104,9 @@ When scope changes, update these files in order:
 
 ## Current recommended next three tasks
 
-- [ ] Validate `rfs ask` against the real LM Studio or Ollama runtime
-- [ ] Validate `rfs shell` against the real LM Studio or Ollama runtime
-- [ ] Decide and document the real Obsidian smoke requirement or waiver for MVP sign-off
+- [ ] Define the agent persona and response-style contract
+- [ ] Add source-aware and index-aware command suggestions to `rfs ask`
+- [ ] Add a short follow-up question path for ambiguous requests
 
 ## MVP execution backlog
 
@@ -142,7 +145,7 @@ When scope changes, update these files in order:
 - [x] Verify all documented command examples against the current CLI
 - [x] Run a fixture-based smoke pass and record the QA result
 - [x] Run a real-data smoke pass for the local source flow
-- [ ] Run a real-data smoke pass for the Obsidian source flow
+- [x] Close the real-data Obsidian sign-off path with a documented environment-specific waiver when no real vault exists
 
 ## MVP scope review
 

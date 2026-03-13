@@ -6,10 +6,10 @@
 
 ## Current status
 
-The project is functionally MVP-ready for the local-first CLI agent baseline.
+The project is signed off as MVP-ready for the local-first CLI agent baseline in the current environment.
 
-The core command surface, LLM-backed onboarding, interactive shell flow, and real local-data validation are all in place.
-The only remaining environment-specific MVP sign-off item is a real Obsidian vault smoke run, or an explicit decision to waive that step in environments where no vault exists.
+The core command surface, LLM-backed onboarding, interactive shell flow, real local-data validation, and real LM Studio runtime validation are all in place.
+The Obsidian real-data smoke step is waived for this environment because no real vault path is currently available.
 
 ## Completed areas
 
@@ -26,9 +26,12 @@ The only remaining environment-specific MVP sign-off item is a real Obsidian vau
 - Interactive shell with persisted session memory
 - Bare `rfs` interactive startup that launches onboarding or shell automatically
 - Graceful shell handling when the configured LLM times out
+- Sanitized LM Studio/Qwen output that strips reasoning tags and control markers
+- Shell-session grounding so in-shell guidance knows the user is already inside `rfs shell`
 - Quickstart and smoke checklist documentation
 - Fixture-backed verification of documented command flows
 - Real-data smoke verification for the local source flow
+- Real LM Studio runtime verification for `llm status`, `ask`, and `shell`
 
 ## Validation baseline
 
@@ -36,11 +39,13 @@ The only remaining environment-specific MVP sign-off item is a real Obsidian vau
 - `uv run ruff check .`: pass
 - fixture-based smoke: pass
 - real local-data smoke: pass
+- real LM Studio runtime validation: pass
 
-## Remaining MVP sign-off items
+## MVP sign-off note
 
-- Run the smoke checklist against a real Obsidian vault path, if one is available in the target environment
-- Decide whether that Obsidian-specific real-data step is required for MVP sign-off in environments where no vault exists yet
+The only previously open sign-off item was a real Obsidian vault smoke pass.
+That step is now explicitly waived for this environment because no real vault path is available on the machine.
+If a real vault path appears later, run the smoke checklist as an additional confidence check rather than as an MVP blocker.
 
 ## Immediate next build focus
 
@@ -51,8 +56,8 @@ Priority order:
 1. define the agent persona and response-style contract
 2. add source-aware and index-aware command suggestions to `rfs ask`
 3. add a short follow-up question path for ambiguous requests
-4. validate `rfs ask` and `rfs shell` against a real LM Studio or Ollama runtime
-5. prepare release-readiness basics such as installation flow and release checklist
+4. prepare release-readiness basics such as installation flow and release checklist
+5. keep runtime validation green while agent guidance becomes richer
 
 ## Post-MVP areas
 
@@ -65,5 +70,5 @@ Priority order:
 
 ## Recommendation
 
-Treat the current codebase as ready for MVP sign-off once the Obsidian real-data question is closed.
-Until then, new work should focus on release confidence and agent guidance quality, not on broadening the integration surface.
+Treat the MVP as signed off for the current environment.
+The next work should stay focused on agent guidance quality and release readiness, not on broadening the integration surface.

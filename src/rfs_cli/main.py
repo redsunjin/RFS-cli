@@ -513,7 +513,17 @@ def shell_history_messages(
     limit: int = 8,
     include_latest: bool = True,
 ) -> list[dict[str, str]]:
-    messages: list[dict[str, str]] = []
+    messages: list[dict[str, str]] = [
+        {
+            "role": "system",
+            "content": (
+                "You are answering from inside an already active `rfs shell` session. "
+                "The user is already in the shell right now. "
+                "Do not tell the user to run `rfs shell` unless they are explicitly "
+                "asking how to start a new session."
+            ),
+        }
+    ]
     events = memory.events if include_latest else memory.events[:-1]
     for event in events[-limit:]:
         if event.kind == "user":
