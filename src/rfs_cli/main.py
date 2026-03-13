@@ -429,6 +429,50 @@ def configure_llm(
     )
 
 
+def is_interactive_session() -> bool:
+    return sys.stdin.isatty() and sys.stdout.isatty()
+
+
+def run_onboarding_flow(
+    state_dir: Path,
+    provider: Optional[str] = None,
+    base_url: Optional[str] = None,
+    model: Optional[str] = None,
+    api_key_env: Optional[str] = None,
+    show_banner: bool = True,
+) -> AppConfig:
+    resolved_state_dir = resolve_state_dir(state_dir)
+    app_config = load_config(state_dir=resolved_state_dir)
+    existing = app_config.llm
+
+    if show_banner:
+        typer.echo(render_banner())
+        typer.echo("")
+    typer.echo("Starting rfs onboarding...")
+
+    app_config.llm = configure_llm(
+        existing=existing,
+        provider=provider,
+        base_url=base_url,
+        model=model,
+        api_key_env=api_key_env,
+        output=OutputMode.text,
+    )
+    config_path = save_config(app_config, state_dir=resolved_state_dir)
+
+    typer.echo("")
+    typer.echo(f"LLM configured: {app_config.llm.provider} / {app_config.llm.model}")
+    typer.echo(f"Config: {config_path}")
+    typer.echo("Onboarding guide loaded for the agent:")
+    typer.echo(load_onboarding_document())
+    typer.echo("")
+    typer.echo("Next steps:")
+    typer.echo("- rfs")
+    typer.echo("- rfs llm status")
+    typer.echo("- rfs shell")
+    return app_config
+
+
 def utc_now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
@@ -555,15 +599,32 @@ def execute_external_command(command_text: str) -> tuple[int, str]:
 
 
 @app.callback(invoke_without_command=True)
-def root(ctx: typer.Context) -> None:
+def root(
+    ctx: typer.Context,
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
+) -> None:
     if ctx.invoked_subcommand is not None:
         return
     if ctx.resilient_parsing:
         return
 
+    if is_interactive_session():
+        resolved_state_dir = resolve_state_dir(state_dir)
+        app_config = load_config_or_fail("startup", resolved_state_dir, OutputMode.text)
+        if app_config.llm is None or not app_config.llm.enabled:
+            run_onboarding_flow(resolved_state_dir)
+            typer.echo("")
+            typer.echo("Launching rfs shell...")
+            run_shell_session(resolved_state_dir, show_banner=False)
+            raise typer.Exit()
+
+        run_shell_session(resolved_state_dir)
+        raise typer.Exit()
+
     typer.echo(render_banner())
     typer.echo("")
-    typer.echo("Start with `rfs init` to configure the required LLM onboarding flow.")
+    typer.echo("Run `rfs` in an interactive terminal to start onboarding or the agent shell.")
+    typer.echo("Use `rfs init` when you want to configure the required LLM flow manually.")
     typer.echo("")
     typer.echo(ctx.get_help())
     raise typer.Exit()
@@ -583,33 +644,13 @@ def init(
     model: Optional[str] = typer.Option(None, "--model"),
     api_key_env: Optional[str] = typer.Option(None, "--api-key-env"),
 ) -> None:
-    resolved_state_dir = resolve_state_dir(state_dir)
-    app_config = load_config(state_dir=resolved_state_dir)
-    existing = app_config.llm
-
-    typer.echo(render_banner())
-    typer.echo("")
-    typer.echo("Starting rfs onboarding...")
-
-    app_config.llm = configure_llm(
-        existing=existing,
+    run_onboarding_flow(
+        state_dir=state_dir,
         provider=provider,
         base_url=base_url,
         model=model,
         api_key_env=api_key_env,
-        output=OutputMode.text,
     )
-    config_path = save_config(app_config, state_dir=resolved_state_dir)
-
-    typer.echo("")
-    typer.echo(f"LLM configured: {app_config.llm.provider} / {app_config.llm.model}")
-    typer.echo(f"Config: {config_path}")
-    typer.echo("Onboarding guide loaded for the agent:")
-    typer.echo(load_onboarding_document())
-    typer.echo("")
-    typer.echo("Next steps:")
-    typer.echo("- rfs llm status")
-    typer.echo("- rfs shell")
 
 
 @app.command()
@@ -640,10 +681,10 @@ def ask(
     emit(payload, output)
 
 
-@app.command()
-def shell(
-    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
-    reset_memory: bool = typer.Option(False, "--reset-memory"),
+def run_shell_session(
+    state_dir: Path,
+    reset_memory: bool = False,
+    show_banner: bool = True,
 ) -> None:
     resolved_state_dir = resolve_state_dir(state_dir)
     app_config = load_agent_config_or_fail("shell", resolved_state_dir, OutputMode.text)
@@ -659,8 +700,9 @@ def shell(
 
     save_shell_memory(memory, state_dir=resolved_state_dir)
 
-    typer.echo(render_banner())
-    typer.echo("")
+    if show_banner:
+        typer.echo(render_banner())
+        typer.echo("")
     typer.echo("Interactive shell for rfs-cli")
     typer.echo("Type a supported command without `rfs`, ask a question, or use /help.")
     typer.echo(f"Memory: {resolve_shell_memory_path(state_dir=resolved_state_dir)}")
@@ -791,6 +833,14 @@ def shell(
         typer.echo(answer)
         append_shell_event(memory, "assistant", answer)
         save_shell_memory(memory, state_dir=resolved_state_dir)
+
+
+@app.command()
+def shell(
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
+    reset_memory: bool = typer.Option(False, "--reset-memory"),
+) -> None:
+    run_shell_session(state_dir=state_dir, reset_memory=reset_memory)
 
 
 @app.command()

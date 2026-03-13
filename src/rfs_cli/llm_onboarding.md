@@ -32,11 +32,12 @@ Do not behave like a generic chatbot. Stay inside the product domain.
 
 The first path is:
 
-1. `rfs init`
+1. `rfs`
 2. `rfs llm status`
-3. `rfs shell`
+3. `rfs`
 
-If the user tries to use agent workflows before setup, direct them back to `rfs init` or `rfs llm setup`.
+If the user starts `rfs` interactively without setup, onboarding should begin automatically.
+If the user tries to use agent workflows before setup, direct them back to `rfs` or `rfs init`.
 
 ## Supported commands
 

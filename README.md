@@ -96,6 +96,7 @@ The current codebase includes:
 - required LLM setup and guided CLI usage with `rfs ask`
 - interactive shell mode with saved session memory and internal tool execution
 - required onboarding through `rfs init` and a packaged LLM guide
+- default interactive startup through `rfs` itself
 
 Google Drive and broader metadata enrichment remain roadmap work.
 
@@ -103,12 +104,11 @@ Google Drive and broader metadata enrichment remain roadmap work.
 
 ```bash
 uv sync --all-groups
-uv run rfs init
+uv run rfs
 uv run rfs llm status
 uv run rfs index add /path/to/obsidian-vault --source obsidian
 uv run rfs index add /path/to/local-notes --source local
 uv run rfs index run
-uv run rfs shell
 uv run rfs search "agent memory" --format json
 uv run rfs show <document-id> --format json
 uv run rfs dev find-todo --path . --format json
@@ -127,13 +127,12 @@ The default workspace state directory is `.rfs/`.
 Example:
 
 ```bash
-uv run rfs init
+uv run rfs
 uv run rfs llm status
 uv run rfs ask "How do I add my Documents folder and search markdown files only?"
-uv run rfs shell
 ```
 
-The first supported onboarding path is `rfs init`. If the LLM is not configured, agent workflows should redirect the user back to onboarding instead of pretending to operate normally.
+The easiest entry point is `rfs` in an interactive terminal. It now chooses onboarding or shell automatically. `rfs init` remains the explicit manual onboarding path. If the LLM is not configured, agent workflows should redirect the user back to onboarding instead of pretending to operate normally.
 
 The current conversational layer is intentionally narrow: it helps users discover and operate supported commands. Expanding that into a stronger agent with state-aware guidance and follow-up questions is part of the next planning track.
 

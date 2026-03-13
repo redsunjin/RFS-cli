@@ -37,6 +37,7 @@ The MVP covers local and Obsidian indexing, indexed search, indexed document ins
 - Ask the CLI how to perform a task without already knowing the command syntax
 - Validate local provider connectivity before relying on guided help
 - Use an interactive shell session instead of repeating one-shot commands
+- Start with `rfs` alone in an interactive terminal and let the CLI choose onboarding or shell entry
 
 ### Agent behavior
 
@@ -120,6 +121,20 @@ Examples:
 - inside shell: `/run index sources`
 - inside shell: `!git status`
 
+### `rfs` startup behavior
+
+Responsibilities:
+
+- detect interactive startup without an explicit subcommand
+- launch onboarding automatically when no LLM is configured
+- launch the interactive shell automatically when the CLI is already configured
+- keep non-interactive invocation predictable by showing help text instead of blocking
+
+Examples:
+
+- `rfs`
+- `rfs --state-dir ~/.rfs-work`
+
 ### `rfs dev`
 
 Responsibilities:
@@ -173,6 +188,7 @@ Examples:
 
 - `rfs init`
 - `rfs init --provider ollama`
+- `rfs`
 
 ### `rfs ask`
 

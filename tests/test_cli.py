@@ -57,13 +57,15 @@ def test_version_json() -> None:
     assert payload["data"]["version"] == "0.1.0"
 
 
-def test_root_without_args_shows_banner_and_help() -> None:
+def test_root_without_args_shows_banner_and_help_when_non_interactive(monkeypatch) -> None:
+    monkeypatch.setattr("rfs_cli.main.is_interactive_session", lambda: False)
+
     result = runner.invoke(app, [])
 
     assert result.exit_code == 0
     assert " ____  _____    _    ______   __   _____ ___  ____    ____  _____    _" in result.stdout
     assert WAVE_LINE in result.stdout
-    assert "Start with `rfs init`" in result.stdout
+    assert "Run `rfs` in an interactive terminal" in result.stdout
     assert "Usage:" in result.stdout
 
 
@@ -75,6 +77,83 @@ def test_render_banner_uses_ansi_when_forced(monkeypatch) -> None:
 
     assert "\033[38;2;" in banner
     assert "~" in banner
+
+
+def test_root_without_args_starts_onboarding_then_shell_when_interactive(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    state_dir = tmp_path / ".rfs"
+    calls: dict[str, object] = {}
+
+    monkeypatch.setattr("rfs_cli.main.is_interactive_session", lambda: True)
+
+    def fake_onboarding_flow(
+        state_dir_arg,
+        provider=None,
+        base_url=None,
+        model=None,
+        api_key_env=None,
+        show_banner=True,
+    ):
+        calls["onboarding"] = {
+            "state_dir": Path(state_dir_arg),
+            "show_banner": show_banner,
+        }
+        return load_config(state_dir=state_dir_arg)
+
+    def fake_shell_session(state_dir_arg, reset_memory=False, show_banner=True):
+        calls["shell"] = {
+            "state_dir": Path(state_dir_arg),
+            "reset_memory": reset_memory,
+            "show_banner": show_banner,
+        }
+
+    monkeypatch.setattr("rfs_cli.main.run_onboarding_flow", fake_onboarding_flow)
+    monkeypatch.setattr("rfs_cli.main.run_shell_session", fake_shell_session)
+
+    result = runner.invoke(app, ["--state-dir", str(state_dir)])
+
+    assert result.exit_code == 0
+    assert calls["onboarding"] == {
+        "state_dir": state_dir.resolve(),
+        "show_banner": True,
+    }
+    assert calls["shell"] == {
+        "state_dir": state_dir.resolve(),
+        "reset_memory": False,
+        "show_banner": False,
+    }
+    assert "Launching rfs shell..." in result.stdout
+
+
+def test_root_without_args_starts_shell_when_interactive_and_llm_exists(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+    calls: dict[str, object] = {}
+
+    monkeypatch.setattr("rfs_cli.main.is_interactive_session", lambda: True)
+
+    def fake_shell_session(state_dir_arg, reset_memory=False, show_banner=True):
+        calls["shell"] = {
+            "state_dir": Path(state_dir_arg),
+            "reset_memory": reset_memory,
+            "show_banner": show_banner,
+        }
+
+    monkeypatch.setattr("rfs_cli.main.run_shell_session", fake_shell_session)
+
+    result = runner.invoke(app, ["--state-dir", str(state_dir)])
+
+    assert result.exit_code == 0
+    assert calls["shell"] == {
+        "state_dir": state_dir.resolve(),
+        "reset_memory": False,
+        "show_banner": True,
+    }
 
 
 def test_llm_setup_interactive_saves_config(tmp_path: Path) -> None:
@@ -109,6 +188,7 @@ def test_init_interactive_writes_llm_config_and_prints_onboarding(tmp_path: Path
     assert result.exit_code == 0
     assert "Starting rfs onboarding..." in result.stdout
     assert "R2-D2-inspired persona" in result.stdout
+    assert "- rfs" in result.stdout
     assert "rfs shell" in result.stdout
 
     config = json.loads((state_dir / "config.json").read_text(encoding="utf-8"))

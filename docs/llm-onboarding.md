@@ -29,11 +29,11 @@ It is not intended to become a general-purpose chatbot.
 
 The required onboarding flow is:
 
-1. `rfs init`
+1. `rfs`
 2. `rfs llm status`
-3. `rfs shell`
+3. `rfs`
 
-If the LLM is not configured, normal agent workflows should redirect back to `rfs init` or `rfs llm setup`.
+If the LLM is not configured, interactive startup through `rfs` should begin onboarding automatically. `rfs init` remains the explicit manual fallback.
 
 ## Supported command groups
 

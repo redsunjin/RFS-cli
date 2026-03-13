@@ -73,7 +73,7 @@ The current baseline stores source configuration and a local JSON index under a 
 The current index stores relative paths, file types, tags, aliases, and source-specific metadata for indexed documents. Obsidian notes use frontmatter-aware extraction.
 The frontmatter parser supports a lightweight nested subset for practical note metadata such as lists, booleans, numbers, and simple nested maps.
 The same workspace config now also stores required LLM provider settings for conversational command guidance.
-The current implementation exposes one-shot guided help through `rfs ask`, an interactive `rfs shell` loop that saves shell memory under the workspace state directory, and an `rfs init` onboarding path.
+The current implementation exposes one-shot guided help through `rfs ask`, an interactive `rfs shell` loop that saves shell memory under the workspace state directory, an `rfs init` onboarding path, and a default `rfs` startup flow that chooses onboarding or shell automatically in interactive terminals.
 
 ## Data model
 
@@ -159,6 +159,14 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 3. Persist the LLM configuration to the workspace state directory
 4. Present the onboarding guide that teaches the agent its own command surface
 5. Hand off to `rfs llm status` or `rfs shell`
+
+### Startup flow
+
+1. Start `rfs` without a subcommand
+2. Detect whether the session is interactive
+3. If the session is non-interactive, render help text and exit
+4. If no LLM config exists, launch onboarding automatically
+5. If LLM config exists, launch the interactive shell automatically
 
 ### Planned agent-interaction flow
 

@@ -59,6 +59,7 @@ Exit criteria:
 - Conversational answers stay grounded in supported commands and product scope
 - An interactive shell exists for multi-turn local operation with persisted session memory
 - A required onboarding path exists through `rfs init` and the packaged LLM onboarding guide
+- Interactive startup through bare `rfs` launches onboarding or shell without extra command discovery
 
 ## MVP target
 

@@ -64,6 +64,7 @@ When scope changes, update these files in order:
 - [x] Add `rfs init` as the required onboarding path
 - [x] Add a packaged LLM onboarding guide
 - [x] Apply the R2-D2-inspired agent persona to the prompt layer
+- [x] Make bare `rfs` launch onboarding or shell automatically in interactive sessions
 - [ ] Define agent persona and response-style contract
 - [ ] Add source-aware and index-aware command suggestions to `rfs ask`
 - [ ] Add a short follow-up question path for ambiguous requests

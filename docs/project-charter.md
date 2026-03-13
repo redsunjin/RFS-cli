@@ -16,6 +16,7 @@ The project is primarily a learning vehicle, but it must also become a real tool
 - Add guided CLI usage so command discovery does not depend on memorizing syntax
 - Turn the CLI into a tool-using agent with a stable voice and clear operating boundaries
 - Require an LLM-backed onboarding path so the agent is configured before normal use
+- Make `rfs` itself the easiest interactive entry point, not just a banner plus help page
 - Establish a documentation-driven development process from the beginning
 
 ## Problem statement
@@ -58,6 +59,7 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - Developer helper commands such as git summaries and project statistics
 - JSON output mode for automation and agents
 - Required LLM provider configuration and onboarding guide for normal agent workflows
+- A default `rfs` startup flow that launches onboarding or the agent shell in interactive sessions
 - Agent-guided command discovery with a defined interaction style
 - Interactive shell sessions with persisted memory
 - Incremental roadmap and task tracking
