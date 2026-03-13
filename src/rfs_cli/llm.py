@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import socket
 from importlib.resources import files
 from typing import Any, Optional
 from urllib import error, request
@@ -79,6 +80,7 @@ PROVIDER_ALIASES = {
     "openai": "openai-compatible",
     "generic": "openai-compatible",
 }
+CHAT_TIMEOUT_SECONDS = 60.0
 
 
 def load_onboarding_document() -> str:
@@ -165,6 +167,11 @@ def request_json(
     try:
         with request.urlopen(http_request, timeout=timeout) as response:
             body = response.read().decode("utf-8")
+    except (TimeoutError, socket.timeout) as exc:
+        raise ValueError(
+            f"Request to {url} timed out after {timeout:.1f}s. "
+            "The configured model may still be loading."
+        ) from exc
     except error.HTTPError as exc:
         body = exc.read().decode("utf-8", errors="replace")
         message = body.strip() or exc.reason
@@ -262,6 +269,7 @@ def ask_llm(
             "POST",
             f"{config.base_url.rstrip('/')}/api/chat",
             payload={"model": config.model, "messages": messages, "stream": False},
+            timeout=CHAT_TIMEOUT_SECONDS,
         )
         answer = extract_message_content(response.get("message", {}).get("content"))
     else:
@@ -270,6 +278,7 @@ def ask_llm(
             f"{config.base_url.rstrip('/')}/v1/chat/completions",
             payload={"model": config.model, "messages": messages, "temperature": 0.2},
             headers=auth_headers(config),
+            timeout=CHAT_TIMEOUT_SECONDS,
         )
         choices = response.get("choices", [])
         message = choices[0].get("message", {}) if choices else {}

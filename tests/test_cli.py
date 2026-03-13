@@ -232,6 +232,28 @@ def test_shell_uses_llm_and_persists_conversation(tmp_path: Path, monkeypatch) -
     assert any(event.kind == "assistant" for event in memory.events)
 
 
+def test_shell_survives_llm_timeout(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+
+    def fake_ask_llm(config, question, history=None):
+        raise ValueError(
+            "Request to http://127.0.0.1:1234/v1/chat/completions timed out after 60.0s."
+        )
+
+    monkeypatch.setattr("rfs_cli.main.ask_llm", fake_ask_llm)
+
+    result = runner.invoke(
+        app,
+        ["shell", "--state-dir", str(state_dir)],
+        input="현재 shell로 들어온거지?\n/exit\n",
+    )
+
+    assert result.exit_code == 0
+    assert "LLM error:" in result.stdout
+    assert "Leaving rfs shell." in result.stdout
+
+
 def test_shell_memory_commands_work(tmp_path: Path) -> None:
     state_dir = tmp_path / ".rfs"
     save_llm_config(state_dir)
