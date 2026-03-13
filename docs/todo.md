@@ -84,6 +84,12 @@ When scope changes, update these files in order:
 - [ ] Implement research export command
 - [ ] Document NotebookLM-adjacent workflow examples
 
+## Post-MVP external tool providers
+
+- [ ] Define a tool-provider contract for local companion projects
+- [ ] Design a NestClaw adapter boundary for API or CLI invocation
+- [ ] Design a qa_claw adapter boundary for script execution
+
 ## Phase 6: Release readiness
 
 - [ ] Define installation flow

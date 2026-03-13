@@ -7,6 +7,7 @@
 ## MVP definition
 
 The MVP covers local and Obsidian indexing, indexed search, indexed document inspection, baseline developer utilities, and reliable agent-safe JSON commands. Remote integrations such as Google Drive are explicitly deferred until after MVP completion.
+Local companion projects such as NestClaw and qa_claw are also deferred until after MVP as external tool providers rather than core built-in domains.
 
 ## Core use cases
 
@@ -162,6 +163,11 @@ Examples:
 
 - `rfs drive auth`
 - `rfs drive search "proposal"`
+
+### Post-MVP external tool providers
+
+- NestClaw: API or CLI-backed orchestration tool provider
+- qa_claw: script-backed workflow and verification tool provider
 
 ### `rfs llm`
 

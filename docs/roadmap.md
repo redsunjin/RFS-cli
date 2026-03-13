@@ -94,6 +94,18 @@ Exit criteria:
 - Export workflow exists for selected documents
 - Research-oriented command patterns are documented
 
+## Post-MVP external tool integration track
+
+Goal:
+
+Define adapter boundaries for local companion projects such as NestClaw and qa_claw without expanding the MVP surface early.
+
+Candidate milestones:
+
+- NestClaw adapter design for API or CLI invocation
+- qa_claw adapter design for script-driven workflow execution
+- tool-provider registration model aligned with the existing local-first agent shell
+
 ## Phase 6: Release readiness
 
 Goal:

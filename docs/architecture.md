@@ -225,6 +225,12 @@ Example response shape:
 - Keep it isolated behind a source adapter boundary
 - Add local caching so search behavior remains consistent with local sources
 
+### External tool provider adapters
+
+- Treat NestClaw as a future provider behind an API or CLI adapter boundary
+- Treat qa_claw as a future provider behind a script-runner adapter boundary
+- Keep both outside the core MVP command surface until the current CLI agent baseline is complete
+
 ### Developer utility services
 
 - Keep `dev` commands separate from knowledge indexing internals

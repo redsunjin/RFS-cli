@@ -105,3 +105,8 @@ Add Google Drive after the local indexing model is stable. Use it as a searchabl
 ### NotebookLM
 
 Treat NotebookLM as an adjacent workflow, not the core system of record. Design exports and source packaging that make it easier to move curated material into external research tools.
+
+### External tool providers
+
+Treat local companion projects such as NestClaw and qa_claw as post-MVP external tool provider candidates.
+NestClaw should be approached as an API or CLI-backed service adapter, while qa_claw should be approached first as a script-runner adapter.
