@@ -25,6 +25,21 @@ class LLMConfig(BaseModel):
     enabled: bool = True
 
 
+class ShellEvent(BaseModel):
+    kind: Literal["user", "assistant", "tool", "system"]
+    content: str
+    timestamp: str
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
+class ShellMemory(BaseModel):
+    schema_version: str = "1"
+    session_id: str
+    created_at: str
+    updated_at: str
+    events: List[ShellEvent] = Field(default_factory=list)
+
+
 class AppConfig(BaseModel):
     schema_version: str = "1"
     default_output_format: OutputFormat = "text"

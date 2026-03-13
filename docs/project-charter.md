@@ -40,6 +40,7 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - agent tool execution
 - interactive, LLM-assisted command guidance
 - consistent, recognizable interaction
+- a shell mode that keeps context and tool history across turns
 
 ## Target users
 
@@ -57,6 +58,7 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - JSON output mode for automation and agents
 - Optional LLM provider configuration for guided help and future semantic features
 - Agent-guided command discovery with a defined interaction style
+- Interactive shell sessions with persisted memory
 - Incremental roadmap and task tracking
 
 ### Out of scope for the first release
@@ -73,6 +75,7 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - The first search workflow can be used without manual data preparation
 - Commands are scriptable and return stable JSON output
 - A user can ask the CLI how to perform a task and get an actionable command back
+- A user can stay inside an interactive shell session instead of retyping one-shot commands every time
 - The CLI remains grounded in its actual tools rather than drifting into generic assistant behavior
 - New feature work follows documented scope, design, and roadmap updates
 

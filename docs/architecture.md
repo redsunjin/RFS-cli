@@ -73,7 +73,7 @@ The current baseline stores source configuration and a local JSON index under a 
 The current index stores relative paths, file types, tags, aliases, and source-specific metadata for indexed documents. Obsidian notes use frontmatter-aware extraction.
 The frontmatter parser supports a lightweight nested subset for practical note metadata such as lists, booleans, numbers, and simple nested maps.
 The same workspace config now also stores optional LLM provider settings for conversational command guidance.
-The current implementation exposes one-shot guided help through `rfs ask`. A more interactive agent loop remains roadmap work.
+The current implementation exposes one-shot guided help through `rfs ask` and an interactive `rfs shell` loop that saves shell memory under the workspace state directory.
 
 ## Data model
 
@@ -116,6 +116,13 @@ The current implementation exposes one-shot guided help through `rfs ask`. A mor
 - `api_key_env`
 - `enabled`
 
+### ShellMemory
+
+- `session_id`
+- `created_at`
+- `updated_at`
+- `events`
+
 ## Command flow
 
 ### Index flow
@@ -152,6 +159,17 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 3. If enough information exists, recommend or trigger the most relevant command path
 4. If key information is missing, ask one short follow-up question
 5. Keep the final guidance grounded in supported commands and observable state
+
+### Current shell flow
+
+1. Start `rfs shell`
+2. Load or create persisted shell memory from `.rfs/shell-memory.json`
+3. Accept one of:
+   - direct `rfs` command input
+   - `/run ...` internal command execution
+   - `!<command>` external CLI execution
+   - natural-language guidance request
+4. Save conversation and tool output back into shell memory
 
 ## Output contract strategy
 
@@ -210,6 +228,7 @@ Example response shape:
 - Separate provider transport from agent style and grounding rules
 - Prefer deterministic command recommendation over open-ended discussion
 - Allow future expansion to a dedicated interactive mode without rewriting the command layer
+- Keep shell memory as explicit persisted state instead of hidden in-process memory only
 
 ## Test strategy
 

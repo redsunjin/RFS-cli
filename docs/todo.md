@@ -58,6 +58,9 @@ When scope changes, update these files in order:
 - [x] Add `rfs llm status`
 - [x] Add `rfs ask`
 - [x] Add tests for configured guided-help flows
+- [x] Add `rfs shell`
+- [x] Persist shell memory under the workspace state directory
+- [x] Allow explicit external CLI execution inside shell mode
 - [ ] Define agent persona and response-style contract
 - [ ] Add source-aware and index-aware command suggestions to `rfs ask`
 - [ ] Add a short follow-up question path for ambiguous requests
@@ -90,6 +93,7 @@ When scope changes, update these files in order:
 
 - [ ] Run the smoke checklist against a real Obsidian vault when one is available, or waive that step for this environment
 - [ ] Validate `rfs ask` against a real Ollama or LM Studio runtime
+- [ ] Validate `rfs shell` against a real Ollama or LM Studio runtime
 - [ ] Define the agent persona and source-aware follow-up guidance plan
 
 ## MVP execution backlog
@@ -115,6 +119,7 @@ When scope changes, update these files in order:
 - [x] Add bounded output safeguards for large result sets
 - [x] Add interactive LLM setup for local and compatible providers
 - [x] Add command-guidance help via `rfs ask`
+- [x] Add an interactive shell with persisted memory and explicit tool execution
 - [ ] Add command suggestions that incorporate current source configuration and index availability
 - [ ] Define the agent persona/profile and response-style contract
 - [ ] Add a short follow-up question flow for ambiguous asks

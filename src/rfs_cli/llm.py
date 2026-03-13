@@ -192,11 +192,24 @@ def extract_message_content(value: Any) -> str:
     return ""
 
 
-def ask_llm(config: LLMConfig, question: str) -> str:
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {"role": "user", "content": question},
-    ]
+def history_to_messages(history: Optional[list[dict[str, str]]] = None) -> list[dict[str, str]]:
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    for item in history or []:
+        role = item.get("role")
+        content = item.get("content", "").strip()
+        if role not in {"user", "assistant", "system"} or not content:
+            continue
+        messages.append({"role": role, "content": content})
+    return messages
+
+
+def ask_llm(
+    config: LLMConfig,
+    question: str,
+    history: Optional[list[dict[str, str]]] = None,
+) -> str:
+    messages = history_to_messages(history)
+    messages.append({"role": "user", "content": question})
     if config.provider == "ollama":
         response = request_json(
             "POST",

@@ -36,6 +36,7 @@ The MVP covers local and Obsidian indexing, indexed search, indexed document ins
 - Configure an optional local or remote LLM provider
 - Ask the CLI how to perform a task without already knowing the command syntax
 - Validate local provider connectivity before relying on guided help
+- Use an interactive shell session instead of repeating one-shot commands
 
 ### Agent behavior
 
@@ -54,6 +55,7 @@ The MVP covers local and Obsidian indexing, indexed search, indexed document ins
 - As a user, I want to ask the CLI what command to run so I do not have to memorize the command tree.
 - As a user, I want the CLI to behave like one assistant with a recognizable style, not just a help page.
 - As a user, I want the CLI to ask for only the missing detail when my request is underspecified.
+- As a user, I want to stay inside a shell session where previous commands and answers are remembered.
 
 ## Command model
 
@@ -99,6 +101,22 @@ Examples:
 
 - `rfs show note-123`
 - `rfs show /path/to/file.md`
+
+### `rfs shell`
+
+Responsibilities:
+
+- keep the user inside an interactive CLI session
+- run supported `rfs` commands without repeating the top-level executable name
+- store conversation and tool history as shell memory
+- support controlled external CLI execution when explicitly requested
+
+Examples:
+
+- `rfs shell`
+- inside shell: `search roadmap`
+- inside shell: `/run index sources`
+- inside shell: `!git status`
 
 ### `rfs dev`
 
@@ -211,6 +229,7 @@ Examples:
 - Allow `rfs ask` to work from a configured provider and answer with current supported commands only
 - Incorporate current source configuration and index availability into command suggestions when possible
 - Reserve the right to ask a brief follow-up question before recommending a command
+- Persist shell session memory so later turns can stay grounded in earlier interaction
 
 ### Agent identity
 
@@ -228,6 +247,7 @@ Examples:
 - Extensible source adapter model
 - Optional LLM connectivity must not be required for base indexing and search flows
 - The conversational layer must not obscure direct command access
+- External command execution must stay explicit and user-triggered
 
 ## Design constraints
 

@@ -6,11 +6,12 @@ from typing import Optional
 
 from pydantic import ValidationError
 
-from rfs_cli.models import AppConfig, IndexStore
+from rfs_cli.models import AppConfig, IndexStore, ShellMemory
 
 DEFAULT_STATE_DIR = ".rfs"
 DEFAULT_CONFIG_NAME = "config.json"
 DEFAULT_INDEX_NAME = "index.json"
+DEFAULT_SHELL_MEMORY_NAME = "shell-memory.json"
 
 
 def resolve_state_dir(state_dir: Optional[Path] = None) -> Path:
@@ -30,6 +31,15 @@ def resolve_index_path(index_path: Optional[Path] = None, state_dir: Optional[Pa
     if index_path is not None:
         return index_path.resolve()
     return resolve_state_dir(state_dir) / DEFAULT_INDEX_NAME
+
+
+def resolve_shell_memory_path(
+    memory_path: Optional[Path] = None,
+    state_dir: Optional[Path] = None,
+) -> Path:
+    if memory_path is not None:
+        return memory_path.resolve()
+    return resolve_state_dir(state_dir) / DEFAULT_SHELL_MEMORY_NAME
 
 
 def ensure_parent(path: Path) -> None:
@@ -89,4 +99,32 @@ def save_index(
     resolved_path = resolve_index_path(index_path=index_path, state_dir=state_dir)
     ensure_parent(resolved_path)
     resolved_path.write_text(index_store.model_dump_json(indent=2), encoding="utf-8")
+    return resolved_path
+
+
+def load_shell_memory(
+    memory_path: Optional[Path] = None,
+    state_dir: Optional[Path] = None,
+) -> Optional[ShellMemory]:
+    resolved_path = resolve_shell_memory_path(memory_path=memory_path, state_dir=state_dir)
+    if not resolved_path.exists():
+        return None
+
+    data = json.loads(resolved_path.read_text(encoding="utf-8"))
+
+    try:
+        return ShellMemory.model_validate(data)
+    except ValidationError as exc:
+        message = exc.errors()[0]["msg"] if exc.errors() else "Invalid shell memory."
+        raise ValueError(message) from exc
+
+
+def save_shell_memory(
+    memory: ShellMemory,
+    memory_path: Optional[Path] = None,
+    state_dir: Optional[Path] = None,
+) -> Path:
+    resolved_path = resolve_shell_memory_path(memory_path=memory_path, state_dir=state_dir)
+    ensure_parent(resolved_path)
+    resolved_path.write_text(memory.model_dump_json(indent=2), encoding="utf-8")
     return resolved_path

@@ -57,6 +57,7 @@ Exit criteria:
 - Optional LLM provider setup exists for guided command usage
 - A conversational help path exists without becoming a hard dependency for core commands
 - Conversational answers stay grounded in supported commands and product scope
+- An interactive shell exists for multi-turn local operation with persisted session memory
 
 ## MVP target
 
@@ -113,7 +114,7 @@ Candidate milestones:
 - source-aware and index-aware command suggestions
 - short follow-up questions for ambiguous requests
 - a documented agent profile with stable tone and operating boundaries
-- a possible dedicated interactive mode once one-shot guidance is stable
+- interactive shell memory that feeds better follow-up guidance
 
 ## Sequencing rationale
 

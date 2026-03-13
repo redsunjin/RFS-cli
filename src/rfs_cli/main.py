@@ -1,22 +1,33 @@
 from __future__ import annotations
 
+import io
 import json
 import os
+import shlex
+import subprocess
 import sys
+import uuid
+from contextlib import redirect_stderr, redirect_stdout
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Optional
 
+import click
 import typer
+from typer.main import get_command
 
 from rfs_cli import __version__
 from rfs_cli.config import (
     load_config,
     load_index,
+    load_shell_memory,
     resolve_config_path,
+    resolve_shell_memory_path,
     resolve_state_dir,
     save_config,
     save_index,
+    save_shell_memory,
 )
 from rfs_cli.indexing import build_index, build_source_id, resolve_index_document, search_index
 from rfs_cli.llm import (
@@ -27,7 +38,15 @@ from rfs_cli.llm import (
     get_llm_status,
     normalize_provider,
 )
-from rfs_cli.models import AppConfig, CommandPayload, ErrorPayload, LLMConfig, SourceConfig
+from rfs_cli.models import (
+    AppConfig,
+    CommandPayload,
+    ErrorPayload,
+    LLMConfig,
+    ShellEvent,
+    ShellMemory,
+    SourceConfig,
+)
 from rfs_cli.services import (
     find_todo_markers,
     git_summary,
@@ -68,6 +87,19 @@ TEXT_GRADIENT_START = (245, 124, 92)
 TEXT_GRADIENT_END = (255, 182, 118)
 WAVE_GRADIENT_START = (77, 151, 255)
 WAVE_GRADIENT_END = (113, 211, 255)
+SHELL_PROMPT = "rfs> "
+KNOWN_SHELL_COMMANDS = {
+    "version",
+    "ask",
+    "search",
+    "show",
+    "index",
+    "dev",
+    "agent",
+    "drive",
+    "llm",
+}
+STATEFUL_COMMANDS = {"ask", "search", "show", "index", "llm"}
 
 
 def should_use_color() -> bool:
@@ -329,6 +361,131 @@ def prompt_llm_provider(existing: Optional[LLMConfig]) -> str:
     return normalize_provider(selected)
 
 
+def utc_now_iso() -> str:
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+
+
+def load_shell_memory_or_default(state_dir: Path) -> ShellMemory:
+    memory = load_shell_memory(state_dir=state_dir)
+    if memory is not None:
+        return memory
+    now = utc_now_iso()
+    return ShellMemory(
+        session_id=uuid.uuid4().hex[:12],
+        created_at=now,
+        updated_at=now,
+    )
+
+
+def append_shell_event(
+    memory: ShellMemory,
+    kind: str,
+    content: str,
+    metadata: Optional[dict[str, object]] = None,
+) -> None:
+    memory.events.append(
+        ShellEvent(
+            kind=kind,
+            content=content,
+            timestamp=utc_now_iso(),
+            metadata=metadata or {},
+        )
+    )
+    memory.updated_at = utc_now_iso()
+    if len(memory.events) > 200:
+        memory.events = memory.events[-200:]
+
+
+def shell_history_messages(
+    memory: ShellMemory,
+    limit: int = 8,
+    include_latest: bool = True,
+) -> list[dict[str, str]]:
+    messages: list[dict[str, str]] = []
+    events = memory.events if include_latest else memory.events[:-1]
+    for event in events[-limit:]:
+        if event.kind == "user":
+            messages.append({"role": "user", "content": event.content})
+            continue
+        if event.kind == "assistant":
+            messages.append({"role": "assistant", "content": event.content})
+            continue
+        if event.kind == "tool":
+            messages.append(
+                {
+                    "role": "system",
+                    "content": (
+                        "Recent tool execution:\n"
+                        f'command: {event.metadata.get("command", "unknown")}\n'
+                        f"output:\n{event.content}"
+                    ),
+                }
+            )
+    return messages
+
+
+def inject_state_dir(args: list[str], state_dir: Path) -> list[str]:
+    if "--state-dir" in args or not args:
+        return args
+    if args[0] not in STATEFUL_COMMANDS:
+        return args
+    return [*args, "--state-dir", str(state_dir)]
+
+
+def execute_internal_command(args: list[str], state_dir: Path) -> tuple[int, str]:
+    resolved_args = inject_state_dir(args, state_dir)
+    if not resolved_args:
+        return 0, ""
+    if resolved_args[0] == "shell":
+        return 1, "Nested `rfs shell` sessions are not supported."
+
+    command = get_command(app)
+    stdout_buffer = io.StringIO()
+    stderr_buffer = io.StringIO()
+
+    try:
+        with redirect_stdout(stdout_buffer), redirect_stderr(stderr_buffer):
+            command.main(
+                args=resolved_args,
+                prog_name="rfs",
+                standalone_mode=False,
+            )
+        exit_code = 0
+    except click.exceptions.Exit as exc:
+        exit_code = exc.exit_code
+    except SystemExit as exc:
+        exit_code = int(exc.code) if isinstance(exc.code, int) else 1
+    except Exception as exc:  # pragma: no cover - defensive path
+        exit_code = 1
+        stderr_buffer.write(f"{type(exc).__name__}: {exc}\n")
+
+    combined = stdout_buffer.getvalue()
+    stderr_output = stderr_buffer.getvalue()
+    if stderr_output:
+        combined = f"{combined}{stderr_output}"
+
+    return exit_code, combined.rstrip()
+
+
+def execute_external_command(command_text: str) -> tuple[int, str]:
+    try:
+        completed = subprocess.run(
+            shlex.split(command_text),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except ValueError as exc:
+        return 1, str(exc)
+    except FileNotFoundError as exc:
+        return 1, f"Command not found: {exc.filename}"
+
+    combined = completed.stdout
+    if completed.stderr:
+        combined = f"{combined}{completed.stderr}"
+    return completed.returncode, combined.rstrip()
+
+
 @app.callback(invoke_without_command=True)
 def root(ctx: typer.Context) -> None:
     if ctx.invoked_subcommand is not None:
@@ -376,6 +533,165 @@ def ask(
         },
     )
     emit(payload, output)
+
+
+@app.command()
+def shell(
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
+    reset_memory: bool = typer.Option(False, "--reset-memory"),
+) -> None:
+    resolved_state_dir = resolve_state_dir(state_dir)
+    if reset_memory:
+        now = utc_now_iso()
+        memory = ShellMemory(
+            session_id=uuid.uuid4().hex[:12],
+            created_at=now,
+            updated_at=now,
+        )
+    else:
+        memory = load_shell_memory_or_default(resolved_state_dir)
+
+    save_shell_memory(memory, state_dir=resolved_state_dir)
+
+    typer.echo(render_banner())
+    typer.echo("")
+    typer.echo("Interactive shell for rfs-cli")
+    typer.echo("Type a supported command without `rfs`, ask a question, or use /help.")
+    typer.echo(f"Memory: {resolve_shell_memory_path(state_dir=resolved_state_dir)}")
+
+    while True:
+        try:
+            raw_input = input(SHELL_PROMPT)
+        except EOFError:
+            typer.echo("")
+            break
+        except KeyboardInterrupt:
+            typer.echo("")
+            continue
+
+        user_input = raw_input.strip()
+        if not user_input:
+            continue
+
+        append_shell_event(memory, "user", user_input)
+
+        if user_input in {"/exit", "exit", "quit", ":q"}:
+            append_shell_event(memory, "system", "Shell session closed by user.")
+            save_shell_memory(memory, state_dir=resolved_state_dir)
+            typer.echo("Leaving rfs shell.")
+            break
+
+        if user_input == "/help":
+            help_text = "\n".join(
+                [
+                    "Shell commands:",
+                    "- /help: show shell help",
+                    "- /memory: show recent memory items",
+                    "- /clear: clear saved shell memory",
+                    "- /run <command>: run an rfs command inside the shell",
+                    "- !<command>: run an external CLI command and store the result",
+                    "- /exit: leave the shell",
+                    "You can also type commands directly, for example:",
+                    "  index sources",
+                    "  search roadmap",
+                    "  dev project-stats --path .",
+                    "Or ask a question in natural language if an LLM is configured.",
+                ]
+            )
+            typer.echo(help_text)
+            append_shell_event(memory, "assistant", help_text)
+            save_shell_memory(memory, state_dir=resolved_state_dir)
+            continue
+
+        if user_input == "/memory":
+            recent_events = memory.events[:-1][-8:]
+            if not recent_events:
+                message = "No saved shell memory yet."
+            else:
+                lines = [
+                    f"{event.timestamp} [{event.kind}] {event.content}"
+                    for event in recent_events
+                ]
+                message = "\n".join(lines)
+            typer.echo(message)
+            append_shell_event(memory, "assistant", message)
+            save_shell_memory(memory, state_dir=resolved_state_dir)
+            continue
+
+        if user_input == "/clear":
+            memory.events = []
+            memory.updated_at = utc_now_iso()
+            save_shell_memory(memory, state_dir=resolved_state_dir)
+            typer.echo("Shell memory cleared.")
+            continue
+
+        if user_input.startswith("!"):
+            command_text = user_input[1:].strip()
+            if not command_text:
+                typer.echo("No external command provided.")
+                save_shell_memory(memory, state_dir=resolved_state_dir)
+                continue
+
+            exit_code, output = execute_external_command(command_text)
+            if output:
+                typer.echo(output)
+            status_text = f"External command exited with code {exit_code}."
+            typer.echo(status_text)
+            append_shell_event(
+                memory,
+                "tool",
+                output or status_text,
+                metadata={
+                    "command": command_text,
+                    "exit_code": exit_code,
+                    "tool_type": "external",
+                },
+            )
+            save_shell_memory(memory, state_dir=resolved_state_dir)
+            continue
+
+        command_input = user_input
+        if user_input.startswith("/run "):
+            command_input = user_input[5:].strip()
+
+        command_tokens = shlex.split(command_input)
+        if command_tokens and command_tokens[0] == "rfs":
+            command_tokens = command_tokens[1:]
+
+        if command_tokens and command_tokens[0] in KNOWN_SHELL_COMMANDS:
+            exit_code, output = execute_internal_command(command_tokens, resolved_state_dir)
+            if output:
+                typer.echo(output)
+            status_text = f"Command exited with code {exit_code}."
+            typer.echo(status_text)
+            append_shell_event(
+                memory,
+                "tool",
+                output or status_text,
+                metadata={"command": " ".join(command_tokens), "exit_code": exit_code},
+            )
+            save_shell_memory(memory, state_dir=resolved_state_dir)
+            continue
+
+        app_config = load_config_or_fail("shell", resolved_state_dir, OutputMode.text)
+        if app_config.llm is None or not app_config.llm.enabled:
+            answer = (
+                "LLM is not configured. Run `llm setup`, use `/run llm setup`, "
+                "or type a direct command."
+            )
+        else:
+            try:
+                answer = ask_llm(
+                    app_config.llm,
+                    user_input,
+                    history=shell_history_messages(memory, include_latest=False),
+                )
+            except ValueError as exc:
+                answer = f"LLM error: {exc}"
+
+        typer.echo(answer)
+        append_shell_event(memory, "assistant", answer)
+        save_shell_memory(memory, state_dir=resolved_state_dir)
 
 
 @app.command()

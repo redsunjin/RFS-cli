@@ -57,6 +57,7 @@ Planned command groups:
 - `rfs index`
 - `rfs search`
 - `rfs show`
+- `rfs shell`
 - `rfs dev`
 - `rfs agent`
 - `rfs llm`
@@ -90,6 +91,7 @@ The current codebase includes:
 - project statistics
 - agent-safe file listing and text search
 - optional LLM setup and guided CLI usage with `rfs ask`
+- interactive shell mode with saved session memory and internal tool execution
 
 Google Drive and broader metadata enrichment remain roadmap work.
 
@@ -102,6 +104,7 @@ uv run rfs index add /path/to/local-notes --source local
 uv run rfs index run
 uv run rfs llm setup
 uv run rfs ask "How do I search only obsidian notes?"
+uv run rfs shell
 uv run rfs search "agent memory" --format json
 uv run rfs show <document-id> --format json
 uv run rfs dev find-todo --path . --format json
@@ -123,11 +126,24 @@ Example:
 uv run rfs llm setup
 uv run rfs llm status
 uv run rfs ask "How do I add my Documents folder and search markdown files only?"
+uv run rfs shell
 ```
 
 The core indexing and search flows do not require an LLM. The LLM layer is optional and intended to improve discoverability and future semantic features.
 
 The current conversational layer is intentionally narrow: it helps users discover and operate supported commands. Expanding that into a stronger agent with state-aware guidance and follow-up questions is part of the next planning track.
+
+## Shell mode
+
+`rfs shell` is the first step toward a CLI-native agent workflow.
+
+Inside the shell you can:
+
+- type direct `rfs` commands without the `rfs` prefix
+- ask natural-language questions if an LLM is configured
+- run internal commands with `/run ...`
+- run external CLI tools with `!<command>`
+- persist conversation and tool history in `.rfs/shell-memory.json`
 
 ## Working principles
 

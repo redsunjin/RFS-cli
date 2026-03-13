@@ -5,7 +5,7 @@ from typing import Optional
 
 from typer.testing import CliRunner
 
-from rfs_cli.config import save_config
+from rfs_cli.config import load_shell_memory, save_config
 from rfs_cli.main import app, render_banner
 from rfs_cli.models import AppConfig, LLMConfig
 
@@ -168,6 +168,96 @@ def test_ask_fails_without_llm_config(tmp_path: Path) -> None:
     payload = json.loads(result.stdout)
     assert_command_payload(payload, "ask", False)
     assert payload["error"]["code"] == "missing_llm"
+
+
+def test_shell_runs_internal_command_and_saves_memory(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+
+    result = runner.invoke(
+        app,
+        ["shell", "--state-dir", str(state_dir)],
+        input="version\n/exit\n",
+    )
+
+    assert result.exit_code == 0
+    assert "Interactive shell for rfs-cli" in result.stdout
+    assert "0.1.0" in result.stdout
+    assert "Command exited with code 0." in result.stdout
+
+    memory = load_shell_memory(state_dir=state_dir)
+    assert memory is not None
+    assert any(event.kind == "tool" for event in memory.events)
+    assert any(event.metadata.get("command") == "version" for event in memory.events)
+
+
+def test_shell_uses_llm_and_persists_conversation(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_config(
+        AppConfig(
+            llm=LLMConfig(
+                provider="ollama",
+                base_url="http://127.0.0.1:11434",
+                model="qwen2.5:7b-instruct",
+            )
+        ),
+        state_dir=state_dir,
+    )
+
+    captured: dict[str, object] = {}
+
+    def fake_ask_llm(config, question, history=None):
+        captured["question"] = question
+        captured["history"] = history or []
+        return "Use `rfs search \"roadmap\"`."
+
+    monkeypatch.setattr("rfs_cli.main.ask_llm", fake_ask_llm)
+
+    result = runner.invoke(
+        app,
+        ["shell", "--state-dir", str(state_dir)],
+        input="How do I search roadmap notes?\n/exit\n",
+    )
+
+    assert result.exit_code == 0
+    assert 'Use `rfs search "roadmap"`.' in result.stdout
+    assert captured["question"] == "How do I search roadmap notes?"
+    assert captured["history"] == []
+
+    memory = load_shell_memory(state_dir=state_dir)
+    assert memory is not None
+    assert any(event.kind == "assistant" for event in memory.events)
+
+
+def test_shell_memory_commands_work(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+
+    result = runner.invoke(
+        app,
+        ["shell", "--state-dir", str(state_dir)],
+        input="/memory\n/clear\n/memory\n/exit\n",
+    )
+
+    assert result.exit_code == 0
+    assert "No saved shell memory yet." in result.stdout
+    assert "Shell memory cleared." in result.stdout
+
+
+def test_shell_runs_external_command_and_records_it(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+
+    result = runner.invoke(
+        app,
+        ["shell", "--state-dir", str(state_dir)],
+        input="!/bin/echo hello\n/exit\n",
+    )
+
+    assert result.exit_code == 0
+    assert "hello" in result.stdout
+    assert "External command exited with code 0." in result.stdout
+
+    memory = load_shell_memory(state_dir=state_dir)
+    assert memory is not None
+    assert any(event.metadata.get("tool_type") == "external" for event in memory.events)
 
 
 def test_index_add_writes_source_config(tmp_path: Path) -> None:
