@@ -2,7 +2,7 @@
 
 ## Product summary
 
-`rfs-cli` is a command-line application for indexing, searching, inspecting, and summarizing personal knowledge and developer context. It is designed for both direct human usage and AI-agent execution.
+`rfs-cli` is a command-line application for indexing, searching, inspecting, and summarizing personal knowledge and developer context. It is designed for both direct human usage and AI-agent execution, and it now includes guided CLI assistance so users can discover commands conversationally.
 
 ## MVP definition
 
@@ -31,6 +31,12 @@ The MVP covers local and Obsidian indexing, indexed search, indexed document ins
 - Return normalized JSON for downstream AI usage
 - Fail safely with machine-readable error output
 
+### Guided CLI usage
+
+- Configure an optional local or remote LLM provider
+- Ask the CLI how to perform a task without already knowing the command syntax
+- Validate local provider connectivity before relying on guided help
+
 ## User stories
 
 - As a user, I want to search my Obsidian vault so I can retrieve notes quickly.
@@ -38,6 +44,7 @@ The MVP covers local and Obsidian indexing, indexed search, indexed document ins
 - As a user, I want Google Drive search later without changing the top-level command model.
 - As a developer, I want quick repository summaries from the same CLI.
 - As an AI agent, I want stable JSON output so I can call the tool reliably.
+- As a user, I want to ask the CLI what command to run so I do not have to memorize the command tree.
 
 ## Command model
 
@@ -112,6 +119,32 @@ Examples:
 - `rfs drive auth`
 - `rfs drive search "proposal"`
 
+### `rfs llm`
+
+Responsibilities:
+
+- configure the preferred LLM provider interactively
+- report connection health and available models
+- prepare future semantic or summarization workflows without making them mandatory for installation
+
+Examples:
+
+- `rfs llm setup`
+- `rfs llm status`
+
+### `rfs ask`
+
+Responsibilities:
+
+- answer CLI usage questions conversationally
+- recommend concrete supported commands
+- avoid inventing unsupported features
+
+Examples:
+
+- `rfs ask "How do I add my Obsidian vault?"`
+- `rfs ask "How do I search only markdown files?"`
+
 ### `rfs agent`
 
 Responsibilities:
@@ -158,6 +191,14 @@ Examples:
 
 - Store source roots and preferences in a local config file
 - Support environment variable overrides where useful
+- Store optional LLM provider settings in the same local config file
+
+### Guided assistance
+
+- Support `ollama`, `lmstudio`, and generic OpenAI-compatible HTTP providers
+- Provide interactive setup with sensible local defaults for provider base URLs
+- Expose a provider status command that checks reachability and visible model IDs
+- Allow `rfs ask` to work from a configured provider and answer with current supported commands only
 
 ## Non-functional requirements
 
@@ -166,6 +207,7 @@ Examples:
 - Clear errors and non-zero exit codes on failure
 - Testable modules with deterministic behavior
 - Extensible source adapter model
+- Optional LLM connectivity must not be required for base indexing and search flows
 
 ## Design constraints
 
@@ -179,6 +221,7 @@ Examples:
 - Google Drive integration introduces auth and sync complexity
 - Extracting useful text from mixed file formats may require staged support
 - Search quality can degrade if metadata and ranking are not modeled early
+- LLM-guided help can mislead users if prompts or command catalogs drift from the implemented CLI
 
 ## Deferred decisions
 

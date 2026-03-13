@@ -13,6 +13,7 @@ The project is primarily a learning vehicle, but it must also become a real tool
 - Make personal knowledge easy to search across Obsidian and local documents
 - Provide a practical CLI foundation for future integrations such as Google Drive
 - Create AI-safe command contracts with deterministic JSON output
+- Add guided CLI usage so command discovery does not depend on memorizing syntax
 - Establish a documentation-driven development process from the beginning
 
 ## Problem statement
@@ -25,6 +26,7 @@ Personal knowledge and project context are fragmented across multiple systems:
 - External research workflows such as NotebookLM
 
 The current friction is not only data access, but also the lack of one stable interface that both a human and an AI tool can use consistently.
+There is also a usability gap: even if the CLI has the right features, it is easy to underuse them when the command model is not discoverable at the moment of need.
 
 ## Product vision
 
@@ -34,6 +36,7 @@ The current friction is not only data access, but also the lack of one stable in
 - file inspection
 - developer workflow support
 - agent tool execution
+- interactive, LLM-assisted command guidance
 
 ## Target users
 
@@ -49,6 +52,7 @@ The current friction is not only data access, but also the lack of one stable in
 - Content display and metadata inspection
 - Developer helper commands such as git summaries and project statistics
 - JSON output mode for automation and agents
+- Optional LLM provider configuration for guided help and future semantic features
 - Incremental roadmap and task tracking
 
 ### Out of scope for the first release
@@ -63,6 +67,7 @@ The current friction is not only data access, but also the lack of one stable in
 - The CLI is useful for daily local note and file retrieval
 - The first search workflow can be used without manual data preparation
 - Commands are scriptable and return stable JSON output
+- A user can ask the CLI how to perform a task and get an actionable command back
 - New feature work follows documented scope, design, and roadmap updates
 
 ## Strategic principles

@@ -31,6 +31,7 @@ Responsibilities:
 - implement use-case orchestration
 - apply business rules
 - translate between adapters and output models
+- provide guided command assistance backed by a configured LLM provider
 
 ### Domain layer
 
@@ -46,6 +47,7 @@ Responsibilities:
 - filesystem adapter
 - Obsidian adapter
 - Drive adapter
+- LLM provider adapters for Ollama, LM Studio, and OpenAI-compatible APIs
 - index storage
 - git inspection service
 - config persistence
@@ -69,6 +71,7 @@ The current baseline stores source configuration and a local JSON index under a 
 
 The current index stores relative paths, file types, tags, aliases, and source-specific metadata for indexed documents. Obsidian notes use frontmatter-aware extraction.
 The frontmatter parser supports a lightweight nested subset for practical note metadata such as lists, booleans, numbers, and simple nested maps.
+The same workspace config now also stores optional LLM provider settings for conversational command guidance.
 
 ## Data model
 
@@ -103,6 +106,14 @@ The frontmatter parser supports a lightweight nested subset for practical note m
 - `source_type`
 - `snippet`
 
+### LLMConfig
+
+- `provider`
+- `base_url`
+- `model`
+- `api_key_env`
+- `enabled`
+
 ## Command flow
 
 ### Index flow
@@ -123,6 +134,14 @@ The frontmatter parser supports a lightweight nested subset for practical note m
 5. Render text or JSON
 
 Search ranking is heuristic and currently combines title, alias, tag, path, content, and source-priority signals.
+
+### Guided-help flow
+
+1. Load config
+2. Resolve configured LLM provider
+3. Build a fixed prompt with the supported command catalog
+4. Send the user question to the provider adapter
+5. Return text or JSON with the answer payload
 
 ## Output contract strategy
 
@@ -168,9 +187,17 @@ Example response shape:
 - Share output formatting and config loading, but not index-specific logic
 - Use a shared response shape for `dev` commands with `tool`, `subject_path`, and `summary`
 
+### LLM provider services
+
+- Keep provider-specific HTTP contracts isolated from CLI command handlers
+- Use Ollama native chat for local Ollama runtimes
+- Use OpenAI-compatible chat completions for LM Studio and generic compatible APIs
+- Keep base commands usable when no provider is configured
+
 ## Test strategy
 
 - Unit tests for command handlers and domain services
 - Fixture-based tests for indexing and search behavior
 - Contract tests for JSON output
 - Integration tests for source adapters where practical
+- Mocked tests for LLM setup, status, and guided-help command behavior

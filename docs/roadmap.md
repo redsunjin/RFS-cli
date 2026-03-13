@@ -47,13 +47,15 @@ Exit criteria:
 
 Goal:
 
-Make the CLI reliable for machine usage with stable JSON schemas, bounded output, and clear error behavior.
+Make the CLI reliable for machine usage with stable JSON schemas, bounded output, clear error behavior, and guided command discovery.
 
 Exit criteria:
 
 - JSON output contracts are documented
 - Agent-safe commands exist
 - Contract tests cover machine-readable responses
+- Optional LLM provider setup exists for guided command usage
+- A conversational help path exists without becoming a hard dependency for core commands
 
 ## MVP target
 
@@ -104,5 +106,5 @@ Exit criteria:
 
 - Phase 1 delivers the core user value soonest
 - Phase 2 proves the CLI is useful outside pure search
-- Phase 3 makes the tool dependable for AI integration
+- Phase 3 makes the tool dependable for AI integration and easier to learn at the point of use
 - Phase 4 is intentionally delayed because auth and remote state add complexity

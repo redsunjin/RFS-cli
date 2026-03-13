@@ -53,6 +53,11 @@ When scope changes, update these files in order:
 - [x] Add `agent find-text`
 - [x] Add contract tests for JSON output
 - [x] Add output size and path-boundary safeguards
+- [x] Define LLM provider config model
+- [x] Add interactive `rfs llm setup`
+- [x] Add `rfs llm status`
+- [x] Add `rfs ask`
+- [x] Add tests for configured guided-help flows
 
 ## Phase 4: Google Drive integration
 
@@ -79,9 +84,9 @@ When scope changes, update these files in order:
 
 ## Current recommended next three tasks
 
-- [x] Run the smoke checklist against real local user data
-- [x] Record the real-data smoke run result in `docs/qa-report.md`
 - [ ] Run the smoke checklist against a real Obsidian vault when one is available, or waive that step for this environment
+- [ ] Validate `rfs ask` against a real Ollama or LM Studio runtime
+- [ ] Design the first semantic retrieval or summarization command on top of the new LLM config layer
 
 ## MVP execution backlog
 
@@ -104,6 +109,9 @@ When scope changes, update these files in order:
 - [x] Normalize structured error codes across commands
 - [x] Add JSON contract tests for `search`, `show`, `dev`, and `agent`
 - [x] Add bounded output safeguards for large result sets
+- [x] Add interactive LLM setup for local and compatible providers
+- [x] Add command-guidance help via `rfs ask`
+- [ ] Add command suggestions that incorporate current source configuration and index availability
 
 ### Workstream 4: MVP release prep
 

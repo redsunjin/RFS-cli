@@ -5,7 +5,9 @@ from typing import Optional
 
 from typer.testing import CliRunner
 
+from rfs_cli.config import save_config
 from rfs_cli.main import app, render_banner
+from rfs_cli.models import AppConfig, LLMConfig
 
 runner = CliRunner()
 WAVE_LINE = "~" * 76
@@ -61,6 +63,111 @@ def test_render_banner_uses_ansi_when_forced(monkeypatch) -> None:
 
     assert "\033[38;2;" in banner
     assert "~" in banner
+
+
+def test_llm_setup_interactive_saves_config(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+
+    result = runner.invoke(
+        app,
+        ["llm", "setup", "--state-dir", str(state_dir), "--format", "json"],
+        input="ollama\n\n\n",
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout[result.stdout.index("{") :])
+    assert_command_payload(payload, "llm_setup", True)
+    assert payload["data"]["provider"] == "ollama"
+    assert payload["data"]["base_url"] == "http://127.0.0.1:11434"
+    assert payload["data"]["model"] == "qwen2.5:7b-instruct"
+
+    config = json.loads((state_dir / "config.json").read_text(encoding="utf-8"))
+    assert config["llm"]["provider"] == "ollama"
+
+
+def test_llm_status_json_reports_configured_state(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_config(
+        AppConfig(
+            llm=LLMConfig(
+                provider="ollama",
+                base_url="http://127.0.0.1:11434",
+                model="qwen2.5:7b-instruct",
+            )
+        ),
+        state_dir=state_dir,
+    )
+
+    monkeypatch.setattr(
+        "rfs_cli.main.get_llm_status",
+        lambda config: {
+            "configured": True,
+            "provider": config.provider,
+            "base_url": config.base_url,
+            "model": config.model,
+            "api_key_env": None,
+            "api_key_present": None,
+            "reachable": True,
+            "available_models": [config.model],
+            "default_model_available": True,
+            "error": None,
+        },
+    )
+
+    result = runner.invoke(
+        app,
+        ["llm", "status", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "llm_status", True)
+    assert payload["data"]["configured"] is True
+    assert payload["data"]["reachable"] is True
+
+
+def test_ask_json_uses_configured_llm(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_config(
+        AppConfig(
+            llm=LLMConfig(
+                provider="ollama",
+                base_url="http://127.0.0.1:11434",
+                model="qwen2.5:7b-instruct",
+            )
+        ),
+        state_dir=state_dir,
+    )
+
+    monkeypatch.setattr(
+        "rfs_cli.main.ask_llm",
+        lambda config, question: f"Use `rfs search \"{question}\"`.",
+    )
+
+    result = runner.invoke(
+        app,
+        ["ask", "agent memory", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "ask", True)
+    assert payload["data"]["provider"] == "ollama"
+    assert "rfs search" in payload["data"]["answer"]
+
+
+def test_ask_fails_without_llm_config(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+
+    result = runner.invoke(
+        app,
+        ["ask", "how do I search?", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 1
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "ask", False)
+    assert payload["error"]["code"] == "missing_llm"
 
 
 def test_index_add_writes_source_config(tmp_path: Path) -> None:

@@ -19,7 +19,15 @@ from rfs_cli.config import (
     save_index,
 )
 from rfs_cli.indexing import build_index, build_source_id, resolve_index_document, search_index
-from rfs_cli.models import AppConfig, CommandPayload, ErrorPayload, SourceConfig
+from rfs_cli.llm import (
+    ask_llm,
+    default_api_key_env,
+    default_base_url,
+    default_model_hint,
+    get_llm_status,
+    normalize_provider,
+)
+from rfs_cli.models import AppConfig, CommandPayload, ErrorPayload, LLMConfig, SourceConfig
 from rfs_cli.services import (
     find_todo_markers,
     git_summary,
@@ -34,11 +42,13 @@ index_app = typer.Typer(help="Index-related commands.")
 dev_app = typer.Typer(help="Developer utility commands.")
 agent_app = typer.Typer(help="AI-safe commands.")
 drive_app = typer.Typer(help="Google Drive placeholder commands.")
+llm_app = typer.Typer(help="LLM setup and guidance commands.")
 
 app.add_typer(index_app, name="index")
 app.add_typer(dev_app, name="dev")
 app.add_typer(agent_app, name="agent")
 app.add_typer(drive_app, name="drive")
+app.add_typer(llm_app, name="llm")
 
 
 class OutputMode(str, Enum):
@@ -246,6 +256,39 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
             typer.echo(data["version"])
             return
 
+        if command == "llm_setup":
+            typer.echo(f'Configured {data["provider"]} LLM provider')
+            typer.echo(f'Base URL: {data["base_url"]}')
+            typer.echo(f'Model: {data["model"]}')
+            if data.get("api_key_env"):
+                typer.echo(f'API key env: {data["api_key_env"]}')
+            typer.echo(f'Config: {data["config_path"]}')
+            return
+
+        if command == "llm_status":
+            if not data["configured"]:
+                typer.echo("LLM is not configured. Run `rfs llm setup` first.")
+                return
+            typer.echo(f'Provider: {data["provider"]}')
+            typer.echo(f'Base URL: {data["base_url"]}')
+            typer.echo(f'Model: {data["model"]}')
+            typer.echo(f'Reachable: {"yes" if data["reachable"] else "no"}')
+            if data.get("api_key_env"):
+                present = "yes" if data.get("api_key_present") else "no"
+                typer.echo(f'API key env: {data["api_key_env"]} (present: {present})')
+            available_models = data.get("available_models") or []
+            if available_models:
+                typer.echo("Available models:")
+                for model_name in available_models[:10]:
+                    typer.echo(f"- {model_name}")
+            if data.get("error"):
+                typer.echo(f'Error: {data["error"]}')
+            return
+
+        if command == "ask":
+            typer.echo(data["answer"])
+            return
+
         typer.echo(json.dumps(payload.data, indent=2))
         return
 
@@ -277,6 +320,15 @@ def load_index_or_fail(command: str, state_dir: Path, output: OutputMode):
         fail(command, str(exc), output, code="invalid_index")
 
 
+def prompt_llm_provider(existing: Optional[LLMConfig]) -> str:
+    default_provider = existing.provider if existing is not None else "ollama"
+    selected = typer.prompt(
+        "LLM provider [ollama/lmstudio/openai-compatible]",
+        default=default_provider,
+    )
+    return normalize_provider(selected)
+
+
 @app.callback(invoke_without_command=True)
 def root(ctx: typer.Context) -> None:
     if ctx.invoked_subcommand is not None:
@@ -293,6 +345,36 @@ def root(ctx: typer.Context) -> None:
 @app.command()
 def version(output: OutputMode = typer.Option(OutputMode.text, "--format")) -> None:
     payload = CommandPayload(command="version", ok=True, data={"version": __version__})
+    emit(payload, output)
+
+
+@app.command()
+def ask(
+    question: Optional[str] = typer.Argument(None, help="Question about how to use the CLI."),
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
+    output: OutputMode = typer.Option(OutputMode.text, "--format"),
+) -> None:
+    app_config = load_config_or_fail("ask", state_dir, output)
+    if app_config.llm is None or not app_config.llm.enabled:
+        fail("ask", "LLM is not configured. Run `rfs llm setup` first.", output, "missing_llm")
+
+    prompt = question or typer.prompt("What do you want to do with rfs?")
+
+    try:
+        answer = ask_llm(app_config.llm, prompt)
+    except ValueError as exc:
+        fail("ask", str(exc), output, code="llm_error")
+
+    payload = CommandPayload(
+        command="ask",
+        ok=True,
+        data={
+            "question": prompt,
+            "provider": app_config.llm.provider,
+            "model": app_config.llm.model,
+            "answer": answer,
+        },
+    )
     emit(payload, output)
 
 
@@ -577,6 +659,101 @@ def agent_find_text(
             "result_count": len(results),
             "results": results,
         },
+    )
+    emit(payload, output)
+
+
+@llm_app.command("setup")
+def llm_setup(
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
+    provider: Optional[str] = typer.Option(None, "--provider"),
+    base_url: Optional[str] = typer.Option(None, "--base-url"),
+    model: Optional[str] = typer.Option(None, "--model"),
+    api_key_env: Optional[str] = typer.Option(None, "--api-key-env"),
+    output: OutputMode = typer.Option(OutputMode.text, "--format"),
+) -> None:
+    app_config = load_config_or_fail("llm_setup", state_dir, output)
+    existing = app_config.llm
+
+    if provider is None:
+        provider_value = prompt_llm_provider(existing)
+    else:
+        try:
+            provider_value = normalize_provider(provider)
+        except ValueError as exc:
+            fail("llm_setup", str(exc), output, code="invalid_provider")
+
+    default_url = base_url or (existing.base_url if existing is not None else None)
+    resolved_base_url = base_url or typer.prompt(
+        "Base URL",
+        default=default_url or default_base_url(provider_value),
+    )
+
+    default_model = model or (
+        existing.model if existing is not None and existing.provider == provider_value else None
+    )
+    resolved_model = model or typer.prompt(
+        "Model",
+        default=default_model or default_model_hint(provider_value),
+    )
+
+    resolved_api_key_env: Optional[str]
+    if provider_value == "openai-compatible":
+        default_env = (
+            api_key_env
+            or (
+                existing.api_key_env
+                if existing is not None and existing.provider == provider_value
+                else None
+            )
+            or default_api_key_env(provider_value)
+        )
+        resolved_api_key_env = api_key_env or typer.prompt("API key env var", default=default_env)
+    else:
+        resolved_api_key_env = None
+
+    app_config.llm = LLMConfig(
+        provider=provider_value,
+        base_url=resolved_base_url.rstrip("/"),
+        model=resolved_model,
+        api_key_env=resolved_api_key_env,
+        enabled=True,
+    )
+    config_path = save_config(app_config, state_dir=state_dir)
+
+    payload = CommandPayload(
+        command="llm_setup",
+        ok=True,
+        data={
+            "provider": app_config.llm.provider,
+            "base_url": app_config.llm.base_url,
+            "model": app_config.llm.model,
+            "api_key_env": app_config.llm.api_key_env,
+            "config_path": str(config_path),
+        },
+    )
+    emit(payload, output)
+
+
+@llm_app.command("status")
+def llm_status(
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
+    output: OutputMode = typer.Option(OutputMode.text, "--format"),
+) -> None:
+    app_config = load_config_or_fail("llm_status", state_dir, output)
+    if app_config.llm is None or not app_config.llm.enabled:
+        payload = CommandPayload(
+            command="llm_status",
+            ok=True,
+            data={"configured": False},
+        )
+        emit(payload, output)
+        return
+
+    payload = CommandPayload(
+        command="llm_status",
+        ok=True,
+        data=get_llm_status(app_config.llm),
     )
     emit(payload, output)
 

@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 SourceType = Literal["local", "obsidian", "drive"]
 OutputFormat = Literal["text", "json"]
+LLMProvider = Literal["ollama", "lmstudio", "openai-compatible"]
 
 
 class SourceConfig(BaseModel):
@@ -16,10 +17,19 @@ class SourceConfig(BaseModel):
     enabled: bool = True
 
 
+class LLMConfig(BaseModel):
+    provider: LLMProvider
+    base_url: str
+    model: str
+    api_key_env: Optional[str] = None
+    enabled: bool = True
+
+
 class AppConfig(BaseModel):
     schema_version: str = "1"
     default_output_format: OutputFormat = "text"
     sources: List[SourceConfig] = Field(default_factory=list)
+    llm: Optional[LLMConfig] = None
 
 
 class ErrorPayload(BaseModel):

@@ -36,6 +36,8 @@ Planned command groups:
 - `rfs show`
 - `rfs dev`
 - `rfs agent`
+- `rfs llm`
+- `rfs ask`
 - `rfs drive`
 
 ## Selected stack
@@ -64,6 +66,7 @@ The current codebase includes:
 - file preview support
 - project statistics
 - agent-safe file listing and text search
+- optional LLM setup and guided CLI usage with `rfs ask`
 
 Google Drive and broader metadata enrichment remain roadmap work.
 
@@ -74,12 +77,32 @@ uv sync --all-groups
 uv run rfs index add /path/to/obsidian-vault --source obsidian
 uv run rfs index add /path/to/local-notes --source local
 uv run rfs index run
+uv run rfs llm setup
+uv run rfs ask "How do I search only obsidian notes?"
 uv run rfs search "agent memory" --format json
 uv run rfs show <document-id> --format json
 uv run rfs dev find-todo --path . --format json
 ```
 
 The default workspace state directory is `.rfs/`.
+
+## LLM-assisted usage
+
+`rfs-cli` can optionally guide command usage through a configured provider:
+
+- `ollama`
+- `lmstudio`
+- OpenAI-compatible HTTP APIs
+
+Example:
+
+```bash
+uv run rfs llm setup
+uv run rfs llm status
+uv run rfs ask "How do I add my Documents folder and search markdown files only?"
+```
+
+The core indexing and search flows do not require an LLM. The LLM layer is optional and intended to improve discoverability and future semantic features.
 
 ## Working principles
 
