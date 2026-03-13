@@ -46,6 +46,7 @@ That agent now assumes a configured LLM as part of normal onboarding, and its ru
 - [Roadmap](./docs/roadmap.md)
 - [MVP plan](./docs/mvp-plan.md)
 - [MVP status](./docs/mvp-status.md)
+- [Next phase plan](./docs/next-phase-plan.md)
 - [Smoke checklist](./docs/smoke-checklist.md)
 - [QA report](./docs/qa-report.md)
 - [LLM onboarding guide](./docs/llm-onboarding.md)

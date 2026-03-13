@@ -101,9 +101,9 @@ When scope changes, update these files in order:
 
 ## Current recommended next three tasks
 
-- [ ] Validate `rfs ask` against a real Ollama or LM Studio runtime
-- [ ] Validate `rfs shell` against a real Ollama or LM Studio runtime
-- [ ] Define the agent persona and source-aware follow-up guidance plan
+- [ ] Validate `rfs ask` against the real LM Studio or Ollama runtime
+- [ ] Validate `rfs shell` against the real LM Studio or Ollama runtime
+- [ ] Decide and document the real Obsidian smoke requirement or waiver for MVP sign-off
 
 ## MVP execution backlog
 
