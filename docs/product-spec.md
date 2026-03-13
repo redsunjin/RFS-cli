@@ -2,7 +2,7 @@
 
 ## Product summary
 
-`rfs-cli` is a command-line application for indexing, searching, inspecting, and summarizing personal knowledge and developer context. It is designed for both direct human usage and AI-agent execution, and it now includes guided CLI assistance so users can discover commands conversationally.
+`rfs-cli` is a command-line application for indexing, searching, inspecting, and summarizing personal knowledge and developer context. It is designed for both direct human usage and AI-agent execution, and it now includes guided CLI assistance so users can discover commands conversationally. The longer-term product direction is a CLI-native agent that can use its own tools while preserving a consistent style and bounded domain.
 
 ## MVP definition
 
@@ -37,6 +37,13 @@ The MVP covers local and Obsidian indexing, indexed search, indexed document ins
 - Ask the CLI how to perform a task without already knowing the command syntax
 - Validate local provider connectivity before relying on guided help
 
+### Agent behavior
+
+- Present one coherent operator instead of a loose collection of commands
+- Preserve a consistent tone and task-focused style
+- Ground suggestions in real commands, local state, and available sources
+- Ask short follow-up questions when a user request is ambiguous
+
 ## User stories
 
 - As a user, I want to search my Obsidian vault so I can retrieve notes quickly.
@@ -45,6 +52,8 @@ The MVP covers local and Obsidian indexing, indexed search, indexed document ins
 - As a developer, I want quick repository summaries from the same CLI.
 - As an AI agent, I want stable JSON output so I can call the tool reliably.
 - As a user, I want to ask the CLI what command to run so I do not have to memorize the command tree.
+- As a user, I want the CLI to behave like one assistant with a recognizable style, not just a help page.
+- As a user, I want the CLI to ask for only the missing detail when my request is underspecified.
 
 ## Command model
 
@@ -139,6 +148,7 @@ Responsibilities:
 - answer CLI usage questions conversationally
 - recommend concrete supported commands
 - avoid inventing unsupported features
+- evolve into the main human-facing agent entrypoint for guided tool usage
 
 Examples:
 
@@ -199,6 +209,15 @@ Examples:
 - Provide interactive setup with sensible local defaults for provider base URLs
 - Expose a provider status command that checks reachability and visible model IDs
 - Allow `rfs ask` to work from a configured provider and answer with current supported commands only
+- Incorporate current source configuration and index availability into command suggestions when possible
+- Reserve the right to ask a brief follow-up question before recommending a command
+
+### Agent identity
+
+- Maintain a stable, pragmatic, tool-oriented response style
+- Keep the CLI identity distinct from generic chat assistants
+- Prefer doing or recommending concrete tool actions over broad discussion
+- Keep the agent within the product domain of knowledge retrieval, project workflows, and tool execution
 
 ## Non-functional requirements
 
@@ -208,6 +227,7 @@ Examples:
 - Testable modules with deterministic behavior
 - Extensible source adapter model
 - Optional LLM connectivity must not be required for base indexing and search flows
+- The conversational layer must not obscure direct command access
 
 ## Design constraints
 
@@ -222,6 +242,7 @@ Examples:
 - Extracting useful text from mixed file formats may require staged support
 - Search quality can degrade if metadata and ranking are not modeled early
 - LLM-guided help can mislead users if prompts or command catalogs drift from the implemented CLI
+- Agent persona can become inconsistent if style and scope are not defined as product contracts
 
 ## Deferred decisions
 
@@ -229,3 +250,4 @@ Examples:
 - Index storage technology
 - File type extraction policy beyond Markdown and plain text
 - Degree of NotebookLM workflow automation
+- Depth of multi-turn agent interaction before introducing a dedicated interactive mode

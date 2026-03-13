@@ -2,7 +2,7 @@
 
 ## Overview
 
-The system should be built as a modular CLI with a shared application core and separate source adapters. The architecture must support both human-readable terminal output and stable machine-readable output.
+The system should be built as a modular CLI with a shared application core and separate source adapters. The architecture must support both human-readable terminal output and stable machine-readable output. It should also support a CLI-native agent layer that helps users operate the tool without turning the system into a generic chatbot.
 
 ## Selected implementation stack
 
@@ -32,6 +32,7 @@ Responsibilities:
 - apply business rules
 - translate between adapters and output models
 - provide guided command assistance backed by a configured LLM provider
+- enforce agent behavior rules such as style, domain boundaries, and grounding to implemented commands
 
 ### Domain layer
 
@@ -72,6 +73,7 @@ The current baseline stores source configuration and a local JSON index under a 
 The current index stores relative paths, file types, tags, aliases, and source-specific metadata for indexed documents. Obsidian notes use frontmatter-aware extraction.
 The frontmatter parser supports a lightweight nested subset for practical note metadata such as lists, booleans, numbers, and simple nested maps.
 The same workspace config now also stores optional LLM provider settings for conversational command guidance.
+The current implementation exposes one-shot guided help through `rfs ask`. A more interactive agent loop remains roadmap work.
 
 ## Data model
 
@@ -143,6 +145,14 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 4. Send the user question to the provider adapter
 5. Return text or JSON with the answer payload
 
+### Planned agent-interaction flow
+
+1. Inspect the current workspace state such as configured sources and index availability
+2. Interpret the user goal through the agent policy and command catalog
+3. If enough information exists, recommend or trigger the most relevant command path
+4. If key information is missing, ask one short follow-up question
+5. Keep the final guidance grounded in supported commands and observable state
+
 ## Output contract strategy
 
 Every command should expose:
@@ -193,6 +203,13 @@ Example response shape:
 - Use Ollama native chat for local Ollama runtimes
 - Use OpenAI-compatible chat completions for LM Studio and generic compatible APIs
 - Keep base commands usable when no provider is configured
+
+### Agent policy services
+
+- Keep a fixed product-domain prompt that limits the assistant to implemented capabilities
+- Separate provider transport from agent style and grounding rules
+- Prefer deterministic command recommendation over open-ended discussion
+- Allow future expansion to a dedicated interactive mode without rewriting the command layer
 
 ## Test strategy
 

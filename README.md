@@ -1,18 +1,41 @@
 # rfs-cli
 
-`rfs-cli` is a personal knowledge and developer utility CLI designed for two modes of use:
+```text
+ ____  _____    _    ______   __   _____ ___  ____    ____  _____    _
+|  _ \| ____|  / \  |  _ \ \ / /  |  ___/ _ \|  _ \  / ___|| ____|  / \
+| |_) |  _|   / _ \ | | | \ V /   | |_ | | | | |_) | \___ \|  _|   / _ \
+|  _ <| |___ / ___ \| |_| || |    |  _|| |_| |  _ <   ___) | |___ / ___ \
+|_| \_\_____/_/   \_\____/ |_|    |_|   \___/|_| \_\ |____/|_____/_/   \_\
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
+
+`rfs-cli` is a personal knowledge and developer utility CLI designed for three modes of use:
 
 - Human-first local workflows
 - AI-friendly tool execution with structured output
+- CLI-native agent guidance with a consistent style
 
 The project starts with local knowledge retrieval for Obsidian vaults and filesystem content, then expands into developer utilities, Google Drive integration, and agent-oriented commands.
+
+The product direction is not just "a CLI with many commands." The goal is to turn `rfs-cli` into one coherent local-first agent that can use its own tools, explain them, and keep a recognizable operating style instead of behaving like a generic chat wrapper.
 
 ## Project goals
 
 - Search and inspect personal knowledge across local files and Obsidian notes
 - Add practical developer commands that are useful during day-to-day work
 - Expose stable, machine-readable commands that AI agents can call safely
+- Turn the CLI into a tool-using agent with a clear identity and grounded behavior
 - Build the system incrementally from a small, usable MVP
+
+## Product direction
+
+`rfs-cli` is being shaped as a CLI-native agent:
+
+- it should use tools, not just describe them
+- it should preserve a consistent voice and interaction style
+- it should guide the user toward concrete commands instead of generic answers
+- it should stay grounded in its real capabilities, local state, and configured sources
 
 ## Document map
 
@@ -103,6 +126,8 @@ uv run rfs ask "How do I add my Documents folder and search markdown files only?
 ```
 
 The core indexing and search flows do not require an LLM. The LLM layer is optional and intended to improve discoverability and future semantic features.
+
+The current conversational layer is intentionally narrow: it helps users discover and operate supported commands. Expanding that into a stronger agent with state-aware guidance and follow-up questions is part of the next planning track.
 
 ## Working principles
 

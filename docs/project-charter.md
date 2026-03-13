@@ -2,11 +2,11 @@
 
 ## Mission
 
-Build a personal CLI that unifies knowledge retrieval, developer utilities, and AI-tool execution into one consistent interface.
+Build a personal CLI agent that unifies knowledge retrieval, developer utilities, and AI-tool execution into one consistent interface.
 
 ## Why this project exists
 
-The project is primarily a learning vehicle, but it must also become a real tool that is useful in daily work. The CLI should reduce friction when searching notes, inspecting files, summarizing project state, and providing reliable tool output for AI agents.
+The project is primarily a learning vehicle, but it must also become a real tool that is useful in daily work. The CLI should reduce friction when searching notes, inspecting files, summarizing project state, and providing reliable tool output for AI agents. It should also evolve beyond a loose command set into a single, recognizable agent that can use its own tools while keeping a consistent interaction style.
 
 ## Primary outcomes
 
@@ -14,6 +14,7 @@ The project is primarily a learning vehicle, but it must also become a real tool
 - Provide a practical CLI foundation for future integrations such as Google Drive
 - Create AI-safe command contracts with deterministic JSON output
 - Add guided CLI usage so command discovery does not depend on memorizing syntax
+- Turn the CLI into a tool-using agent with a stable voice and clear operating boundaries
 - Establish a documentation-driven development process from the beginning
 
 ## Problem statement
@@ -27,16 +28,18 @@ Personal knowledge and project context are fragmented across multiple systems:
 
 The current friction is not only data access, but also the lack of one stable interface that both a human and an AI tool can use consistently.
 There is also a usability gap: even if the CLI has the right features, it is easy to underuse them when the command model is not discoverable at the moment of need.
+Finally, most CLIs expose tools but do not behave like a coherent operator. This project aims to close that gap.
 
 ## Product vision
 
-`rfs-cli` becomes a local command center for:
+`rfs-cli` becomes a local command center and CLI-native agent for:
 
 - knowledge discovery
 - file inspection
 - developer workflow support
 - agent tool execution
 - interactive, LLM-assisted command guidance
+- consistent, recognizable interaction
 
 ## Target users
 
@@ -53,6 +56,7 @@ There is also a usability gap: even if the CLI has the right features, it is eas
 - Developer helper commands such as git summaries and project statistics
 - JSON output mode for automation and agents
 - Optional LLM provider configuration for guided help and future semantic features
+- Agent-guided command discovery with a defined interaction style
 - Incremental roadmap and task tracking
 
 ### Out of scope for the first release
@@ -61,6 +65,7 @@ There is also a usability gap: even if the CLI has the right features, it is eas
 - Complex multi-user collaboration
 - UI-first workflows
 - Broad third-party SaaS integrations beyond selected essentials
+- General-purpose open-ended chat unrelated to the CLI's domain
 
 ## Success criteria
 
@@ -68,6 +73,7 @@ There is also a usability gap: even if the CLI has the right features, it is eas
 - The first search workflow can be used without manual data preparation
 - Commands are scriptable and return stable JSON output
 - A user can ask the CLI how to perform a task and get an actionable command back
+- The CLI remains grounded in its actual tools rather than drifting into generic assistant behavior
 - New feature work follows documented scope, design, and roadmap updates
 
 ## Strategic principles
@@ -76,6 +82,7 @@ There is also a usability gap: even if the CLI has the right features, it is eas
 - Reliable contracts before broad feature count
 - Reusable core services before one-off commands
 - Documentation before expansion
+- Tool-using agent behavior over generic wrapper behavior
 - Expert-reviewed multi-agent delivery to MVP before broadening scope
 
 ## Integration strategy

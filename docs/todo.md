@@ -58,6 +58,9 @@ When scope changes, update these files in order:
 - [x] Add `rfs llm status`
 - [x] Add `rfs ask`
 - [x] Add tests for configured guided-help flows
+- [ ] Define agent persona and response-style contract
+- [ ] Add source-aware and index-aware command suggestions to `rfs ask`
+- [ ] Add a short follow-up question path for ambiguous requests
 
 ## Phase 4: Google Drive integration
 
@@ -81,12 +84,13 @@ When scope changes, update these files in order:
 - [ ] Add logging and diagnostics switches
 - [ ] Create release checklist
 - [ ] Run end-to-end smoke tests
+- [ ] Document the user-facing agent profile and operating boundaries
 
 ## Current recommended next three tasks
 
 - [ ] Run the smoke checklist against a real Obsidian vault when one is available, or waive that step for this environment
 - [ ] Validate `rfs ask` against a real Ollama or LM Studio runtime
-- [ ] Design the first semantic retrieval or summarization command on top of the new LLM config layer
+- [ ] Define the agent persona and source-aware follow-up guidance plan
 
 ## MVP execution backlog
 
@@ -112,6 +116,8 @@ When scope changes, update these files in order:
 - [x] Add interactive LLM setup for local and compatible providers
 - [x] Add command-guidance help via `rfs ask`
 - [ ] Add command suggestions that incorporate current source configuration and index availability
+- [ ] Define the agent persona/profile and response-style contract
+- [ ] Add a short follow-up question flow for ambiguous asks
 
 ### Workstream 4: MVP release prep
 

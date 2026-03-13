@@ -47,7 +47,7 @@ Exit criteria:
 
 Goal:
 
-Make the CLI reliable for machine usage with stable JSON schemas, bounded output, clear error behavior, and guided command discovery.
+Make the CLI reliable for machine usage with stable JSON schemas, bounded output, clear error behavior, guided command discovery, and the first layer of coherent agent behavior.
 
 Exit criteria:
 
@@ -56,6 +56,7 @@ Exit criteria:
 - Contract tests cover machine-readable responses
 - Optional LLM provider setup exists for guided command usage
 - A conversational help path exists without becoming a hard dependency for core commands
+- Conversational answers stay grounded in supported commands and product scope
 
 ## MVP target
 
@@ -94,17 +95,30 @@ Exit criteria:
 
 Goal:
 
-Prepare the project for regular personal use and future extension.
+Prepare the project for regular personal use and future extension as a dependable CLI agent.
 
 Exit criteria:
 
 - Packaging and install flow are defined
 - Logging and diagnostics are adequate
 - Release checklist exists
+- Agent interaction profile and user-facing behavior are documented
+
+## Agentification track
+
+After the current MVP hardening work, the next product-shaping track is turning `rfs-cli` into a stronger CLI-native agent.
+
+Candidate milestones:
+
+- source-aware and index-aware command suggestions
+- short follow-up questions for ambiguous requests
+- a documented agent profile with stable tone and operating boundaries
+- a possible dedicated interactive mode once one-shot guidance is stable
 
 ## Sequencing rationale
 
 - Phase 1 delivers the core user value soonest
 - Phase 2 proves the CLI is useful outside pure search
 - Phase 3 makes the tool dependable for AI integration and easier to learn at the point of use
+- The agentification track builds on that foundation instead of replacing the direct-command model
 - Phase 4 is intentionally delayed because auth and remote state add complexity
