@@ -5,9 +5,10 @@ from typing import Optional
 
 from typer.testing import CliRunner
 
-from rfs_cli.main import app
+from rfs_cli.main import app, render_banner
 
 runner = CliRunner()
+WAVE_LINE = "~" * 76
 
 
 def assert_command_payload(payload: dict[str, object], command: str, ok: bool) -> None:
@@ -41,6 +42,25 @@ def test_version_json() -> None:
     payload = json.loads(result.stdout)
     assert_command_payload(payload, "version", True)
     assert payload["data"]["version"] == "0.1.0"
+
+
+def test_root_without_args_shows_banner_and_help() -> None:
+    result = runner.invoke(app, [])
+
+    assert result.exit_code == 0
+    assert " ____  _____    _    ______   __   _____ ___  ____    ____  _____    _" in result.stdout
+    assert WAVE_LINE in result.stdout
+    assert "Usage:" in result.stdout
+
+
+def test_render_banner_uses_ansi_when_forced(monkeypatch) -> None:
+    monkeypatch.setenv("FORCE_COLOR", "1")
+    monkeypatch.delenv("NO_COLOR", raising=False)
+
+    banner = render_banner()
+
+    assert "\033[38;2;" in banner
+    assert "~" in banner
 
 
 def test_index_add_writes_source_config(tmp_path: Path) -> None:

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import os
+import sys
 from enum import Enum
 from pathlib import Path
 from typing import Any, Optional
@@ -42,6 +44,66 @@ app.add_typer(drive_app, name="drive")
 class OutputMode(str, Enum):
     text = "text"
     json = "json"
+
+
+BANNER_LINES = [
+    " ____  _____    _    ______   __   _____ ___  ____    ____  _____    _",
+    "|  _ \\| ____|  / \\  |  _ \\ \\ / /  |  ___/ _ \\|  _ \\  / ___|| ____|  / \\ ",
+    "| |_) |  _|   / _ \\ | | | \\ V /   | |_ | | | | |_) | \\___ \\|  _|   / _ \\ ",
+    "|  _ <| |___ / ___ \\| |_| || |    |  _|| |_| |  _ <   ___) | |___ / ___ \\ ",
+    "|_| \\_\\_____/_/   \\_\\____/ |_|    |_|   \\___/|_| \\_\\ |____/|_____/_/   \\_\\",
+]
+WAVE_LINE = "~" * 76
+TEXT_GRADIENT_START = (245, 124, 92)
+TEXT_GRADIENT_END = (255, 182, 118)
+WAVE_GRADIENT_START = (77, 151, 255)
+WAVE_GRADIENT_END = (113, 211, 255)
+
+
+def should_use_color() -> bool:
+    if os.environ.get("NO_COLOR"):
+        return False
+    if os.environ.get("FORCE_COLOR"):
+        return True
+    return sys.stdout.isatty()
+
+
+def rgb_escape(red: int, green: int, blue: int) -> str:
+    return f"\033[38;2;{red};{green};{blue}m"
+
+
+def gradient_text(
+    text: str,
+    start: tuple[int, int, int],
+    end: tuple[int, int, int],
+) -> str:
+    positions = [index for index, char in enumerate(text) if char != " "]
+    if not positions:
+        return text
+
+    colored_chars: list[str] = list(text)
+    total_steps = max(len(positions) - 1, 1)
+    for step, position in enumerate(positions):
+        ratio = step / total_steps
+        red = round(start[0] + (end[0] - start[0]) * ratio)
+        green = round(start[1] + (end[1] - start[1]) * ratio)
+        blue = round(start[2] + (end[2] - start[2]) * ratio)
+        colored_chars[position] = f"{rgb_escape(red, green, blue)}{text[position]}\033[0m"
+
+    return "".join(colored_chars)
+
+
+def render_banner() -> str:
+    lines = BANNER_LINES + ["", WAVE_LINE]
+    if not should_use_color():
+        return "\n".join(lines)
+
+    colorized = [
+        gradient_text(line, TEXT_GRADIENT_START, TEXT_GRADIENT_END) for line in BANNER_LINES
+    ]
+    colorized.append("")
+    colorized.append(gradient_text(WAVE_LINE, WAVE_GRADIENT_START, WAVE_GRADIENT_END))
+    return "\n".join(colorized)
 
 
 def build_dev_data(
@@ -213,6 +275,19 @@ def load_index_or_fail(command: str, state_dir: Path, output: OutputMode):
         return load_index(state_dir=state_dir)
     except ValueError as exc:
         fail(command, str(exc), output, code="invalid_index")
+
+
+@app.callback(invoke_without_command=True)
+def root(ctx: typer.Context) -> None:
+    if ctx.invoked_subcommand is not None:
+        return
+    if ctx.resilient_parsing:
+        return
+
+    typer.echo(render_banner())
+    typer.echo("")
+    typer.echo(ctx.get_help())
+    raise typer.Exit()
 
 
 @app.command()
