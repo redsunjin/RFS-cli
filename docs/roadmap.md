@@ -1,0 +1,92 @@
+# Roadmap
+
+## Phase 0: Foundation
+
+Goal:
+
+Set up the repository, toolchain, baseline command structure, and documentation-driven workflow.
+
+Exit criteria:
+
+- Project scaffolding exists
+- Documentation set is committed
+- Basic CLI command skeleton runs
+
+## Phase 1: Local and Obsidian MVP
+
+Goal:
+
+Deliver useful local indexing and search for Markdown and text files, with Obsidian as a first-class source.
+
+Exit criteria:
+
+- Source roots can be configured
+- Local index can be created and refreshed
+- Search returns ranked results
+- `show` displays result details
+
+## Phase 2: Developer utility commands
+
+Goal:
+
+Add commands that improve day-to-day development workflows and validate the multi-domain command structure.
+
+Exit criteria:
+
+- `dev git-summary` works
+- `dev project-stats` works
+- At least one codebase scanning command exists
+
+## Phase 3: Agent interface hardening
+
+Goal:
+
+Make the CLI reliable for machine usage with stable JSON schemas, bounded output, and clear error behavior.
+
+Exit criteria:
+
+- JSON output contracts are documented
+- Agent-safe commands exist
+- Contract tests cover machine-readable responses
+
+## Phase 4: Google Drive integration
+
+Goal:
+
+Introduce remote file discovery and search without destabilizing the local-first architecture.
+
+Exit criteria:
+
+- Drive auth and configuration are supported
+- Drive metadata can be searched
+- Cache or sync behavior is documented and tested
+
+## Phase 5: Research workflow extensions
+
+Goal:
+
+Improve interoperability with external research workflows such as NotebookLM by exporting curated sources and search bundles.
+
+Exit criteria:
+
+- Export workflow exists for selected documents
+- Research-oriented command patterns are documented
+
+## Phase 6: Release readiness
+
+Goal:
+
+Prepare the project for regular personal use and future extension.
+
+Exit criteria:
+
+- Packaging and install flow are defined
+- Logging and diagnostics are adequate
+- Release checklist exists
+
+## Sequencing rationale
+
+- Phase 1 delivers the core user value soonest
+- Phase 2 proves the CLI is useful outside pure search
+- Phase 3 makes the tool dependable for AI integration
+- Phase 4 is intentionally delayed because auth and remote state add complexity

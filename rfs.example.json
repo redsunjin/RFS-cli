@@ -1,0 +1,20 @@
+{
+  "schema_version": "1",
+  "default_output_format": "text",
+  "sources": [
+    {
+      "id": "main-vault",
+      "type": "obsidian",
+      "root_path": "~/vaults/main",
+      "display_name": "Main Vault",
+      "enabled": true
+    },
+    {
+      "id": "local-docs",
+      "type": "local",
+      "root_path": "~/Documents",
+      "display_name": "Documents",
+      "enabled": true
+    }
+  ]
+}
