@@ -20,6 +20,10 @@ The project starts with local knowledge retrieval for Obsidian vaults and filesy
 - [Product spec](./docs/product-spec.md)
 - [Architecture](./docs/architecture.md)
 - [Roadmap](./docs/roadmap.md)
+- [MVP plan](./docs/mvp-plan.md)
+- [MVP status](./docs/mvp-status.md)
+- [Smoke checklist](./docs/smoke-checklist.md)
+- [QA report](./docs/qa-report.md)
 - [TODO plan](./docs/todo.md)
 - [Agent operating model](./AGENTS.md)
 
@@ -55,12 +59,27 @@ The current codebase includes:
 
 - project scaffolding
 - source registration and local JSON index storage
-- indexed search and indexed document lookup
+- indexed search with metadata-aware filters and source-aware ranking
+- indexed document lookup with source metadata
 - file preview support
 - project statistics
 - agent-safe file listing and text search
 
 Google Drive and broader metadata enrichment remain roadmap work.
+
+## Quickstart
+
+```bash
+uv sync --all-groups
+uv run rfs index add /path/to/obsidian-vault --source obsidian
+uv run rfs index add /path/to/local-notes --source local
+uv run rfs index run
+uv run rfs search "agent memory" --format json
+uv run rfs show <document-id> --format json
+uv run rfs dev find-todo --path . --format json
+```
+
+The default workspace state directory is `.rfs/`.
 
 ## Working principles
 

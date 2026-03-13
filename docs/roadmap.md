@@ -25,6 +25,12 @@ Exit criteria:
 - Search returns ranked results
 - `show` displays result details
 
+### MVP sub-goals inside Phase 1
+
+- frontmatter and note metadata are indexed for Obsidian notes
+- search supports practical filters and stable ranking
+- indexed inspection output is useful for daily note retrieval
+
 ## Phase 2: Developer utility commands
 
 Goal:
@@ -48,6 +54,16 @@ Exit criteria:
 - JSON output contracts are documented
 - Agent-safe commands exist
 - Contract tests cover machine-readable responses
+
+## MVP target
+
+The first MVP spans:
+
+- Phase 1 complete
+- Phase 2 complete
+- a limited but reliable subset of Phase 3
+
+That means the project should not wait for Google Drive integration before declaring an MVP.
 
 ## Phase 4: Google Drive integration
 

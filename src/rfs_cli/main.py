@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from enum import Enum
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import typer
 
@@ -17,8 +17,9 @@ from rfs_cli.config import (
     save_index,
 )
 from rfs_cli.indexing import build_index, build_source_id, resolve_index_document, search_index
-from rfs_cli.models import CommandPayload, ErrorPayload, SourceConfig
+from rfs_cli.models import AppConfig, CommandPayload, ErrorPayload, SourceConfig
 from rfs_cli.services import (
+    find_todo_markers,
     git_summary,
     list_files,
     live_search,
@@ -43,6 +44,44 @@ class OutputMode(str, Enum):
     json = "json"
 
 
+def build_dev_data(
+    tool: str,
+    subject_path: Path,
+    summary: str,
+    **details: object,
+) -> dict[str, object]:
+    data: dict[str, object] = {
+        "tool": tool,
+        "subject_path": str(subject_path.resolve()),
+        "summary": summary,
+    }
+    data.update(details)
+    return data
+
+
+def stringify_metadata_value(value: Any) -> str:
+    if isinstance(value, dict):
+        return ", ".join(
+            f"{key}={stringify_metadata_value(nested)}" for key, nested in value.items()
+        )
+    if isinstance(value, list):
+        return ", ".join(stringify_metadata_value(item) for item in value)
+    return str(value)
+
+
+def frontmatter_lines(frontmatter: dict[str, Any], prefix: str = "") -> list[str]:
+    lines: list[str] = []
+
+    for key, value in frontmatter.items():
+        full_key = f"{prefix}.{key}" if prefix else key
+        if isinstance(value, dict):
+            lines.extend(frontmatter_lines(value, prefix=full_key))
+            continue
+        lines.append(f"{full_key}: {stringify_metadata_value(value)}")
+
+    return lines
+
+
 def emit(payload: CommandPayload, output: OutputMode) -> None:
     if output == OutputMode.json:
         typer.echo(payload.model_dump_json(indent=2))
@@ -56,14 +95,35 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
             typer.echo(f'{data["result_count"]} result(s) for "{data["query"]}"')
             for index, result in enumerate(data["results"], start=1):
                 typer.echo(f'{index}. {result["title"]} [{result["source_type"]}]')
-                typer.echo(f'   {result["path"]}')
+                typer.echo(f'   {result["relative_path"]}')
                 typer.echo(f'   {result["snippet"]}')
+                if result["tags"]:
+                    typer.echo(f'   tags: {", ".join(result["tags"])}')
+                if result["aliases"]:
+                    typer.echo(f'   aliases: {", ".join(result["aliases"])}')
             return
 
         if command == "show":
             typer.echo(data["path"])
-            typer.echo("")
-            typer.echo(data["preview"])
+            if data.get("relative_path"):
+                typer.echo(f'relative: {data["relative_path"]}')
+            if data.get("source_type"):
+                typer.echo(f'source: {data["source_type"]}:{data["source_id"]}')
+            if data.get("file_type"):
+                typer.echo(f'file type: {data["file_type"]}')
+            if data.get("tags"):
+                typer.echo(f'tags: {", ".join(data["tags"])}')
+            if data.get("aliases"):
+                typer.echo(f'aliases: {", ".join(data["aliases"])}')
+            metadata = data.get("metadata")
+            frontmatter = metadata.get("frontmatter") if metadata else None
+            if frontmatter:
+                typer.echo("frontmatter:")
+                for line in frontmatter_lines(frontmatter):
+                    typer.echo(f"  {line}")
+            if data.get("content_included", True):
+                typer.echo("")
+                typer.echo(data["preview"])
             return
 
         if command == "index_add":
@@ -85,16 +145,26 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
             return
 
         if command == "dev_project_stats":
-            typer.echo(f'Project root: {data["root"]}')
-            typer.echo(f'Total files: {data["total_files"]}')
+            typer.echo(data["summary"])
             for item in data["top_extensions"]:
                 typer.echo(f'- {item["extension"]}: {item["count"]}')
             return
 
         if command == "dev_git_summary":
-            typer.echo(f'Git status for {data["root"]}')
+            typer.echo(data["summary"])
             for line in data["lines"]:
                 typer.echo(line)
+            return
+
+        if command == "dev_find_todo":
+            typer.echo(data["summary"])
+            for match in data["matches"]:
+                location = (
+                    f'{match["relative_path"]}:{match["line"]}:{match["column"]}'
+                    f' [{match["kind"]}]'
+                )
+                typer.echo(f"- {location}")
+                typer.echo(f'  {match["text"]}')
             return
 
         if command == "agent_list_files":
@@ -131,6 +201,20 @@ def fail(command: str, message: str, output: OutputMode, code: str = "runtime_er
     raise typer.Exit(code=1)
 
 
+def load_config_or_fail(command: str, state_dir: Path, output: OutputMode) -> AppConfig:
+    try:
+        return load_config(state_dir=state_dir)
+    except ValueError as exc:
+        fail(command, str(exc), output, code="invalid_config")
+
+
+def load_index_or_fail(command: str, state_dir: Path, output: OutputMode):
+    try:
+        return load_index(state_dir=state_dir)
+    except ValueError as exc:
+        fail(command, str(exc), output, code="invalid_index")
+
+
 @app.command()
 def version(output: OutputMode = typer.Option(OutputMode.text, "--format")) -> None:
     payload = CommandPayload(command="version", ok=True, data={"version": __version__})
@@ -142,20 +226,40 @@ def search(
     query: str = typer.Argument(..., help="Search query."),
     state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
     source: Optional[str] = typer.Option(None, "--source"),
+    source_id: Optional[str] = typer.Option(None, "--source-id"),
+    tag: Optional[list[str]] = typer.Option(None, "--tag"),
+    path_prefix: Optional[str] = typer.Option(None, "--path-prefix"),
+    file_type: Optional[str] = typer.Option(None, "--file-type"),
     limit: int = typer.Option(20, min=1, max=100),
     output: OutputMode = typer.Option(OutputMode.text, "--format"),
 ) -> None:
-    index_store = load_index(state_dir=state_dir)
+    index_store = load_index_or_fail("search", state_dir, output)
     if index_store is None:
         fail("search", "No index found. Run `rfs index run` first.", output, code="missing_index")
 
-    results = search_index(query=query, index_store=index_store, source_type=source, limit=limit)
+    results = search_index(
+        query=query,
+        index_store=index_store,
+        source_type=source,
+        source_id=source_id,
+        tag_filters=tag,
+        path_prefix=path_prefix,
+        file_type=file_type,
+        limit=limit,
+    )
     payload = CommandPayload(
         command="search",
         ok=True,
         data={
             "query": query,
             "state_dir": str(resolve_state_dir(state_dir)),
+            "filters": {
+                "source": source,
+                "source_id": source_id,
+                "tags": tag or [],
+                "path_prefix": path_prefix,
+                "file_type": file_type,
+            },
             "result_count": len(results),
             "results": results,
         },
@@ -167,20 +271,24 @@ def search(
 def show(
     target: str = typer.Argument(...),
     state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
+    metadata_only: bool = typer.Option(False, "--metadata-only"),
+    preview_chars: int = typer.Option(500, "--preview-chars", min=0, max=5000),
     output: OutputMode = typer.Option(OutputMode.text, "--format"),
 ) -> None:
-    target_path = Path(target).expanduser()
-    if target_path.exists() and target_path.is_file():
-        payload = CommandPayload(command="show", ok=True, data=preview_file(target_path))
-        emit(payload, output)
-        return
-
-    index_store = load_index(state_dir=state_dir)
-    if index_store is None:
-        fail("show", "No index found. Run `rfs index run` first.", output, code="missing_index")
-
-    document = resolve_index_document(target, index_store)
+    index_store = load_index_or_fail("show", state_dir, output)
+    document = resolve_index_document(target, index_store) if index_store is not None else None
     if document is None:
+        target_path = Path(target).expanduser()
+        if target_path.exists() and target_path.is_file():
+            payload = CommandPayload(
+                command="show",
+                ok=True,
+                data=preview_file(target_path, max_chars=0 if metadata_only else preview_chars),
+            )
+            emit(payload, output)
+            return
+        if index_store is None:
+            fail("show", "No index found. Run `rfs index run` first.", output, code="missing_index")
         fail("show", f'No indexed document matched "{target}".', output, code="not_found")
 
     payload = CommandPayload(
@@ -188,11 +296,17 @@ def show(
         ok=True,
         data={
             "path": document.path,
+            "relative_path": document.relative_path,
             "size_bytes": len(document.content.encode("utf-8")),
-            "preview": document.content[:500],
+            "preview": "" if metadata_only else document.content[:preview_chars],
+            "content_included": not metadata_only,
             "document_id": document.document_id,
             "source_id": document.source_id,
             "source_type": document.source_type,
+            "file_type": document.file_type,
+            "tags": document.tags,
+            "aliases": document.aliases,
+            "metadata": document.metadata,
         },
     )
     emit(payload, output)
@@ -207,7 +321,7 @@ def index_add(
     state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
     output: OutputMode = typer.Option(OutputMode.text, "--format"),
 ) -> None:
-    app_config = load_config(state_dir=state_dir)
+    app_config = load_config_or_fail("index_add", state_dir, output)
     resolved_root = root.expanduser().resolve()
     new_source_id = source_id or build_source_id(resolved_root)
     display_name = name or resolved_root.name or new_source_id
@@ -248,7 +362,7 @@ def index_sources(
     state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
     output: OutputMode = typer.Option(OutputMode.text, "--format"),
 ) -> None:
-    app_config = load_config(state_dir=state_dir)
+    app_config = load_config_or_fail("index_sources", state_dir, output)
     payload = CommandPayload(
         command="index_sources",
         ok=True,
@@ -267,7 +381,7 @@ def index_run(
     source: Optional[str] = typer.Option(None, "--source"),
     output: OutputMode = typer.Option(OutputMode.text, "--format"),
 ) -> None:
-    app_config = load_config(state_dir=state_dir)
+    app_config = load_config_or_fail("index_run", state_dir, output)
     sources = [configured for configured in app_config.sources if configured.enabled]
     if source is not None:
         sources = [configured for configured in sources if configured.type == source]
@@ -300,7 +414,17 @@ def dev_project_stats(
     path: Path = typer.Option(Path("."), "--path", exists=True, file_okay=False, dir_okay=True),
     output: OutputMode = typer.Option(OutputMode.text, "--format"),
 ) -> None:
-    payload = CommandPayload(command="dev_project_stats", ok=True, data=project_stats(path))
+    stats = project_stats(path)
+    payload = CommandPayload(
+        command="dev_project_stats",
+        ok=True,
+        data=build_dev_data(
+            "project-stats",
+            path,
+            f'Project stats for {stats["root"]}: {stats["total_files"]} file(s)',
+            **stats,
+        ),
+    )
     emit(payload, output)
 
 
@@ -313,7 +437,36 @@ def dev_git_summary(
         summary = git_summary(path)
     except ValueError as exc:
         fail("dev_git_summary", str(exc), output, code="git_error")
-    payload = CommandPayload(command="dev_git_summary", ok=True, data=summary)
+    payload = CommandPayload(
+        command="dev_git_summary",
+        ok=True,
+        data=build_dev_data(
+            "git-summary",
+            path,
+            f'Git status for {summary["root"]}',
+            **summary,
+        ),
+    )
+    emit(payload, output)
+
+
+@dev_app.command("find-todo")
+def dev_find_todo(
+    path: Path = typer.Option(Path("."), "--path", exists=True, file_okay=False, dir_okay=True),
+    limit: int = typer.Option(100, min=1, max=500),
+    output: OutputMode = typer.Option(OutputMode.text, "--format"),
+) -> None:
+    todo_data = find_todo_markers(path, limit=limit)
+    payload = CommandPayload(
+        command="dev_find_todo",
+        ok=True,
+        data=build_dev_data(
+            "find-todo",
+            path,
+            f'Found {todo_data["match_count"]} TODO-like marker(s) under {todo_data["root"]}',
+            **todo_data,
+        ),
+    )
     emit(payload, output)
 
 

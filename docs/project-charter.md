@@ -71,6 +71,7 @@ The current friction is not only data access, but also the lack of one stable in
 - Reliable contracts before broad feature count
 - Reusable core services before one-off commands
 - Documentation before expansion
+- Expert-reviewed multi-agent delivery to MVP before broadening scope
 
 ## Integration strategy
 

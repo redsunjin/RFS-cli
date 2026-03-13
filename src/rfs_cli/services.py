@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 from pathlib import Path
 from typing import Dict, Iterable, List
@@ -22,6 +23,7 @@ TEXT_EXTENSIONS = {
 
 IGNORED_DIRS = {
     ".git",
+    ".obsidian",
     ".mypy_cache",
     ".pytest_cache",
     ".ruff_cache",
@@ -32,6 +34,8 @@ IGNORED_DIRS = {
     "node_modules",
     "venv",
 }
+
+TODO_PATTERN = re.compile(r"\b(TODO|FIXME|XXX)\b")
 
 
 def iter_files(root: Path) -> Iterable[Path]:
@@ -134,13 +138,56 @@ def project_stats(root: Path) -> Dict[str, object]:
     }
 
 
+def find_todo_markers(root: Path, limit: int = 100) -> Dict[str, object]:
+    matches: List[Dict[str, object]] = []
+    counts: Dict[str, int] = {}
+    resolved_root = root.resolve()
+
+    for path in iter_text_files(root):
+        relative_path = path.resolve().relative_to(resolved_root).as_posix()
+        content = path.read_text(encoding="utf-8", errors="ignore")
+
+        for line_number, line in enumerate(content.splitlines(), start=1):
+            match = TODO_PATTERN.search(line)
+            if not match:
+                continue
+
+            kind = match.group(1)
+            counts[kind] = counts.get(kind, 0) + 1
+            matches.append(
+                {
+                    "path": str(path.resolve()),
+                    "relative_path": relative_path,
+                    "line": line_number,
+                    "column": match.start() + 1,
+                    "kind": kind,
+                    "text": line.strip(),
+                }
+            )
+
+            if len(matches) >= limit:
+                return {
+                    "root": str(resolved_root),
+                    "match_count": len(matches),
+                    "counts": counts,
+                    "matches": matches,
+                }
+
+    return {
+        "root": str(resolved_root),
+        "match_count": len(matches),
+        "counts": counts,
+        "matches": matches,
+    }
+
+
 def preview_file(target: Path, max_chars: int = 500) -> Dict[str, object]:
     content = target.read_text(encoding="utf-8", errors="ignore")
 
     return {
         "path": str(target.resolve()),
         "size_bytes": target.stat().st_size,
-        "preview": content[:max_chars],
+        "preview": content[:max_chars] if max_chars > 0 else "",
     }
 
 

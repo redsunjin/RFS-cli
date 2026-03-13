@@ -24,7 +24,7 @@ When scope changes, update these files in order:
 
 - [x] Define source registration model
 - [x] Implement local filesystem scanner
-- [ ] Implement Obsidian source adapter
+- [x] Implement Obsidian source adapter
 - [x] Support Markdown and plain text extraction
 - [x] Design index record schema
 - [x] Implement index persistence
@@ -38,21 +38,21 @@ When scope changes, update these files in order:
 
 ## Phase 2: Developer utility commands
 
-- [ ] Define `dev` command contract
-- [ ] Implement `dev git-summary`
-- [ ] Implement `dev project-stats`
-- [ ] Implement `dev find-todo`
-- [ ] Add repository fixture tests where needed
+- [x] Define `dev` command contract
+- [x] Implement `dev git-summary`
+- [x] Implement `dev project-stats`
+- [x] Implement `dev find-todo`
+- [x] Add repository fixture tests where needed
 
 ## Phase 3: Agent interface hardening
 
-- [ ] Define JSON schema conventions
-- [ ] Add `schema_version` to machine outputs
-- [ ] Implement structured error model
-- [ ] Add `agent list-files`
-- [ ] Add `agent find-text`
-- [ ] Add contract tests for JSON output
-- [ ] Add output size and path-boundary safeguards
+- [x] Define JSON schema conventions
+- [x] Add `schema_version` to machine outputs
+- [x] Implement structured error model
+- [x] Add `agent list-files`
+- [x] Add `agent find-text`
+- [x] Add contract tests for JSON output
+- [x] Add output size and path-boundary safeguards
 
 ## Phase 4: Google Drive integration
 
@@ -79,6 +79,41 @@ When scope changes, update these files in order:
 
 ## Current recommended next three tasks
 
-- [ ] Enrich Obsidian indexing with frontmatter and note metadata
-- [ ] Improve ranking and filtering beyond plain substring scoring
-- [ ] Add source-aware `show` behavior and more fixture-based search coverage
+- [x] Run the smoke checklist against real local user data
+- [x] Record the real-data smoke run result in `docs/qa-report.md`
+- [ ] Run the smoke checklist against a real Obsidian vault when one is available, or waive that step for this environment
+
+## MVP execution backlog
+
+### Workstream 1: Knowledge retrieval
+
+- [x] Improve frontmatter parser coverage
+- [x] Add multi-source result ranking calibration
+- [x] Add combined filter tests for source, tag, path prefix, and file type
+- [x] Add richer `show` output formatting for metadata-heavy notes
+
+### Workstream 2: Developer utilities
+
+- [x] Define `dev` command response contract
+- [x] Implement `dev find-todo`
+- [x] Add tests for `dev git-summary`
+- [x] Add tests for `dev project-stats`
+
+### Workstream 3: Agent hardening
+
+- [x] Normalize structured error codes across commands
+- [x] Add JSON contract tests for `search`, `show`, `dev`, and `agent`
+- [x] Add bounded output safeguards for large result sets
+
+### Workstream 4: MVP release prep
+
+- [x] Add install and quickstart section to README
+- [x] Add MVP smoke test checklist
+- [x] Verify all documented command examples against the current CLI
+- [x] Run a fixture-based smoke pass and record the QA result
+- [x] Run a real-data smoke pass for the local source flow
+- [ ] Run a real-data smoke pass for the Obsidian source flow
+
+## MVP scope review
+
+- [x] Review remaining MVP gaps and separate post-MVP items from MVP scope

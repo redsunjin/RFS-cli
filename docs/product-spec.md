@@ -4,11 +4,16 @@
 
 `rfs-cli` is a command-line application for indexing, searching, inspecting, and summarizing personal knowledge and developer context. It is designed for both direct human usage and AI-agent execution.
 
+## MVP definition
+
+The MVP covers local and Obsidian indexing, indexed search, indexed document inspection, baseline developer utilities, and reliable agent-safe JSON commands. Remote integrations such as Google Drive are explicitly deferred until after MVP completion.
+
 ## Core use cases
 
 ### Knowledge retrieval
 
 - Search Obsidian notes by keyword, phrase, tag, or path
+- Search Obsidian frontmatter metadata such as aliases and declared tags
 - Search local files by name, metadata, or extracted text
 - View a result with key metadata and content preview
 - Re-index selected roots when source content changes
@@ -86,6 +91,7 @@ Responsibilities:
 - git status summary
 - project file statistics
 - TODO or log scanning
+- return a consistent developer-tool payload with tool id, subject path, and summary
 
 Examples:
 
@@ -132,10 +138,13 @@ Examples:
 - Support keyword search across indexed text
 - Return ranked results with source, path, title, and snippet
 - Support filters for source, file type, tag, and path prefix
+- Support source-id filtering when multiple roots of the same source type exist
+- Support Obsidian alias and frontmatter-aware retrieval
 
 ### Content inspection
 
 - Show metadata such as modified time, source type, and file size
+- Show indexed tags, aliases, and relative source path when available
 - Show a bounded content preview
 - Resolve records by ID or direct path
 

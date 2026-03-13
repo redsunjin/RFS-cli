@@ -67,6 +67,9 @@ docs/
 
 The current baseline stores source configuration and a local JSON index under a workspace state directory. Human search flows now use the stored index, while bounded agent text search still supports direct live filesystem scanning.
 
+The current index stores relative paths, file types, tags, aliases, and source-specific metadata for indexed documents. Obsidian notes use frontmatter-aware extraction.
+The frontmatter parser supports a lightweight nested subset for practical note metadata such as lists, booleans, numbers, and simple nested maps.
+
 ## Data model
 
 ### Source
@@ -82,9 +85,13 @@ The current baseline stores source configuration and a local JSON index under a 
 - `id`
 - `source_id`
 - `path`
+- `relative_path`
 - `title`
+- `file_type`
 - `content_hash`
 - `modified_at`
+- `aliases`
+- `tags`
 - `metadata`
 
 ### SearchResult
@@ -114,6 +121,8 @@ The current baseline stores source configuration and a local JSON index under a 
 3. Run search
 4. Rank and shape result models
 5. Render text or JSON
+
+Search ranking is heuristic and currently combines title, alias, tag, path, content, and source-priority signals.
 
 ## Output contract strategy
 
@@ -146,6 +155,7 @@ Example response shape:
 
 - Focus first on Markdown notes and frontmatter
 - Reuse filesystem scanning with Obsidian-specific metadata enrichment
+- Ignore `.obsidian` workspace state files during note indexing
 
 ### Google Drive adapter
 
@@ -156,6 +166,7 @@ Example response shape:
 
 - Keep `dev` commands separate from knowledge indexing internals
 - Share output formatting and config loading, but not index-specific logic
+- Use a shared response shape for `dev` commands with `tool`, `subject_path`, and `summary`
 
 ## Test strategy
 

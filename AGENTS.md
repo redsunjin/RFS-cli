@@ -100,6 +100,80 @@ For non-trivial work, use this sequence:
 4. AI tooling agent reviews command contracts if output changes
 5. QA and release agent validates the result
 
+## MVP delivery mode
+
+When the project is in active MVP delivery, agents should work in short loops with explicit review gates.
+
+### Delivery loop
+
+1. Product and roadmap agent selects one MVP-sized slice from `docs/mvp-plan.md` or `docs/todo.md`
+2. CLI architect agent confirms command shape, module boundaries, and document impact
+3. Primary implementation agent executes the slice
+4. Relevant specialist agent reviews the implementation against its domain
+5. AI tooling agent reviews output contracts if CLI behavior or payloads changed
+6. QA and release agent runs validation, records gaps, and blocks completion if criteria fail
+
+### Slice size rule
+
+- One slice should be small enough to complete with code, tests, and docs in one cycle
+- If a slice spans more than one workstream, split it before implementation
+
+## Review responsibilities by agent
+
+### Product and roadmap agent
+
+- checks scope creep
+- checks whether the slice still belongs to MVP
+- checks whether TODO and roadmap updates are needed
+
+### CLI architect agent
+
+- checks command naming
+- checks module boundaries
+- checks whether adapters and output models stay coherent
+
+### Knowledge integration agent
+
+- checks source handling
+- checks metadata extraction quality
+- checks source-specific edge cases such as Obsidian vault behavior
+
+### Search and retrieval agent
+
+- checks ranking logic
+- checks filter semantics
+- checks snippet and recall behavior
+
+### AI tooling agent
+
+- checks JSON schema stability
+- checks error model consistency
+- checks command safety and bounded output expectations
+
+### QA and release agent
+
+- checks tests and linters
+- checks regression risk
+- checks whether acceptance criteria are actually satisfied
+
+## Required handoff artifacts
+
+Each completed slice should leave behind:
+
+- updated docs if behavior or scope changed
+- tests for the new or changed behavior
+- a brief validation result
+- a clear next slice recommendation
+
+## Blockers
+
+Do not mark a slice complete if any of the following are true:
+
+- docs and implementation disagree
+- tests are missing for changed behavior
+- a command contract changed without AI tooling review
+- the slice added scope that belongs to a later phase
+
 ## Documentation rules
 
 When a feature changes scope or behavior, update documents in this order:

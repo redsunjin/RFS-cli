@@ -40,11 +40,15 @@ class IndexDocument(BaseModel):
     source_id: str
     source_type: SourceType
     path: str
+    relative_path: str
     title: str
+    file_type: str
     modified_at: int
     content_hash: str
     content: str
     tags: List[str] = Field(default_factory=list)
+    aliases: List[str] = Field(default_factory=list)
+    metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
 class IndexStore(BaseModel):
