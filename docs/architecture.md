@@ -148,10 +148,11 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 
 1. Load config
 2. Resolve configured LLM provider
-3. Load the packaged onboarding guide and agent persona instructions
-4. Send the user question to the provider adapter
-5. Sanitize provider-specific reasoning or control tokens from the answer
-6. Return text or JSON with the answer payload
+3. Load the packaged onboarding guide and agent contract
+4. Build runtime guidance context from configured sources and index state
+5. Send the user question plus runtime context to the provider adapter
+6. Sanitize provider-specific reasoning or control tokens from the answer
+7. Return text or JSON with the answer payload
 
 ### Init flow
 
@@ -254,6 +255,8 @@ Example response shape:
 - Allow future expansion to a dedicated interactive mode without rewriting the command layer
 - Keep shell memory as explicit persisted state instead of hidden in-process memory only
 - Load onboarding documentation into the system prompt so agent behavior stays aligned with the implemented CLI
+- Load a dedicated agent contract into the system prompt so persona and boundaries stay stable
+- Feed `rfs ask` a workspace-state summary so recommendations can adapt to configured sources and index state
 - Keep the R2-D2-inspired persona restrained and operational rather than theatrical
 
 ## Test strategy

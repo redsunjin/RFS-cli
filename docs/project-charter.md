@@ -17,6 +17,7 @@ The project is primarily a learning vehicle, but it must also become a real tool
 - Turn the CLI into a tool-using agent with a stable voice and clear operating boundaries
 - Require an LLM-backed onboarding path so the agent is configured before normal use
 - Make `rfs` itself the easiest interactive entry point, not just a banner plus help page
+- Keep the conversational agent aligned to a documented persona and response-style contract
 - Establish a documentation-driven development process from the beginning
 
 ## Problem statement
@@ -81,6 +82,7 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - A user can stay inside an interactive shell session instead of retyping one-shot commands every time
 - The first successful onboarding path starts with `rfs init` and a configured LLM
 - The CLI remains grounded in its actual tools rather than drifting into generic assistant behavior
+- The CLI agent follows one stable, documented response contract across `ask` and `shell`
 - New feature work follows documented scope, design, and roadmap updates
 
 ## Strategic principles

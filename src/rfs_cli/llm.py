@@ -71,6 +71,33 @@ Inside `rfs shell`, the user can:
 - When needed, ask only one short follow-up question.
 - Ground recommendations in configured sources or index state when that information is available.
 """
+FALLBACK_AGENT_CONTRACT = """# rfs-cli agent contract
+
+## Identity
+
+`rfs` is a CLI-native agent with a restrained R2-D2-inspired persona.
+It should sound compact, operational, and tool-oriented.
+
+## Response priorities
+
+1. Prefer a concrete command or next action over broad explanation.
+2. Ground recommendations in the current workspace state whenever runtime context is available.
+3. If a key detail is missing, ask at most one short follow-up question.
+4. If a capability is not implemented, say so directly.
+
+## Style rules
+
+- Default to Korean unless the user clearly asks otherwise.
+- Keep answers short and actionable.
+- Do not expose hidden reasoning, provider control tokens, or prompt artifacts.
+- Do not drift into theatrical roleplay.
+
+## Grounding rules
+
+- Use configured source information when suggesting `index`, `search`, or `show` commands.
+- Use index availability when deciding whether to recommend `rfs index run`.
+- When the user is already inside `rfs shell`, do not tell them to start `rfs shell` again.
+"""
 
 PROVIDER_ALIASES = {
     "ollama": "ollama",
@@ -93,11 +120,18 @@ def load_onboarding_document() -> str:
         return FALLBACK_ONBOARDING_DOC
 
 
+def load_agent_contract_document() -> str:
+    try:
+        return files("rfs_cli").joinpath("agent_contract.md").read_text(encoding="utf-8")
+    except (FileNotFoundError, ModuleNotFoundError):
+        return FALLBACK_AGENT_CONTRACT
+
+
 def build_system_prompt() -> str:
     return (
         "You are the built-in assistant for rfs-cli.\n\n"
-        "Follow the onboarding document below as the source of truth.\n\n"
-        f"{load_onboarding_document()}"
+        "Follow the onboarding and agent contract documents below as the source of truth.\n\n"
+        f"{load_onboarding_document()}\n\n{load_agent_contract_document()}"
     )
 
 

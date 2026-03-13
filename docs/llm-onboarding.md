@@ -1,7 +1,7 @@
 # LLM Onboarding Guide
 
 This is the human-readable onboarding document for the `rfs-cli` agent.
-The runtime prompt layer mirrors the same guidance from the packaged onboarding file.
+The runtime prompt layer mirrors the same guidance from the packaged onboarding file and the packaged agent contract.
 
 ## Identity
 

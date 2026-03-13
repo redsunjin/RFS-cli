@@ -256,11 +256,13 @@ def test_llm_status_json_reports_configured_state(tmp_path: Path, monkeypatch) -
 def test_ask_json_uses_configured_llm(tmp_path: Path, monkeypatch) -> None:
     state_dir = tmp_path / ".rfs"
     save_llm_config(state_dir)
+    captured: dict[str, object] = {}
 
-    monkeypatch.setattr(
-        "rfs_cli.main.ask_llm",
-        lambda config, question: f"Use `rfs search \"{question}\"`.",
-    )
+    def fake_ask_llm(config, question, history=None):
+        captured["history"] = history or []
+        return f"Use `rfs search \"{question}\"`."
+
+    monkeypatch.setattr("rfs_cli.main.ask_llm", fake_ask_llm)
 
     result = runner.invoke(
         app,
@@ -272,6 +274,37 @@ def test_ask_json_uses_configured_llm(tmp_path: Path, monkeypatch) -> None:
     assert_command_payload(payload, "ask", True)
     assert payload["data"]["provider"] == "ollama"
     assert "rfs search" in payload["data"]["answer"]
+    assert captured["history"][0]["role"] == "system"
+    assert "Configured sources: none." in captured["history"][0]["content"]
+    assert "- index_status: missing" in captured["history"][0]["content"]
+
+
+def test_ask_includes_source_and_index_context(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    build_index_with_source(state_dir, fixture_root, "obsidian", source_id="vault")
+    rebuild_index(state_dir)
+    captured: dict[str, object] = {}
+
+    def fake_ask_llm(config, question, history=None):
+        captured["history"] = history or []
+        return "Use the existing index."
+
+    monkeypatch.setattr("rfs_cli.main.ask_llm", fake_ask_llm)
+
+    result = runner.invoke(
+        app,
+        ["ask", "roadmap note를 찾으려면?", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "ask", True)
+    context = captured["history"][0]["content"]
+    assert "Configured sources: 1" in context
+    assert "- vault [obsidian] enabled" in context
+    assert "- index_status: available" in context
+    assert "- indexed_document_count:" in context
 
 
 def test_ask_fails_without_llm_config(tmp_path: Path) -> None:

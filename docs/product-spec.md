@@ -266,10 +266,11 @@ Examples:
 - Provide interactive setup with sensible local defaults for provider base URLs
 - Expose a provider status command that checks reachability and visible model IDs
 - Allow `rfs ask` to work from a configured provider and answer with current supported commands only
-- Incorporate current source configuration and index availability into command suggestions when possible
+- Incorporate current source configuration and index availability into command suggestions by default
 - Reserve the right to ask a brief follow-up question before recommending a command
 - Persist shell session memory so later turns can stay grounded in earlier interaction
 - Load a dedicated onboarding document into the agent prompt so the LLM learns the CLI's actual usage model
+- Load a dedicated agent contract into the prompt so response style and boundaries stay stable
 
 ### Agent identity
 
@@ -278,6 +279,7 @@ Examples:
 - Prefer doing or recommending concrete tool actions over broad discussion
 - Keep the agent within the product domain of knowledge retrieval, project workflows, and tool execution
 - Apply an R2-D2-inspired persona in a restrained, operational way
+- Strip provider-specific reasoning tags and control markers before surfacing an answer
 
 ## Non-functional requirements
 

@@ -55,6 +55,13 @@ Tasks:
 - add one-short-follow-up behavior for ambiguous asks
 - improve shell guidance so the agent recommends executable commands before broad explanation
 
+Current slice status:
+
+- persona and response-style contract: complete
+- source-aware and index-aware `rfs ask`: complete
+- short follow-up behavior: pending
+- richer shell guidance grounding: pending
+
 Exit definition:
 
 - persona contract is documented
@@ -94,6 +101,6 @@ Candidate tracks:
 
 ## Recommended next three tasks
 
-1. Validate `rfs ask` and `rfs shell` against the real LM Studio runtime already available in the environment.
-2. Draft the agent persona and response-style contract that governs `rfs ask` and `rfs shell`.
-3. Design source-aware and index-aware command suggestions for `rfs ask`.
+1. Add a short follow-up question path for ambiguous asks.
+2. Carry workspace-state grounding into natural-language guidance inside `rfs shell`.
+3. Define release-readiness installation and checklist basics.

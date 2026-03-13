@@ -131,6 +131,11 @@ Candidate milestones:
 - interactive shell memory that feeds better follow-up guidance
 - tighter onboarding and persona alignment between docs and runtime prompts
 
+Current status:
+
+- persona and response-style contract documentation is complete
+- `rfs ask` now has a baseline of source-aware and index-aware grounding
+
 ## Sequencing rationale
 
 - Phase 1 delivers the core user value soonest

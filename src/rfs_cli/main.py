@@ -508,6 +508,69 @@ def append_shell_event(
         memory.events = memory.events[-200:]
 
 
+def format_source_summary(sources: list[SourceConfig]) -> list[str]:
+    if not sources:
+        return ["Configured sources: none."]
+
+    lines = [f"Configured sources: {len(sources)}"]
+    for source in sources[:8]:
+        status = "enabled" if source.enabled else "disabled"
+        lines.append(
+            f"- {source.id} [{source.type}] {status} root={source.root_path}"
+        )
+    if len(sources) > 8:
+        lines.append(f"- ... {len(sources) - 8} more source(s)")
+    return lines
+
+
+def build_guidance_runtime_context(app_config: AppConfig, state_dir: Path) -> list[dict[str, str]]:
+    resolved_state_dir = resolve_state_dir(state_dir)
+    lines = [
+        "Workspace guidance context:",
+        f"- state_dir: {resolved_state_dir}",
+        *format_source_summary(app_config.sources),
+    ]
+
+    try:
+        index_store = load_index(state_dir=resolved_state_dir)
+    except ValueError as exc:
+        lines.append("- index_status: invalid")
+        lines.append(f"- index_error: {exc}")
+        lines.append(
+            "- guidance_hint: recommend rebuilding the index with `rfs index run` "
+            "after checking configured sources."
+        )
+        return [{"role": "system", "content": "\n".join(lines)}]
+
+    if index_store is None:
+        lines.append("- index_status: missing")
+        if app_config.sources:
+            lines.append(
+                "- guidance_hint: sources exist, so prefer `rfs index run` before "
+                "recommending `search` or `show`."
+            )
+        else:
+            lines.append(
+                "- guidance_hint: no sources exist, so prefer `rfs index add <root> "
+                "--source local|obsidian` before `rfs index run`."
+            )
+        return [{"role": "system", "content": "\n".join(lines)}]
+
+    source_ids = sorted({document.source_id for document in index_store.documents})
+    file_types = sorted({document.file_type for document in index_store.documents})
+    lines.extend(
+        [
+            "- index_status: available",
+            f"- indexed_document_count: {len(index_store.documents)}",
+            f"- indexed_source_ids: {', '.join(source_ids) if source_ids else 'none'}",
+            f"- indexed_file_types: {', '.join(file_types[:10]) if file_types else 'none'}",
+            "- guidance_hint: prefer grounded `search`, `show`, and filter suggestions "
+            "that match the available sources and indexed content.",
+        ]
+    )
+    return [{"role": "system", "content": "\n".join(lines)}]
+
+
 def shell_history_messages(
     memory: ShellMemory,
     limit: int = 8,
@@ -674,7 +737,11 @@ def ask(
     prompt = question or typer.prompt("What do you want to do with rfs?")
 
     try:
-        answer = ask_llm(app_config.llm, prompt)
+        answer = ask_llm(
+            app_config.llm,
+            prompt,
+            history=build_guidance_runtime_context(app_config, state_dir),
+        )
     except ValueError as exc:
         fail("ask", str(exc), output, code="llm_error")
 
