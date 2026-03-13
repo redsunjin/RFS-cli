@@ -5,12 +5,22 @@ from typing import Optional
 
 from typer.testing import CliRunner
 
-from rfs_cli.config import load_shell_memory, save_config
+from rfs_cli.config import load_config, load_shell_memory, save_config
 from rfs_cli.main import app, render_banner
-from rfs_cli.models import AppConfig, LLMConfig
+from rfs_cli.models import LLMConfig
 
 runner = CliRunner()
 WAVE_LINE = "~" * 76
+
+
+def save_llm_config(state_dir: Path) -> None:
+    config = load_config(state_dir=state_dir)
+    config.llm = LLMConfig(
+        provider="ollama",
+        base_url="http://127.0.0.1:11434",
+        model="qwen2.5:7b-instruct",
+    )
+    save_config(config, state_dir=state_dir)
 
 
 def assert_command_payload(payload: dict[str, object], command: str, ok: bool) -> None:
@@ -27,6 +37,7 @@ def build_index_with_source(
     source_type: str,
     source_id: Optional[str] = None,
 ) -> None:
+    save_llm_config(state_dir)
     command = ["index", "add", str(root), "--source", source_type, "--state-dir", str(state_dir)]
     if source_id is not None:
         command.extend(["--id", source_id])
@@ -52,6 +63,7 @@ def test_root_without_args_shows_banner_and_help() -> None:
     assert result.exit_code == 0
     assert " ____  _____    _    ______   __   _____ ___  ____    ____  _____    _" in result.stdout
     assert WAVE_LINE in result.stdout
+    assert "Start with `rfs init`" in result.stdout
     assert "Usage:" in result.stdout
 
 
@@ -85,18 +97,27 @@ def test_llm_setup_interactive_saves_config(tmp_path: Path) -> None:
     assert config["llm"]["provider"] == "ollama"
 
 
+def test_init_interactive_writes_llm_config_and_prints_onboarding(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+
+    result = runner.invoke(
+        app,
+        ["init", "--state-dir", str(state_dir)],
+        input="ollama\n\n\n",
+    )
+
+    assert result.exit_code == 0
+    assert "Starting rfs onboarding..." in result.stdout
+    assert "R2-D2-inspired persona" in result.stdout
+    assert "rfs shell" in result.stdout
+
+    config = json.loads((state_dir / "config.json").read_text(encoding="utf-8"))
+    assert config["llm"]["provider"] == "ollama"
+
+
 def test_llm_status_json_reports_configured_state(tmp_path: Path, monkeypatch) -> None:
     state_dir = tmp_path / ".rfs"
-    save_config(
-        AppConfig(
-            llm=LLMConfig(
-                provider="ollama",
-                base_url="http://127.0.0.1:11434",
-                model="qwen2.5:7b-instruct",
-            )
-        ),
-        state_dir=state_dir,
-    )
+    save_llm_config(state_dir)
 
     monkeypatch.setattr(
         "rfs_cli.main.get_llm_status",
@@ -128,16 +149,7 @@ def test_llm_status_json_reports_configured_state(tmp_path: Path, monkeypatch) -
 
 def test_ask_json_uses_configured_llm(tmp_path: Path, monkeypatch) -> None:
     state_dir = tmp_path / ".rfs"
-    save_config(
-        AppConfig(
-            llm=LLMConfig(
-                provider="ollama",
-                base_url="http://127.0.0.1:11434",
-                model="qwen2.5:7b-instruct",
-            )
-        ),
-        state_dir=state_dir,
-    )
+    save_llm_config(state_dir)
 
     monkeypatch.setattr(
         "rfs_cli.main.ask_llm",
@@ -172,6 +184,7 @@ def test_ask_fails_without_llm_config(tmp_path: Path) -> None:
 
 def test_shell_runs_internal_command_and_saves_memory(tmp_path: Path) -> None:
     state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
 
     result = runner.invoke(
         app,
@@ -192,16 +205,7 @@ def test_shell_runs_internal_command_and_saves_memory(tmp_path: Path) -> None:
 
 def test_shell_uses_llm_and_persists_conversation(tmp_path: Path, monkeypatch) -> None:
     state_dir = tmp_path / ".rfs"
-    save_config(
-        AppConfig(
-            llm=LLMConfig(
-                provider="ollama",
-                base_url="http://127.0.0.1:11434",
-                model="qwen2.5:7b-instruct",
-            )
-        ),
-        state_dir=state_dir,
-    )
+    save_llm_config(state_dir)
 
     captured: dict[str, object] = {}
 
@@ -230,6 +234,7 @@ def test_shell_uses_llm_and_persists_conversation(tmp_path: Path, monkeypatch) -
 
 def test_shell_memory_commands_work(tmp_path: Path) -> None:
     state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
 
     result = runner.invoke(
         app,
@@ -244,6 +249,7 @@ def test_shell_memory_commands_work(tmp_path: Path) -> None:
 
 def test_shell_runs_external_command_and_records_it(tmp_path: Path) -> None:
     state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
 
     result = runner.invoke(
         app,
@@ -263,6 +269,7 @@ def test_shell_runs_external_command_and_records_it(tmp_path: Path) -> None:
 def test_index_add_writes_source_config(tmp_path: Path) -> None:
     fixture_root = Path("tests/fixtures/obsidian").resolve()
     state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
 
     result = runner.invoke(
         app,
@@ -528,6 +535,8 @@ def test_search_supports_source_id_filter(tmp_path: Path) -> None:
 
 
 def test_agent_find_text_ignores_virtualenv_directories(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
     ignored_root = tmp_path / ".venv"
     ignored_root.mkdir()
     (ignored_root / "ignore.md").write_text("agent should not be found here", encoding="utf-8")
@@ -538,7 +547,16 @@ def test_agent_find_text_ignores_virtualenv_directories(tmp_path: Path) -> None:
 
     result = runner.invoke(
         app,
-        ["agent", "find-text", "agent", str(tmp_path), "--format", "json"],
+        [
+            "agent",
+            "find-text",
+            "agent",
+            str(tmp_path),
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
     )
 
     assert result.exit_code == 0
@@ -549,6 +567,8 @@ def test_agent_find_text_ignores_virtualenv_directories(tmp_path: Path) -> None:
 
 
 def test_dev_project_stats_json_contract(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
     (tmp_path / "src").mkdir()
     (tmp_path / "src" / "main.py").write_text("print('ok')\n", encoding="utf-8")
     (tmp_path / ".venv").mkdir()
@@ -556,7 +576,16 @@ def test_dev_project_stats_json_contract(tmp_path: Path) -> None:
 
     result = runner.invoke(
         app,
-        ["dev", "project-stats", "--path", str(tmp_path), "--format", "json"],
+        [
+            "dev",
+            "project-stats",
+            "--path",
+            str(tmp_path),
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
     )
 
     assert result.exit_code == 0
@@ -568,6 +597,8 @@ def test_dev_project_stats_json_contract(tmp_path: Path) -> None:
 
 
 def test_dev_find_todo_json_contract(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
     (tmp_path / "docs").mkdir()
     (tmp_path / "docs" / "plan.md").write_text(
         "# Plan\n- TODO: implement search\n- FIXME: normalize schema\n",
@@ -577,7 +608,16 @@ def test_dev_find_todo_json_contract(tmp_path: Path) -> None:
 
     result = runner.invoke(
         app,
-        ["dev", "find-todo", "--path", str(tmp_path), "--format", "json"],
+        [
+            "dev",
+            "find-todo",
+            "--path",
+            str(tmp_path),
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
     )
 
     assert result.exit_code == 0
@@ -590,6 +630,8 @@ def test_dev_find_todo_json_contract(tmp_path: Path) -> None:
 
 
 def test_dev_git_summary_json_contract(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
     subprocess.run(["git", "init", "-b", "main"], cwd=tmp_path, check=True, capture_output=True)
     subprocess.run(["git", "config", "user.name", "Test User"], cwd=tmp_path, check=True)
     subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=tmp_path, check=True)
@@ -608,7 +650,16 @@ def test_dev_git_summary_json_contract(tmp_path: Path) -> None:
 
     result = runner.invoke(
         app,
-        ["dev", "git-summary", "--path", str(tmp_path), "--format", "json"],
+        [
+            "dev",
+            "git-summary",
+            "--path",
+            str(tmp_path),
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
     )
 
     assert result.exit_code == 0
@@ -621,9 +672,11 @@ def test_dev_git_summary_json_contract(tmp_path: Path) -> None:
 
 
 def test_search_missing_index_returns_structured_error(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
     result = runner.invoke(
         app,
-        ["search", "agent", "--state-dir", str(tmp_path / ".rfs"), "--format", "json"],
+        ["search", "agent", "--state-dir", str(state_dir), "--format", "json"],
     )
 
     assert result.exit_code == 1
@@ -632,9 +685,23 @@ def test_search_missing_index_returns_structured_error(tmp_path: Path) -> None:
     assert payload["error"]["code"] == "missing_index"
 
 
+def test_search_requires_llm_configuration(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    result = runner.invoke(
+        app,
+        ["search", "agent", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 1
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "search", False)
+    assert payload["error"]["code"] == "missing_llm"
+
+
 def test_show_invalid_index_returns_structured_error(tmp_path: Path) -> None:
     state_dir = tmp_path / ".rfs"
     state_dir.mkdir()
+    save_llm_config(state_dir)
     (state_dir / "index.json").write_text('{"documents": "broken"}', encoding="utf-8")
 
     result = runner.invoke(
@@ -649,9 +716,20 @@ def test_show_invalid_index_returns_structured_error(tmp_path: Path) -> None:
 
 
 def test_dev_git_summary_non_repo_returns_structured_error(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
     result = runner.invoke(
         app,
-        ["dev", "git-summary", "--path", str(tmp_path), "--format", "json"],
+        [
+            "dev",
+            "git-summary",
+            "--path",
+            str(tmp_path),
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
     )
 
     assert result.exit_code == 1
@@ -664,6 +742,7 @@ def test_documented_quickstart_flow_is_valid(tmp_path: Path) -> None:
     obsidian_root = Path("tests/fixtures/obsidian").resolve()
     local_root = Path("tests/fixtures/local").resolve()
     state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
 
     for command in [
         ["index", "add", str(obsidian_root), "--source", "obsidian", "--state-dir", str(state_dir)],
@@ -676,9 +755,27 @@ def test_documented_quickstart_flow_is_valid(tmp_path: Path) -> None:
     for command in [
         ["index", "sources", "--state-dir", str(state_dir), "--format", "json"],
         ["search", "agent memory", "--state-dir", str(state_dir), "--format", "json"],
-        ["dev", "find-todo", "--path", str(local_root), "--format", "json"],
-        ["agent", "list-files", str(local_root), "--format", "json"],
-        ["agent", "find-text", "TODO", str(local_root), "--format", "json"],
+        [
+            "dev",
+            "find-todo",
+            "--path",
+            str(local_root),
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+        ["agent", "list-files", str(local_root), "--state-dir", str(state_dir), "--format", "json"],
+        [
+            "agent",
+            "find-text",
+            "TODO",
+            str(local_root),
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
     ]:
         result = runner.invoke(app, command)
         assert result.exit_code == 0

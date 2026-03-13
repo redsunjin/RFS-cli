@@ -54,10 +54,11 @@ Exit criteria:
 - JSON output contracts are documented
 - Agent-safe commands exist
 - Contract tests cover machine-readable responses
-- Optional LLM provider setup exists for guided command usage
+- Required LLM provider setup exists for guided command usage
 - A conversational help path exists without becoming a hard dependency for core commands
 - Conversational answers stay grounded in supported commands and product scope
 - An interactive shell exists for multi-turn local operation with persisted session memory
+- A required onboarding path exists through `rfs init` and the packaged LLM onboarding guide
 
 ## MVP target
 
@@ -115,6 +116,7 @@ Candidate milestones:
 - short follow-up questions for ambiguous requests
 - a documented agent profile with stable tone and operating boundaries
 - interactive shell memory that feeds better follow-up guidance
+- tighter onboarding and persona alignment between docs and runtime prompts
 
 ## Sequencing rationale
 

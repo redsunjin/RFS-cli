@@ -2,7 +2,7 @@
 
 ## Product summary
 
-`rfs-cli` is a command-line application for indexing, searching, inspecting, and summarizing personal knowledge and developer context. It is designed for both direct human usage and AI-agent execution, and it now includes guided CLI assistance so users can discover commands conversationally. The longer-term product direction is a CLI-native agent that can use its own tools while preserving a consistent style and bounded domain.
+`rfs-cli` is a command-line application for indexing, searching, inspecting, and summarizing personal knowledge and developer context. It is designed for both direct human usage and AI-agent execution, and it now includes guided CLI assistance so users can discover commands conversationally. The longer-term product direction is a CLI-native agent that can use its own tools while preserving a consistent style and bounded domain. That agent identity is now explicitly R2-D2-inspired and backed by a required LLM onboarding path.
 
 ## MVP definition
 
@@ -33,7 +33,7 @@ The MVP covers local and Obsidian indexing, indexed search, indexed document ins
 
 ### Guided CLI usage
 
-- Configure an optional local or remote LLM provider
+- Configure a required local or remote LLM provider
 - Ask the CLI how to perform a task without already knowing the command syntax
 - Validate local provider connectivity before relying on guided help
 - Use an interactive shell session instead of repeating one-shot commands
@@ -44,6 +44,7 @@ The MVP covers local and Obsidian indexing, indexed search, indexed document ins
 - Preserve a consistent tone and task-focused style
 - Ground suggestions in real commands, local state, and available sources
 - Ask short follow-up questions when a user request is ambiguous
+- Use an R2-D2-inspired agent persona without drifting into roleplay or losing technical clarity
 
 ## User stories
 
@@ -56,6 +57,7 @@ The MVP covers local and Obsidian indexing, indexed search, indexed document ins
 - As a user, I want the CLI to behave like one assistant with a recognizable style, not just a help page.
 - As a user, I want the CLI to ask for only the missing detail when my request is underspecified.
 - As a user, I want to stay inside a shell session where previous commands and answers are remembered.
+- As a user, I want onboarding to configure the required LLM first so the agent works from the start.
 
 ## Command model
 
@@ -159,6 +161,19 @@ Examples:
 - `rfs llm setup`
 - `rfs llm status`
 
+### `rfs init`
+
+Responsibilities:
+
+- provide the first required onboarding path
+- configure the LLM provider before other agent workflows
+- expose the onboarding guide that teaches the agent its own command model
+
+Examples:
+
+- `rfs init`
+- `rfs init --provider ollama`
+
 ### `rfs ask`
 
 Responsibilities:
@@ -219,7 +234,8 @@ Examples:
 
 - Store source roots and preferences in a local config file
 - Support environment variable overrides where useful
-- Store optional LLM provider settings in the same local config file
+- Store LLM provider settings in the same local config file
+- Treat LLM configuration as required for normal agent workflows
 
 ### Guided assistance
 
@@ -230,6 +246,7 @@ Examples:
 - Incorporate current source configuration and index availability into command suggestions when possible
 - Reserve the right to ask a brief follow-up question before recommending a command
 - Persist shell session memory so later turns can stay grounded in earlier interaction
+- Load a dedicated onboarding document into the agent prompt so the LLM learns the CLI's actual usage model
 
 ### Agent identity
 
@@ -237,6 +254,7 @@ Examples:
 - Keep the CLI identity distinct from generic chat assistants
 - Prefer doing or recommending concrete tool actions over broad discussion
 - Keep the agent within the product domain of knowledge retrieval, project workflows, and tool execution
+- Apply an R2-D2-inspired persona in a restrained, operational way
 
 ## Non-functional requirements
 
@@ -245,7 +263,7 @@ Examples:
 - Clear errors and non-zero exit codes on failure
 - Testable modules with deterministic behavior
 - Extensible source adapter model
-- Optional LLM connectivity must not be required for base indexing and search flows
+- LLM connectivity is required for the full agent workflow, but direct failure messages must keep the first setup path obvious
 - The conversational layer must not obscure direct command access
 - External command execution must stay explicit and user-triggered
 

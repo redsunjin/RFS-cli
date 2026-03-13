@@ -24,6 +24,7 @@ TEXT_EXTENSIONS = {
 IGNORED_DIRS = {
     ".git",
     ".obsidian",
+    ".rfs",
     ".mypy_cache",
     ".pytest_cache",
     ".ruff_cache",
@@ -38,9 +39,13 @@ IGNORED_DIRS = {
 TODO_PATTERN = re.compile(r"\b(TODO|FIXME|XXX)\b")
 
 
+def should_ignore_dir(name: str) -> bool:
+    return name in IGNORED_DIRS or name.startswith(".rfs")
+
+
 def iter_files(root: Path) -> Iterable[Path]:
     for current_root, dirnames, filenames in os.walk(root):
-        dirnames[:] = sorted(name for name in dirnames if name not in IGNORED_DIRS)
+        dirnames[:] = sorted(name for name in dirnames if not should_ignore_dir(name))
         for filename in sorted(filenames):
             yield Path(current_root, filename)
 
@@ -89,7 +94,7 @@ def list_files(root: Path, limit: int = 100) -> List[Dict[str, object]]:
     records: List[Dict[str, object]] = []
 
     for current_root, dirnames, filenames in os.walk(root):
-        dirnames[:] = sorted(name for name in dirnames if name not in IGNORED_DIRS)
+        dirnames[:] = sorted(name for name in dirnames if not should_ignore_dir(name))
 
         for dirname in dirnames:
             if len(records) >= limit:

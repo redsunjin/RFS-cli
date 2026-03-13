@@ -15,6 +15,7 @@ The project is primarily a learning vehicle, but it must also become a real tool
 - Create AI-safe command contracts with deterministic JSON output
 - Add guided CLI usage so command discovery does not depend on memorizing syntax
 - Turn the CLI into a tool-using agent with a stable voice and clear operating boundaries
+- Require an LLM-backed onboarding path so the agent is configured before normal use
 - Establish a documentation-driven development process from the beginning
 
 ## Problem statement
@@ -56,7 +57,7 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - Content display and metadata inspection
 - Developer helper commands such as git summaries and project statistics
 - JSON output mode for automation and agents
-- Optional LLM provider configuration for guided help and future semantic features
+- Required LLM provider configuration and onboarding guide for normal agent workflows
 - Agent-guided command discovery with a defined interaction style
 - Interactive shell sessions with persisted memory
 - Incremental roadmap and task tracking
@@ -76,6 +77,7 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - Commands are scriptable and return stable JSON output
 - A user can ask the CLI how to perform a task and get an actionable command back
 - A user can stay inside an interactive shell session instead of retyping one-shot commands every time
+- The first successful onboarding path starts with `rfs init` and a configured LLM
 - The CLI remains grounded in its actual tools rather than drifting into generic assistant behavior
 - New feature work follows documented scope, design, and roadmap updates
 

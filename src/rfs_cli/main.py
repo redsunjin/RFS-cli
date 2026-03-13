@@ -36,6 +36,7 @@ from rfs_cli.llm import (
     default_base_url,
     default_model_hint,
     get_llm_status,
+    load_onboarding_document,
     normalize_provider,
 )
 from rfs_cli.models import (
@@ -89,6 +90,7 @@ WAVE_GRADIENT_START = (77, 151, 255)
 WAVE_GRADIENT_END = (113, 211, 255)
 SHELL_PROMPT = "rfs> "
 KNOWN_SHELL_COMMANDS = {
+    "init",
     "version",
     "ask",
     "search",
@@ -99,7 +101,7 @@ KNOWN_SHELL_COMMANDS = {
     "drive",
     "llm",
 }
-STATEFUL_COMMANDS = {"ask", "search", "show", "index", "llm"}
+STATEFUL_COMMANDS = {"ask", "search", "show", "index", "dev", "agent", "drive", "llm"}
 
 
 def should_use_color() -> bool:
@@ -345,6 +347,18 @@ def load_config_or_fail(command: str, state_dir: Path, output: OutputMode) -> Ap
         fail(command, str(exc), output, code="invalid_config")
 
 
+def load_agent_config_or_fail(command: str, state_dir: Path, output: OutputMode) -> AppConfig:
+    app_config = load_config_or_fail(command, state_dir, output)
+    if app_config.llm is None or not app_config.llm.enabled:
+        fail(
+            command,
+            "LLM is required for rfs-cli. Run `rfs init` or `rfs llm setup` first.",
+            output,
+            code="missing_llm",
+        )
+    return app_config
+
+
 def load_index_or_fail(command: str, state_dir: Path, output: OutputMode):
     try:
         return load_index(state_dir=state_dir)
@@ -359,6 +373,60 @@ def prompt_llm_provider(existing: Optional[LLMConfig]) -> str:
         default=default_provider,
     )
     return normalize_provider(selected)
+
+
+def configure_llm(
+    existing: Optional[LLMConfig],
+    provider: Optional[str],
+    base_url: Optional[str],
+    model: Optional[str],
+    api_key_env: Optional[str],
+    output: OutputMode,
+) -> LLMConfig:
+    if provider is None:
+        provider_value = prompt_llm_provider(existing)
+    else:
+        try:
+            provider_value = normalize_provider(provider)
+        except ValueError as exc:
+            fail("llm_setup", str(exc), output, code="invalid_provider")
+
+    default_url = base_url or (existing.base_url if existing is not None else None)
+    resolved_base_url = base_url or typer.prompt(
+        "Base URL",
+        default=default_url or default_base_url(provider_value),
+    )
+
+    default_model = model or (
+        existing.model if existing is not None and existing.provider == provider_value else None
+    )
+    resolved_model = model or typer.prompt(
+        "Model",
+        default=default_model or default_model_hint(provider_value),
+    )
+
+    resolved_api_key_env: Optional[str]
+    if provider_value == "openai-compatible":
+        default_env = (
+            api_key_env
+            or (
+                existing.api_key_env
+                if existing is not None and existing.provider == provider_value
+                else None
+            )
+            or default_api_key_env(provider_value)
+        )
+        resolved_api_key_env = api_key_env or typer.prompt("API key env var", default=default_env)
+    else:
+        resolved_api_key_env = None
+
+    return LLMConfig(
+        provider=provider_value,
+        base_url=resolved_base_url.rstrip("/"),
+        model=resolved_model,
+        api_key_env=resolved_api_key_env,
+        enabled=True,
+    )
 
 
 def utc_now_iso() -> str:
@@ -495,6 +563,8 @@ def root(ctx: typer.Context) -> None:
 
     typer.echo(render_banner())
     typer.echo("")
+    typer.echo("Start with `rfs init` to configure the required LLM onboarding flow.")
+    typer.echo("")
     typer.echo(ctx.get_help())
     raise typer.Exit()
 
@@ -506,14 +576,49 @@ def version(output: OutputMode = typer.Option(OutputMode.text, "--format")) -> N
 
 
 @app.command()
+def init(
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
+    provider: Optional[str] = typer.Option(None, "--provider"),
+    base_url: Optional[str] = typer.Option(None, "--base-url"),
+    model: Optional[str] = typer.Option(None, "--model"),
+    api_key_env: Optional[str] = typer.Option(None, "--api-key-env"),
+) -> None:
+    resolved_state_dir = resolve_state_dir(state_dir)
+    app_config = load_config(state_dir=resolved_state_dir)
+    existing = app_config.llm
+
+    typer.echo(render_banner())
+    typer.echo("")
+    typer.echo("Starting rfs onboarding...")
+
+    app_config.llm = configure_llm(
+        existing=existing,
+        provider=provider,
+        base_url=base_url,
+        model=model,
+        api_key_env=api_key_env,
+        output=OutputMode.text,
+    )
+    config_path = save_config(app_config, state_dir=resolved_state_dir)
+
+    typer.echo("")
+    typer.echo(f"LLM configured: {app_config.llm.provider} / {app_config.llm.model}")
+    typer.echo(f"Config: {config_path}")
+    typer.echo("Onboarding guide loaded for the agent:")
+    typer.echo(load_onboarding_document())
+    typer.echo("")
+    typer.echo("Next steps:")
+    typer.echo("- rfs llm status")
+    typer.echo("- rfs shell")
+
+
+@app.command()
 def ask(
     question: Optional[str] = typer.Argument(None, help="Question about how to use the CLI."),
     state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
     output: OutputMode = typer.Option(OutputMode.text, "--format"),
 ) -> None:
-    app_config = load_config_or_fail("ask", state_dir, output)
-    if app_config.llm is None or not app_config.llm.enabled:
-        fail("ask", "LLM is not configured. Run `rfs llm setup` first.", output, "missing_llm")
+    app_config = load_agent_config_or_fail("ask", state_dir, output)
 
     prompt = question or typer.prompt("What do you want to do with rfs?")
 
@@ -541,6 +646,7 @@ def shell(
     reset_memory: bool = typer.Option(False, "--reset-memory"),
 ) -> None:
     resolved_state_dir = resolve_state_dir(state_dir)
+    app_config = load_agent_config_or_fail("shell", resolved_state_dir, OutputMode.text)
     if reset_memory:
         now = utc_now_iso()
         memory = ShellMemory(
@@ -673,21 +779,14 @@ def shell(
             save_shell_memory(memory, state_dir=resolved_state_dir)
             continue
 
-        app_config = load_config_or_fail("shell", resolved_state_dir, OutputMode.text)
-        if app_config.llm is None or not app_config.llm.enabled:
-            answer = (
-                "LLM is not configured. Run `llm setup`, use `/run llm setup`, "
-                "or type a direct command."
+        try:
+            answer = ask_llm(
+                app_config.llm,
+                user_input,
+                history=shell_history_messages(memory, include_latest=False),
             )
-        else:
-            try:
-                answer = ask_llm(
-                    app_config.llm,
-                    user_input,
-                    history=shell_history_messages(memory, include_latest=False),
-                )
-            except ValueError as exc:
-                answer = f"LLM error: {exc}"
+        except ValueError as exc:
+            answer = f"LLM error: {exc}"
 
         typer.echo(answer)
         append_shell_event(memory, "assistant", answer)
@@ -706,6 +805,7 @@ def search(
     limit: int = typer.Option(20, min=1, max=100),
     output: OutputMode = typer.Option(OutputMode.text, "--format"),
 ) -> None:
+    load_agent_config_or_fail("search", state_dir, output)
     index_store = load_index_or_fail("search", state_dir, output)
     if index_store is None:
         fail("search", "No index found. Run `rfs index run` first.", output, code="missing_index")
@@ -748,6 +848,7 @@ def show(
     preview_chars: int = typer.Option(500, "--preview-chars", min=0, max=5000),
     output: OutputMode = typer.Option(OutputMode.text, "--format"),
 ) -> None:
+    load_agent_config_or_fail("show", state_dir, output)
     index_store = load_index_or_fail("show", state_dir, output)
     document = resolve_index_document(target, index_store) if index_store is not None else None
     if document is None:
@@ -794,7 +895,7 @@ def index_add(
     state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
     output: OutputMode = typer.Option(OutputMode.text, "--format"),
 ) -> None:
-    app_config = load_config_or_fail("index_add", state_dir, output)
+    app_config = load_agent_config_or_fail("index_add", state_dir, output)
     resolved_root = root.expanduser().resolve()
     new_source_id = source_id or build_source_id(resolved_root)
     display_name = name or resolved_root.name or new_source_id
@@ -835,7 +936,7 @@ def index_sources(
     state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
     output: OutputMode = typer.Option(OutputMode.text, "--format"),
 ) -> None:
-    app_config = load_config_or_fail("index_sources", state_dir, output)
+    app_config = load_agent_config_or_fail("index_sources", state_dir, output)
     payload = CommandPayload(
         command="index_sources",
         ok=True,
@@ -854,7 +955,7 @@ def index_run(
     source: Optional[str] = typer.Option(None, "--source"),
     output: OutputMode = typer.Option(OutputMode.text, "--format"),
 ) -> None:
-    app_config = load_config_or_fail("index_run", state_dir, output)
+    app_config = load_agent_config_or_fail("index_run", state_dir, output)
     sources = [configured for configured in app_config.sources if configured.enabled]
     if source is not None:
         sources = [configured for configured in sources if configured.type == source]
@@ -885,8 +986,10 @@ def index_run(
 @dev_app.command("project-stats")
 def dev_project_stats(
     path: Path = typer.Option(Path("."), "--path", exists=True, file_okay=False, dir_okay=True),
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
     output: OutputMode = typer.Option(OutputMode.text, "--format"),
 ) -> None:
+    load_agent_config_or_fail("dev_project_stats", state_dir, output)
     stats = project_stats(path)
     payload = CommandPayload(
         command="dev_project_stats",
@@ -904,8 +1007,10 @@ def dev_project_stats(
 @dev_app.command("git-summary")
 def dev_git_summary(
     path: Path = typer.Option(Path("."), "--path", exists=True, file_okay=False, dir_okay=True),
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
     output: OutputMode = typer.Option(OutputMode.text, "--format"),
 ) -> None:
+    load_agent_config_or_fail("dev_git_summary", state_dir, output)
     try:
         summary = git_summary(path)
     except ValueError as exc:
@@ -926,9 +1031,11 @@ def dev_git_summary(
 @dev_app.command("find-todo")
 def dev_find_todo(
     path: Path = typer.Option(Path("."), "--path", exists=True, file_okay=False, dir_okay=True),
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
     limit: int = typer.Option(100, min=1, max=500),
     output: OutputMode = typer.Option(OutputMode.text, "--format"),
 ) -> None:
+    load_agent_config_or_fail("dev_find_todo", state_dir, output)
     todo_data = find_todo_markers(path, limit=limit)
     payload = CommandPayload(
         command="dev_find_todo",
@@ -947,8 +1054,10 @@ def dev_find_todo(
 def agent_list_files(
     root: Path = typer.Argument(..., exists=True, file_okay=False, dir_okay=True),
     limit: int = typer.Option(100, min=1, max=200),
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
     output: OutputMode = typer.Option(OutputMode.json, "--format"),
 ) -> None:
+    load_agent_config_or_fail("agent_list_files", state_dir, output)
     items = list_files(root, limit=limit)
     payload = CommandPayload(
         command="agent_list_files",
@@ -963,8 +1072,10 @@ def agent_find_text(
     query: str = typer.Argument(...),
     root: Path = typer.Argument(..., exists=True, file_okay=False, dir_okay=True),
     limit: int = typer.Option(20, min=1, max=100),
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
     output: OutputMode = typer.Option(OutputMode.json, "--format"),
 ) -> None:
+    load_agent_config_or_fail("agent_find_text", state_dir, output)
     results = live_search(query=query, root=root, limit=limit)
     payload = CommandPayload(
         command="agent_find_text",
@@ -989,51 +1100,13 @@ def llm_setup(
     output: OutputMode = typer.Option(OutputMode.text, "--format"),
 ) -> None:
     app_config = load_config_or_fail("llm_setup", state_dir, output)
-    existing = app_config.llm
-
-    if provider is None:
-        provider_value = prompt_llm_provider(existing)
-    else:
-        try:
-            provider_value = normalize_provider(provider)
-        except ValueError as exc:
-            fail("llm_setup", str(exc), output, code="invalid_provider")
-
-    default_url = base_url or (existing.base_url if existing is not None else None)
-    resolved_base_url = base_url or typer.prompt(
-        "Base URL",
-        default=default_url or default_base_url(provider_value),
-    )
-
-    default_model = model or (
-        existing.model if existing is not None and existing.provider == provider_value else None
-    )
-    resolved_model = model or typer.prompt(
-        "Model",
-        default=default_model or default_model_hint(provider_value),
-    )
-
-    resolved_api_key_env: Optional[str]
-    if provider_value == "openai-compatible":
-        default_env = (
-            api_key_env
-            or (
-                existing.api_key_env
-                if existing is not None and existing.provider == provider_value
-                else None
-            )
-            or default_api_key_env(provider_value)
-        )
-        resolved_api_key_env = api_key_env or typer.prompt("API key env var", default=default_env)
-    else:
-        resolved_api_key_env = None
-
-    app_config.llm = LLMConfig(
-        provider=provider_value,
-        base_url=resolved_base_url.rstrip("/"),
-        model=resolved_model,
-        api_key_env=resolved_api_key_env,
-        enabled=True,
+    app_config.llm = configure_llm(
+        existing=app_config.llm,
+        provider=provider,
+        base_url=base_url,
+        model=model,
+        api_key_env=api_key_env,
+        output=output,
     )
     config_path = save_config(app_config, state_dir=state_dir)
 

@@ -10,7 +10,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
-`rfs-cli` is a personal knowledge and developer utility CLI designed for three modes of use:
+`rfs-cli` is a personal knowledge and developer utility CLI agent designed for three modes of use:
 
 - Human-first local workflows
 - AI-friendly tool execution with structured output
@@ -19,6 +19,7 @@
 The project starts with local knowledge retrieval for Obsidian vaults and filesystem content, then expands into developer utilities, Google Drive integration, and agent-oriented commands.
 
 The product direction is not just "a CLI with many commands." The goal is to turn `rfs-cli` into one coherent local-first agent that can use its own tools, explain them, and keep a recognizable operating style instead of behaving like a generic chat wrapper.
+That agent now assumes a configured LLM as part of normal onboarding, and its runtime persona is R2-D2-inspired.
 
 ## Project goals
 
@@ -47,6 +48,7 @@ The product direction is not just "a CLI with many commands." The goal is to tur
 - [MVP status](./docs/mvp-status.md)
 - [Smoke checklist](./docs/smoke-checklist.md)
 - [QA report](./docs/qa-report.md)
+- [LLM onboarding guide](./docs/llm-onboarding.md)
 - [TODO plan](./docs/todo.md)
 - [Agent operating model](./AGENTS.md)
 
@@ -57,6 +59,7 @@ Planned command groups:
 - `rfs index`
 - `rfs search`
 - `rfs show`
+- `rfs init`
 - `rfs shell`
 - `rfs dev`
 - `rfs agent`
@@ -90,8 +93,9 @@ The current codebase includes:
 - file preview support
 - project statistics
 - agent-safe file listing and text search
-- optional LLM setup and guided CLI usage with `rfs ask`
+- required LLM setup and guided CLI usage with `rfs ask`
 - interactive shell mode with saved session memory and internal tool execution
+- required onboarding through `rfs init` and a packaged LLM guide
 
 Google Drive and broader metadata enrichment remain roadmap work.
 
@@ -99,11 +103,11 @@ Google Drive and broader metadata enrichment remain roadmap work.
 
 ```bash
 uv sync --all-groups
+uv run rfs init
+uv run rfs llm status
 uv run rfs index add /path/to/obsidian-vault --source obsidian
 uv run rfs index add /path/to/local-notes --source local
 uv run rfs index run
-uv run rfs llm setup
-uv run rfs ask "How do I search only obsidian notes?"
 uv run rfs shell
 uv run rfs search "agent memory" --format json
 uv run rfs show <document-id> --format json
@@ -114,7 +118,7 @@ The default workspace state directory is `.rfs/`.
 
 ## LLM-assisted usage
 
-`rfs-cli` can optionally guide command usage through a configured provider:
+`rfs-cli` requires an LLM provider for normal agent workflows:
 
 - `ollama`
 - `lmstudio`
@@ -123,15 +127,17 @@ The default workspace state directory is `.rfs/`.
 Example:
 
 ```bash
-uv run rfs llm setup
+uv run rfs init
 uv run rfs llm status
 uv run rfs ask "How do I add my Documents folder and search markdown files only?"
 uv run rfs shell
 ```
 
-The core indexing and search flows do not require an LLM. The LLM layer is optional and intended to improve discoverability and future semantic features.
+The first supported onboarding path is `rfs init`. If the LLM is not configured, agent workflows should redirect the user back to onboarding instead of pretending to operate normally.
 
 The current conversational layer is intentionally narrow: it helps users discover and operate supported commands. Expanding that into a stronger agent with state-aware guidance and follow-up questions is part of the next planning track.
+
+The runtime agent persona is R2-D2-inspired: compact, task-oriented, and operational without turning into full character roleplay.
 
 ## Shell mode
 

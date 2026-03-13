@@ -2,7 +2,7 @@
 
 ## Overview
 
-The system should be built as a modular CLI with a shared application core and separate source adapters. The architecture must support both human-readable terminal output and stable machine-readable output. It should also support a CLI-native agent layer that helps users operate the tool without turning the system into a generic chatbot.
+The system should be built as a modular CLI with a shared application core and separate source adapters. The architecture must support both human-readable terminal output and stable machine-readable output. It should also support a CLI-native agent layer that helps users operate the tool without turning the system into a generic chatbot. That agent layer now assumes a configured LLM and a packaged onboarding document as part of the normal startup path.
 
 ## Selected implementation stack
 
@@ -72,8 +72,8 @@ The current baseline stores source configuration and a local JSON index under a 
 
 The current index stores relative paths, file types, tags, aliases, and source-specific metadata for indexed documents. Obsidian notes use frontmatter-aware extraction.
 The frontmatter parser supports a lightweight nested subset for practical note metadata such as lists, booleans, numbers, and simple nested maps.
-The same workspace config now also stores optional LLM provider settings for conversational command guidance.
-The current implementation exposes one-shot guided help through `rfs ask` and an interactive `rfs shell` loop that saves shell memory under the workspace state directory.
+The same workspace config now also stores required LLM provider settings for conversational command guidance.
+The current implementation exposes one-shot guided help through `rfs ask`, an interactive `rfs shell` loop that saves shell memory under the workspace state directory, and an `rfs init` onboarding path.
 
 ## Data model
 
@@ -148,9 +148,17 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 
 1. Load config
 2. Resolve configured LLM provider
-3. Build a fixed prompt with the supported command catalog
+3. Load the packaged onboarding guide and agent persona instructions
 4. Send the user question to the provider adapter
 5. Return text or JSON with the answer payload
+
+### Init flow
+
+1. Start `rfs init`
+2. Prompt for provider, base URL, model, and API-key environment variable where needed
+3. Persist the LLM configuration to the workspace state directory
+4. Present the onboarding guide that teaches the agent its own command surface
+5. Hand off to `rfs llm status` or `rfs shell`
 
 ### Planned agent-interaction flow
 
@@ -229,6 +237,8 @@ Example response shape:
 - Prefer deterministic command recommendation over open-ended discussion
 - Allow future expansion to a dedicated interactive mode without rewriting the command layer
 - Keep shell memory as explicit persisted state instead of hidden in-process memory only
+- Load onboarding documentation into the system prompt so agent behavior stays aligned with the implemented CLI
+- Keep the R2-D2-inspired persona restrained and operational rather than theatrical
 
 ## Test strategy
 
