@@ -20,11 +20,12 @@ Example:
 
 ```text
 exports/
-  roadmap-bundle/
-    manifest.json
-    documents/
-      01-project-roadmap.md
-      02-agent-systems.md
+  research/
+    roadmap-20260315-120000Z/
+      manifest.json
+      documents/
+        01-project-roadmap.md
+        02-agent-systems.md
 ```
 
 ## Manifest contract
@@ -64,10 +65,13 @@ Each item under `documents` contains:
 - document files contain the indexed document content
 - bundles are metadata-plus-content packages intended for curation and handoff
 - search remains bounded by the existing `search_index` result model and filters
+- if `--output` is omitted, a default bundle path is generated under `exports/research/<query-slug>-<timestamp>/`
+- explicit `--output` still takes precedence when the user wants a fixed destination
 
 ## Current command shape
 
 ```bash
+rfs research export "<query>"
 rfs research export "<query>" --output ./exports/my-bundle
 ```
 
@@ -84,6 +88,7 @@ Supported filters:
 
 - keep the export format filesystem-friendly and inspectable without extra tooling
 - keep the manifest stable enough for later agent or NotebookLM-adjacent workflows
+- keep default bundle names clear enough that users can recognize the export without renaming it first
 - avoid introducing remote sync assumptions
 - keep the first format text-first and JSON-manifest-first
 

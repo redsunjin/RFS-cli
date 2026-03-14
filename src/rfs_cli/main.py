@@ -64,7 +64,11 @@ from rfs_cli.models import (
     ShellMemory,
     SourceConfig,
 )
-from rfs_cli.research import build_research_filters, export_research_bundle
+from rfs_cli.research import (
+    build_research_filters,
+    default_research_output_dir,
+    export_research_bundle,
+)
 from rfs_cli.services import (
     find_todo_markers,
     git_summary,
@@ -2052,7 +2056,7 @@ def drive_search(
 @research_app.command("export")
 def research_export(
     query: str = typer.Argument(...),
-    output_dir: Path = typer.Option(Path("exports/latest"), "--output"),
+    output_dir: Optional[Path] = typer.Option(None, "--output"),
     source: Optional[str] = typer.Option(None, "--source"),
     source_id: Optional[str] = typer.Option(None, "--source-id"),
     tag: Optional[list[str]] = typer.Option(None, "--tag"),
@@ -2092,11 +2096,12 @@ def research_export(
         snippets_by_id[document.document_id] = str(result["snippet"])
 
     filters = build_research_filters(source, source_id, tag, path_prefix, file_type, limit)
+    resolved_requested_output = output_dir or default_research_output_dir(query)
     resolved_output_dir, manifest_path, manifest = export_research_bundle(
         query=query,
         documents=documents,
         snippets_by_id=snippets_by_id,
-        output_dir=output_dir,
+        output_dir=resolved_requested_output,
         filters=filters,
     )
 

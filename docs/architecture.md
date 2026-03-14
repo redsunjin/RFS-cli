@@ -306,11 +306,12 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 ### Research export flow
 
 1. Load the local index
-2. Run indexed search with optional source and metadata filters
-3. Resolve the matched documents from the index store
-4. Write document content into a bundle `documents/` directory
-5. Write `manifest.json` with stable export metadata
-6. Return text or JSON with the bundle output paths
+2. Derive the bundle output path from `--output` or generate a query-based default under `exports/research/`
+3. Run indexed search with optional source and metadata filters
+4. Resolve the matched documents from the index store
+5. Write document content into a bundle `documents/` directory
+6. Write `manifest.json` with stable export metadata
+7. Return text or JSON with the bundle output paths
 
 ### Planned agent-interaction flow
 

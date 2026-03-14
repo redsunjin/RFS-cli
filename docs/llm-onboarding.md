@@ -50,6 +50,8 @@ If the LLM is not configured, interactive startup through `rfs` should begin onb
 - `rfs research`
 - `rfs agent`
 
+If `--output` is omitted for `rfs research export`, the CLI creates a query-based bundle path under `exports/research/`.
+
 ## Shell behavior
 
 Inside `rfs shell`, the user can:

@@ -15,9 +15,18 @@ def utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def utc_now_token() -> str:
+    return datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%SZ")
+
+
 def slugify_export_name(value: str) -> str:
     normalized = SAFE_EXPORT_NAME.sub("-", value.lower()).strip("-")
     return normalized or "document"
+
+
+def default_research_output_dir(query: str) -> Path:
+    bundle_name = f"{slugify_export_name(query)}-{utc_now_token()}"
+    return Path("exports") / "research" / bundle_name
 
 
 def document_export_name(position: int, document: IndexDocument) -> str:

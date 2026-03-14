@@ -87,7 +87,7 @@ When scope changes, update these files in order:
 
 - [x] Define export format for curated document bundles
 - [x] Implement research export command
-- [ ] Document NotebookLM-adjacent workflow examples
+- [x] Document NotebookLM-adjacent workflow examples
 
 ## Post-MVP external tool providers
 
@@ -107,13 +107,13 @@ When scope changes, update these files in order:
 ## Current recommended next three tasks
 
 - [ ] Run a real Google Drive smoke pass when client secrets or token state are available
-- [ ] Document NotebookLM-adjacent workflow examples
-- [ ] Review `research export` bundle ergonomics and naming
+- [ ] Define `UserIntent`, `CommandSuggestion`, and `GuidanceResponse` internal models
+- [ ] Extract an intent interpreter and suggestion planner behind `rfs ask`
 
 ## Current work groups
 
 - [ ] `WG-01` Google Drive runtime validation
-- [ ] `WG-02` Research export polish
+- [x] `WG-02` Research export polish
 - [ ] `WG-03` Assistive UX batch A
 - [ ] `WG-04` External tool provider design
 - [ ] `WG-05` Harbor and game planning

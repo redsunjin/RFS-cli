@@ -109,6 +109,8 @@ Current baseline:
 
 - first research export bundle format is defined
 - first `rfs research export` command is implemented for local indexed content
+- default research bundle naming is now query-based instead of a generic `latest` path
+- NotebookLM-adjacent workflow examples are documented
 
 ## Post-MVP external tool integration track
 

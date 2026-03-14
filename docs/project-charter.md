@@ -126,7 +126,7 @@ Start with configuration, auth/cache boundaries, a local token flow, a read-only
 
 ### NotebookLM
 
-Treat NotebookLM as an adjacent workflow, not the core system of record. Design exports and source packaging that make it easier to move curated material into external research tools.
+Treat NotebookLM as an adjacent workflow, not the core system of record. Design exports and source packaging that make it easier to move curated material into external research tools. Prefer filesystem-safe, query-based bundle names by default so curated exports are understandable and reusable without extra renaming.
 
 ### External tool providers
 

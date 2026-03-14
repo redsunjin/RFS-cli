@@ -76,7 +76,7 @@ Exit definition:
 
 Status:
 
-- ready now
+- complete
 
 Goal:
 
@@ -193,14 +193,12 @@ Exit definition:
 ## Recommended execution order
 
 1. WG-01 when credentials or token state are available
-2. WG-02 now
-3. WG-03 next
-4. WG-04 after the current research and guidance polish
-5. WG-05 only as optional planning work
+2. WG-03 next
+3. WG-04 after current guidance extraction
+4. WG-05 only as optional planning work
 
 ## Current batchable-now list
 
-- WG-02: Research export polish
 - WG-03: Assistive UX batch A
 
 ## Current blocked list
@@ -211,3 +209,7 @@ Exit definition:
 
 - WG-04: External tool provider design
 - WG-05: Harbor and game planning
+
+## Current completed list
+
+- WG-02: Research export polish

@@ -199,10 +199,12 @@ Responsibilities:
 
 - export curated indexed results into a portable local bundle
 - write a stable `manifest.json` plus document files under `documents/`
+- generate a query-based bundle directory automatically when `--output` is omitted
 - keep the first export path local-first and NotebookLM-adjacent rather than provider-specific
 
 Examples:
 
+- `rfs research export "agent systems"`
 - `rfs research export "agent systems" --output ./exports/agent-systems`
 - `rfs research export "roadmap" --source obsidian --limit 5`
 
@@ -348,6 +350,7 @@ Responsibilities:
 - Export indexed search results into a bundle directory with `manifest.json` and `documents/`
 - Preserve source metadata, paths, tags, aliases, content hash, and snippets in the manifest
 - Allow the same source and metadata filters used by indexed search
+- When `--output` is omitted, derive a filesystem-safe query-based bundle path that avoids the ambiguous `latest` naming pattern
 - Keep the first implementation local-index-based and text-first
 
 ### Content inspection

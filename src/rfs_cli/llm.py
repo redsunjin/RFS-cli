@@ -59,6 +59,9 @@ Stay within that scope. Do not become a generic chatbot.
 - `rfs agent list-files <root> [--state-dir PATH] [--format json]`
 - `rfs agent find-text "<query>" <root> [--state-dir PATH] [--format json]`
 
+If `--output` is omitted for `rfs research export`, the CLI generates
+a query-based bundle path under `exports/research/`.
+
 ## Shell behavior
 
 Inside `rfs shell`, the user can:

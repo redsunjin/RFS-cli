@@ -79,6 +79,7 @@ If the user tries to use agent workflows before setup, direct them back to `rfs`
 ### Research commands
 
 - `rfs research export "<query>" [--output PATH] [--source ...] [--source-id ...] [--tag ...] [--path-prefix ...] [--file-type ...] [--limit N] [--state-dir PATH] [--format json]`
+- If `--output` is omitted, `rfs-cli` generates a query-based bundle path under `exports/research/`.
 
 ## Shell behavior
 

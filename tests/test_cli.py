@@ -1535,6 +1535,42 @@ def test_research_export_requires_index(tmp_path: Path) -> None:
     assert payload["error"]["code"] == "missing_index"
 
 
+def test_research_export_generates_query_based_default_output_dir(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    state_dir = tmp_path / ".rfs"
+    generated_output_dir = tmp_path / "exports" / "research" / "agent-systems-20260315-120000Z"
+
+    build_index_with_source(state_dir, fixture_root, "obsidian")
+    rebuild_index(state_dir)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(
+        "rfs_cli.main.default_research_output_dir",
+        lambda query: Path("exports/research/agent-systems-20260315-120000Z"),
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "research",
+            "export",
+            "agent systems",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "research_export", True)
+    assert payload["data"]["output_dir"] == str(generated_output_dir.resolve())
+    assert Path(payload["data"]["manifest_path"]).exists()
+
+
 def test_show_by_path_returns_indexed_metadata_when_available(tmp_path: Path) -> None:
     fixture_root = Path("tests/fixtures/obsidian").resolve()
     state_dir = tmp_path / ".rfs"

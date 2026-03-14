@@ -129,12 +129,14 @@ Current slice status:
 - Cache expiry and invalidation review: complete through command-level cache-hit, expiry, and page-size invalidation tests
 - Research export bundle format: complete
 - First `rfs research export` command: complete
+- NotebookLM-adjacent workflow examples: complete
+- Research export bundle naming review: complete
 
 ## Recommended next three tasks
 
 1. Run a real Google Drive smoke pass when client secrets or token state are available.
-2. Document NotebookLM-adjacent workflow examples.
-3. Review `research export` bundle ergonomics and naming.
+2. Define `UserIntent`, `CommandSuggestion`, and `GuidanceResponse` internal models.
+3. Extract an intent interpreter and suggestion planner behind `rfs ask`.
 
 ## Current work-group execution order
 
@@ -143,5 +145,4 @@ Use `docs/work-groups.md` as the batch-planning layer above individual TODO item
 Current order:
 
 1. `WG-01` Google Drive runtime validation when credentials or token state are available
-2. `WG-02` Research export polish
-3. `WG-03` Assistive UX batch A
+2. `WG-03` Assistive UX batch A
