@@ -79,7 +79,7 @@ When scope changes, update these files in order:
 - [x] Define Drive source config model
 - [x] Implement auth flow
 - [x] Implement file metadata retrieval
-- [ ] Implement cache strategy
+- [x] Implement cache strategy
 - [ ] Add `drive search`
 - [ ] Add integration tests for adapter behavior
 
@@ -106,9 +106,9 @@ When scope changes, update these files in order:
 
 ## Current recommended next three tasks
 
-- [ ] Implement Drive cache strategy
 - [ ] Implement live `drive search`
 - [ ] Add integration tests for Drive adapter behavior
+- [ ] Run a real Google Drive smoke pass after live search is enabled
 
 ## Post-MVP gamification track
 

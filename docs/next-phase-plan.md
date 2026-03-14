@@ -122,9 +122,10 @@ Current slice status:
 - Drive source config model: complete
 - Drive auth flow and local token persistence: complete
 - Drive file metadata retrieval: complete
+- Drive local metadata cache strategy: complete
 
 ## Recommended next three tasks
 
-1. Implement the Google Drive cache strategy.
-2. Implement live `drive search`.
-3. Add integration tests for Drive adapter behavior.
+1. Implement live `drive search`.
+2. Add integration tests for Drive adapter behavior.
+3. Run a real Google Drive smoke pass after live search is enabled.

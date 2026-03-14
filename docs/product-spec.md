@@ -286,6 +286,7 @@ Examples:
 - Store LLM provider settings in the same local config file
 - Store Google Drive auth and cache boundary settings in the same local config file
 - Store Google Drive token state in the workspace state directory
+- Store Google Drive metadata cache state in the workspace state directory
 - Treat LLM configuration as required for normal agent workflows
 
 ### Installation and release readiness
@@ -304,7 +305,8 @@ Examples:
 - Define a persisted Drive source config model
 - Implement an OAuth-installed-app auth flow with local token persistence
 - Implement read-only metadata retrieval against the Drive files API
-- Keep live `drive search` disabled until cache behavior is defined
+- Implement a local metadata cache boundary for repeated Drive reads
+- Keep live `drive search` disabled until the cached command surface is defined
 
 ### Guided assistance
 

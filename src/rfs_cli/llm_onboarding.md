@@ -97,5 +97,5 @@ Shell history is saved in `.rfs/shell-memory.json` unless the user chooses anoth
 
 ## Not implemented yet
 
-- Google Drive auth and read-only metadata retrieval exist, but live `drive search` is still disabled.
+- Google Drive auth, metadata retrieval, and local cache exist, but live `drive search` is still disabled.
 - Rich multi-turn follow-up planning is still limited.

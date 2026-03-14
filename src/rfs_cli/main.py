@@ -22,9 +22,11 @@ from typer.main import get_command
 from rfs_cli import __version__
 from rfs_cli.config import (
     load_config,
+    load_drive_cache,
     load_index,
     load_shell_memory,
     resolve_config_path,
+    resolve_drive_cache_path,
     resolve_drive_token_path,
     resolve_index_path,
     resolve_shell_memory_path,
@@ -103,8 +105,8 @@ TEXT_GRADIENT_END = (255, 182, 118)
 WAVE_GRADIENT_START = (77, 151, 255)
 WAVE_GRADIENT_END = (113, 211, 255)
 DRIVE_CONTRACT_NOTE = (
-    "Drive auth and metadata retrieval are implemented. "
-    "Live `drive search` remains disabled until cache behavior is finalized."
+    "Drive auth, metadata retrieval, and local metadata cache are implemented. "
+    "Live `drive search` remains disabled until the command surface is finalized."
 )
 SHELL_PROMPT = "rfs> "
 KNOWN_SHELL_COMMANDS = {
@@ -403,14 +405,27 @@ def build_drive_status_data(app_config: AppConfig, state_dir: Path) -> dict[str,
     auth = drive_config.auth
     cache = drive_config.cache
     token_path = resolve_drive_token_path(state_dir=resolved_state_dir)
+    cache_path = resolve_drive_cache_path(state_dir=resolved_state_dir)
     error_message: Optional[str] = None
     credentials = None
     auth_source: Optional[str] = None
+    cache_error_message: Optional[str] = None
+    cache_entry_count = 0
+    cache_valid = False
 
     try:
         credentials, auth_source, _ = load_drive_credentials(drive_config, resolved_state_dir)
     except ValueError as exc:
         error_message = str(exc)
+
+    try:
+        cache_store = load_drive_cache(state_dir=resolved_state_dir)
+    except ValueError as exc:
+        cache_error_message = str(exc)
+    else:
+        if cache_store is not None:
+            cache_valid = True
+            cache_entry_count = len(cache_store.entries)
 
     refresh_token_present = bool(os.environ.get(auth.refresh_token_env))
     authenticated = credentials is not None and bool(credentials.refresh_token or credentials.token)
@@ -430,6 +445,10 @@ def build_drive_status_data(app_config: AppConfig, state_dir: Path) -> dict[str,
         "cache_mode": cache.mode,
         "cache_ttl_minutes": cache.ttl_minutes,
         "cache_max_entries": cache.max_entries,
+        "cache_path": str(cache_path),
+        "cache_file_exists": cache_path.exists(),
+        "cache_valid": cache_valid,
+        "cache_entry_count": cache_entry_count,
         "token_path": str(token_path),
         "token_file_exists": token_path.exists(),
         "auth_source": auth_source,
@@ -440,6 +459,7 @@ def build_drive_status_data(app_config: AppConfig, state_dir: Path) -> dict[str,
         "metadata_retrieval_ready": True,
         "live_search_available": False,
         "error": error_message,
+        "cache_error": cache_error_message,
         "note": DRIVE_CONTRACT_NOTE,
     }
 
@@ -636,6 +656,8 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
             typer.echo(f'Client secret env: {data["client_secret_env"]}')
             typer.echo(f'Refresh token env: {data["refresh_token_env"]}')
             typer.echo(f'Cache mode: {data["cache_mode"]}')
+            typer.echo(f'Cache path: {data["cache_path"]}')
+            typer.echo(f'Cache entries: {data["cache_entry_count"]}')
             typer.echo(f'Token path: {data["token_path"]}')
             typer.echo(f'Authenticated: {"yes" if data["authenticated"] else "no"}')
             typer.echo(
@@ -644,6 +666,8 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
             typer.echo(f'Config: {data["config_path"]}')
             if data.get("error"):
                 typer.echo(f'Error: {data["error"]}')
+            if data.get("cache_error"):
+                typer.echo(f'Cache error: {data["cache_error"]}')
             typer.echo(data["note"])
             return
 
@@ -666,6 +690,8 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
                 f'({"yes" if data["refresh_token_present"] else "no"})'
             )
             typer.echo(f'Cache mode: {data["cache_mode"]}')
+            typer.echo(f'Cache path: {data["cache_path"]}')
+            typer.echo(f'Cache entries: {data["cache_entry_count"]}')
             typer.echo(f'Shared drives: {"yes" if data["include_shared_drives"] else "no"}')
             typer.echo(f'Authenticated: {"yes" if data["authenticated"] else "no"}')
             typer.echo(
@@ -675,6 +701,8 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
             typer.echo(f'Token path: {data["token_path"]}')
             if data.get("error"):
                 typer.echo(f'Error: {data["error"]}')
+            if data.get("cache_error"):
+                typer.echo(f'Cache error: {data["cache_error"]}')
             typer.echo(data["note"])
             return
 

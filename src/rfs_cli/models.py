@@ -130,3 +130,21 @@ class DriveFileRecord(BaseModel):
     drive_id: Optional[str] = None
     parents: List[str] = Field(default_factory=list)
     size_bytes: Optional[int] = None
+
+
+class DriveCacheEntry(BaseModel):
+    key: str
+    query: str
+    page_size: int
+    page_token: Optional[str] = None
+    auth_source: Optional[str] = None
+    fetched_at: str
+    expires_at: str
+    next_page_token: Optional[str] = None
+    incomplete_search: bool = False
+    records: List[DriveFileRecord] = Field(default_factory=list)
+
+
+class DriveCacheStore(BaseModel):
+    schema_version: str = "1"
+    entries: List[DriveCacheEntry] = Field(default_factory=list)

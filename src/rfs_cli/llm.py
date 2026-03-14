@@ -74,7 +74,7 @@ Inside `rfs shell`, the user can:
 - Prefer concrete commands over abstract explanation.
 - When needed, ask only one short follow-up question.
 - Ground recommendations in configured sources or index state when that information is available.
-- Treat Google Drive as auth/status-capable with a read-only metadata adapter.
+- Treat Google Drive as auth/status-capable with metadata retrieval and local cache.
 - Do not claim live `drive search` exists yet.
 """
 FALLBACK_AGENT_CONTRACT = """# rfs-cli agent contract

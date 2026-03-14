@@ -81,6 +81,7 @@ Important files:
 - `.rfs/index.json`
 - `.rfs/shell-memory.json`
 - `.rfs/drive-token.json`
+- `.rfs/drive-cache.json`
 
 ## Recovery
 
@@ -100,5 +101,5 @@ rfs
 ## Current limits
 
 - Normal agent workflows require an LLM configuration
-- Google Drive is still a placeholder
+- Google Drive live search is still disabled while the cached command surface is being finalized
 - A real Obsidian smoke run depends on a real vault path existing in the environment

@@ -3,12 +3,21 @@ from __future__ import annotations
 import json
 import os
 import warnings
+from datetime import datetime, timedelta, timezone
+from hashlib import sha256
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional
 from urllib import error, parse, request
 
-from rfs_cli.config import ensure_parent, resolve_drive_token_path, resolve_state_dir
-from rfs_cli.models import DriveConfig, DriveFileRecord
+from rfs_cli.config import (
+    ensure_parent,
+    load_drive_cache,
+    resolve_drive_cache_path,
+    resolve_drive_token_path,
+    resolve_state_dir,
+    save_drive_cache,
+)
+from rfs_cli.models import DriveCacheEntry, DriveCacheStore, DriveConfig, DriveFileRecord
 
 if TYPE_CHECKING:
     from google.oauth2.credentials import Credentials
@@ -20,6 +29,14 @@ DRIVE_REDIRECT_URIS = [
     "http://127.0.0.1",
     "http://localhost",
 ]
+
+
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def parse_timestamp(value: str) -> datetime:
+    return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
 
 def load_google_drive_modules() -> tuple[Any, Any]:
@@ -280,6 +297,132 @@ def parse_drive_file_record(item: dict[str, Any]) -> DriveFileRecord:
     )
 
 
+def drive_cache_key(
+    drive_config: DriveConfig,
+    query: str,
+    page_size: int,
+    page_token: Optional[str] = None,
+) -> str:
+    payload = {
+        "query": query.strip(),
+        "page_size": page_size,
+        "page_token": page_token,
+        "corpora": drive_config.corpora,
+        "include_shared_drives": drive_config.include_shared_drives,
+        "metadata_fields": drive_config.metadata_fields,
+    }
+    digest = sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()
+    return f"drive:{digest}"
+
+
+def load_drive_cache_or_default(state_dir: Path) -> DriveCacheStore:
+    try:
+        return load_drive_cache(state_dir=state_dir) or DriveCacheStore()
+    except ValueError:
+        return DriveCacheStore()
+
+
+def prune_drive_cache_entries(
+    entries: list[DriveCacheEntry],
+    now: datetime,
+) -> list[DriveCacheEntry]:
+    valid_entries: list[DriveCacheEntry] = []
+    for entry in entries:
+        try:
+            expires_at = parse_timestamp(entry.expires_at)
+        except ValueError:
+            continue
+        if expires_at > now:
+            valid_entries.append(entry)
+    valid_entries.sort(key=lambda entry: entry.fetched_at, reverse=True)
+    return valid_entries
+
+
+def resolve_cached_drive_entry(
+    drive_config: DriveConfig,
+    state_dir: Path,
+    query: str,
+    page_size: int,
+    page_token: Optional[str] = None,
+) -> tuple[Optional[DriveCacheEntry], Path]:
+    cache_path = resolve_drive_cache_path(state_dir=state_dir)
+    if drive_config.cache.mode == "disabled":
+        return None, cache_path
+
+    cache_store = load_drive_cache_or_default(state_dir)
+    key = drive_cache_key(drive_config, query=query, page_size=page_size, page_token=page_token)
+    now = utc_now()
+    pruned_entries = prune_drive_cache_entries(cache_store.entries, now)
+    if len(pruned_entries) != len(cache_store.entries):
+        save_drive_cache(DriveCacheStore(entries=pruned_entries), state_dir=state_dir)
+
+    for entry in pruned_entries:
+        if entry.key == key:
+            return entry, cache_path
+    return None, cache_path
+
+
+def store_drive_cache_entry(
+    drive_config: DriveConfig,
+    state_dir: Path,
+    query: str,
+    page_size: int,
+    auth_source: str,
+    records: list[DriveFileRecord],
+    next_page_token: Optional[str],
+    incomplete_search: bool,
+    page_token: Optional[str] = None,
+) -> tuple[Path, DriveCacheEntry]:
+    cache_path = resolve_drive_cache_path(state_dir=state_dir)
+    if drive_config.cache.mode == "disabled":
+        cache_key = drive_cache_key(
+            drive_config,
+            query=query,
+            page_size=page_size,
+            page_token=page_token,
+        )
+        entry = DriveCacheEntry(
+            key=cache_key,
+            query=query,
+            page_size=page_size,
+            page_token=page_token,
+            auth_source=auth_source,
+            fetched_at=utc_now().isoformat(),
+            expires_at=utc_now().isoformat(),
+            next_page_token=next_page_token,
+            incomplete_search=incomplete_search,
+            records=records,
+        )
+        return cache_path, entry
+
+    now = utc_now()
+    expires_at = now + timedelta(minutes=drive_config.cache.ttl_minutes)
+    entry = DriveCacheEntry(
+        key=drive_cache_key(drive_config, query=query, page_size=page_size, page_token=page_token),
+        query=query,
+        page_size=page_size,
+        page_token=page_token,
+        auth_source=auth_source,
+        fetched_at=now.isoformat(),
+        expires_at=expires_at.isoformat(),
+        next_page_token=next_page_token,
+        incomplete_search=incomplete_search,
+        records=records,
+    )
+    cache_store = load_drive_cache_or_default(state_dir)
+    remaining = [
+        existing
+        for existing in prune_drive_cache_entries(cache_store.entries, now)
+        if existing.key != entry.key
+    ]
+    remaining.insert(0, entry)
+    save_drive_cache(
+        DriveCacheStore(entries=remaining[: drive_config.cache.max_entries]),
+        state_dir=state_dir,
+    )
+    return cache_path, entry
+
+
 def fetch_drive_file_metadata(
     drive_config: DriveConfig,
     state_dir: Path,
@@ -290,6 +433,30 @@ def fetch_drive_file_metadata(
     if page_size < 1:
         raise ValueError("Google Drive page size must be at least 1.")
 
+    resolved_state_dir = resolve_state_dir(state_dir)
+    cached_entry, cache_path = resolve_cached_drive_entry(
+        drive_config,
+        resolved_state_dir,
+        query=query,
+        page_size=page_size,
+        page_token=page_token,
+    )
+    if cached_entry is not None:
+        return {
+            "query": query,
+            "page_size": page_size,
+            "next_page_token": cached_entry.next_page_token,
+            "incomplete_search": cached_entry.incomplete_search,
+            "auth_source": cached_entry.auth_source,
+            "token_path": str(resolve_drive_token_path(state_dir=resolved_state_dir)),
+            "cache_path": str(cache_path),
+            "cache_key": cached_entry.key,
+            "cache_hit": True,
+            "fetched_at": cached_entry.fetched_at,
+            "expires_at": cached_entry.expires_at,
+            "records": cached_entry.records,
+        }
+
     credentials, auth_source, token_path = ensure_drive_credentials(drive_config, state_dir)
     if not credentials.token:
         raise ValueError("Google Drive credentials do not have an access token yet.")
@@ -299,6 +466,17 @@ def fetch_drive_file_metadata(
         access_token=credentials.token,
     )
     records = [parse_drive_file_record(item) for item in response.get("files", [])]
+    cache_path, cache_entry = store_drive_cache_entry(
+        drive_config,
+        resolved_state_dir,
+        query=query,
+        page_size=page_size,
+        auth_source=auth_source,
+        records=records,
+        next_page_token=response.get("nextPageToken"),
+        incomplete_search=bool(response.get("incompleteSearch", False)),
+        page_token=page_token,
+    )
     return {
         "query": query,
         "page_size": page_size,
@@ -306,5 +484,10 @@ def fetch_drive_file_metadata(
         "incomplete_search": bool(response.get("incompleteSearch", False)),
         "auth_source": auth_source,
         "token_path": str(token_path),
+        "cache_path": str(cache_path),
+        "cache_key": cache_entry.key,
+        "cache_hit": False,
+        "fetched_at": cache_entry.fetched_at,
+        "expires_at": cache_entry.expires_at,
         "records": records,
     }

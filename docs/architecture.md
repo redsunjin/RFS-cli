@@ -132,6 +132,13 @@ The current implementation exposes one-shot guided help through `rfs ask`, an in
 - separate from `config.json`
 - used by `drive status` and Drive metadata retrieval commands
 
+### Drive cache state
+
+- stored in `.rfs/drive-cache.json`
+- separate from both `config.json` and the Drive token file
+- keyed by query, page size, page token, and the active Drive metadata config
+- stores bounded metadata-only records with TTL-based expiration
+
 ### DriveFileRecord
 
 - `file_id`
@@ -213,8 +220,10 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 2. Read or persist the Drive auth/cache boundary
 3. Run an installed-app OAuth flow when requested and save token state locally
 4. Refresh Drive credentials locally when read-only metadata access needs a valid token
-5. Fetch metadata-only file records from the Drive files API
-6. Expose Drive status while keeping live cache-backed `drive search` disabled
+5. Check the local Drive metadata cache before remote retrieval
+6. Fetch metadata-only file records from the Drive files API on a cache miss
+7. Persist bounded cache entries under the workspace state directory
+8. Expose Drive status while keeping live cache-backed `drive search` disabled
 
 ### Planned agent-interaction flow
 

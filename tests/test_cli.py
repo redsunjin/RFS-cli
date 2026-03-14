@@ -7,7 +7,7 @@ from typing import Optional
 from typer.testing import CliRunner
 
 from rfs_cli import __version__
-from rfs_cli.config import load_config, load_shell_memory, save_config
+from rfs_cli.config import load_config, load_drive_cache, load_shell_memory, save_config
 from rfs_cli.drive import fetch_drive_file_metadata
 from rfs_cli.llm import extract_message_content, history_to_messages
 from rfs_cli.main import app, render_banner
@@ -506,7 +506,9 @@ def test_drive_status_reports_env_presence(tmp_path: Path, monkeypatch) -> None:
     assert payload["data"]["authenticated"] is False
     assert payload["data"]["metadata_retrieval_ready"] is True
     assert payload["data"]["live_search_available"] is False
-    assert "metadata retrieval are implemented" in payload["data"]["note"]
+    assert payload["data"]["cache_file_exists"] is False
+    assert payload["data"]["cache_entry_count"] == 0
+    assert "local metadata cache are implemented" in payload["data"]["note"]
 
 
 def test_drive_status_reports_state_file_auth(tmp_path: Path) -> None:
@@ -551,6 +553,7 @@ def test_drive_status_reports_state_file_auth(tmp_path: Path) -> None:
     assert payload["data"]["auth_source"] == "state_file"
     assert payload["data"]["metadata_retrieval_ready"] is True
     assert payload["data"]["live_search_available"] is False
+    assert payload["data"]["cache_file_exists"] is False
 
 
 def test_fetch_drive_file_metadata_normalizes_records(tmp_path: Path, monkeypatch) -> None:
@@ -601,6 +604,8 @@ def test_fetch_drive_file_metadata_normalizes_records(tmp_path: Path, monkeypatc
     assert result["incomplete_search"] is False
     assert result["auth_source"] == "state_file"
     assert result["token_path"] == str(state_dir / "drive-token.json")
+    assert result["cache_hit"] is False
+    assert result["cache_path"] == str(state_dir / "drive-cache.json")
     assert captured["access_token"] == "access-token"
     assert "name+contains+%27proposal%27" in str(captured["url"])
     assert "pageSize=7" in str(captured["url"])
@@ -610,6 +615,50 @@ def test_fetch_drive_file_metadata_normalizes_records(tmp_path: Path, monkeypatc
     assert records[0].file_id == "file-1"
     assert records[0].name == "Proposal Draft"
     assert records[0].size_bytes == 2048
+
+    cache_store = load_drive_cache(state_dir=state_dir)
+    assert cache_store is not None
+    assert len(cache_store.entries) == 1
+    assert cache_store.entries[0].query == "proposal"
+
+
+def test_fetch_drive_file_metadata_uses_cache_when_available(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    call_count = {"requests": 0}
+
+    class FakeCredentials:
+        token = "access-token"
+
+    def fake_ensure_drive_credentials(drive_config, state_dir_arg):
+        return FakeCredentials(), "state_file", Path(state_dir_arg) / "drive-token.json"
+
+    def fake_request_drive_json(url: str, access_token: str, timeout: float = 30.0):
+        call_count["requests"] += 1
+        return {
+            "files": [
+                {
+                    "id": "file-1",
+                    "name": "Cached Proposal",
+                    "mimeType": "application/pdf",
+                    "modifiedTime": "2026-03-14T09:30:00Z",
+                }
+            ]
+        }
+
+    monkeypatch.setattr("rfs_cli.drive.ensure_drive_credentials", fake_ensure_drive_credentials)
+    monkeypatch.setattr("rfs_cli.drive.request_drive_json", fake_request_drive_json)
+
+    first = fetch_drive_file_metadata(DriveConfig(), state_dir=state_dir, query="proposal")
+    second = fetch_drive_file_metadata(DriveConfig(), state_dir=state_dir, query="proposal")
+
+    assert first["cache_hit"] is False
+    assert second["cache_hit"] is True
+    assert call_count["requests"] == 1
+    assert second["records"][0].name == "Cached Proposal"
+
+    cache_store = load_drive_cache(state_dir=state_dir)
+    assert cache_store is not None
+    assert len(cache_store.entries) == 1
 
 
 def test_fetch_drive_file_metadata_requires_auth(tmp_path: Path, monkeypatch) -> None:

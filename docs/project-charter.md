@@ -111,7 +111,7 @@ Treat Obsidian as a first-class content source because it is local, practical, a
 ### Google Drive
 
 Add Google Drive after the local indexing model is stable. Use it as a searchable source and metadata provider, not as the first architectural dependency.
-Start with configuration, auth/cache boundaries, a local token flow, and a read-only metadata adapter before attempting live remote search execution.
+Start with configuration, auth/cache boundaries, a local token flow, a read-only metadata adapter, and a local cache boundary before attempting live remote search execution.
 
 ### NotebookLM
 
