@@ -58,11 +58,13 @@ from rfs_cli.models import (
     DriveConfig,
     DriveFileRecord,
     ErrorPayload,
+    IndexDocument,
     LLMConfig,
     ShellEvent,
     ShellMemory,
     SourceConfig,
 )
+from rfs_cli.research import build_research_filters, export_research_bundle
 from rfs_cli.services import (
     find_todo_markers,
     git_summary,
@@ -78,12 +80,14 @@ dev_app = typer.Typer(help="Developer utility commands.")
 agent_app = typer.Typer(help="AI-safe commands.")
 drive_app = typer.Typer(help="Google Drive commands.")
 llm_app = typer.Typer(help="LLM setup and guidance commands.")
+research_app = typer.Typer(help="Research export commands.")
 
 app.add_typer(index_app, name="index")
 app.add_typer(dev_app, name="dev")
 app.add_typer(agent_app, name="agent")
 app.add_typer(drive_app, name="drive")
 app.add_typer(llm_app, name="llm")
+app.add_typer(research_app, name="research")
 
 
 class OutputMode(str, Enum):
@@ -132,8 +136,20 @@ KNOWN_SHELL_COMMANDS = {
     "agent",
     "drive",
     "llm",
+    "research",
 }
-STATEFUL_COMMANDS = {"ask", "doctor", "search", "show", "index", "dev", "agent", "drive", "llm"}
+STATEFUL_COMMANDS = {
+    "ask",
+    "doctor",
+    "search",
+    "show",
+    "index",
+    "dev",
+    "agent",
+    "drive",
+    "llm",
+    "research",
+}
 
 
 def should_use_color() -> bool:
@@ -735,6 +751,14 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
                     typer.echo(f'  link: {result["web_view_link"]}')
             return
 
+        if command == "research_export":
+            typer.echo(f'Exported {data["item_count"]} document(s) for "{data["query"]}"')
+            typer.echo(f'Output: {data["output_dir"]}')
+            typer.echo(f'Manifest: {data["manifest_path"]}')
+            for document in data["documents"][:10]:
+                typer.echo(f'- {document["title"]} -> {document["export_path"]}')
+            return
+
         if command == "ask":
             typer.echo(data["answer"])
             return
@@ -780,6 +804,10 @@ def load_index_or_fail(command: str, state_dir: Path, output: OutputMode):
         return load_index(state_dir=state_dir)
     except ValueError as exc:
         fail(command, str(exc), output, code="invalid_index")
+
+
+def indexed_documents_by_id(index_store) -> dict[str, IndexDocument]:
+    return {document.document_id: document for document in index_store.documents}
 
 
 def prompt_llm_provider(existing: Optional[LLMConfig]) -> str:
@@ -2016,6 +2044,72 @@ def drive_search(
             "search_scope": "metadata-only",
             "planned_result_contract": build_drive_result_contract(),
             "note": DRIVE_CONTRACT_NOTE,
+        },
+    )
+    emit(payload, output)
+
+
+@research_app.command("export")
+def research_export(
+    query: str = typer.Argument(...),
+    output_dir: Path = typer.Option(Path("exports/latest"), "--output"),
+    source: Optional[str] = typer.Option(None, "--source"),
+    source_id: Optional[str] = typer.Option(None, "--source-id"),
+    tag: Optional[list[str]] = typer.Option(None, "--tag"),
+    path_prefix: Optional[str] = typer.Option(None, "--path-prefix"),
+    file_type: Optional[str] = typer.Option(None, "--file-type"),
+    limit: int = typer.Option(10, "--limit", min=1, max=100),
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
+    output: OutputMode = typer.Option(OutputMode.text, "--format"),
+) -> None:
+    index_store = load_index_or_fail("research_export", state_dir, output)
+    if index_store is None:
+        fail(
+            "research_export",
+            "No index found. Run `rfs index run` first.",
+            output,
+            code="missing_index",
+        )
+
+    search_results = search_index(
+        query,
+        index_store,
+        source_type=source,
+        source_id=source_id,
+        tag_filters=tag,
+        path_prefix=path_prefix,
+        file_type=file_type,
+        limit=limit,
+    )
+    document_lookup = indexed_documents_by_id(index_store)
+    documents: list[IndexDocument] = []
+    snippets_by_id: dict[str, str] = {}
+    for result in search_results:
+        document = document_lookup.get(result["document_id"])
+        if document is None:
+            continue
+        documents.append(document)
+        snippets_by_id[document.document_id] = str(result["snippet"])
+
+    filters = build_research_filters(source, source_id, tag, path_prefix, file_type, limit)
+    resolved_output_dir, manifest_path, manifest = export_research_bundle(
+        query=query,
+        documents=documents,
+        snippets_by_id=snippets_by_id,
+        output_dir=output_dir,
+        filters=filters,
+    )
+
+    payload = CommandPayload(
+        command="research_export",
+        ok=True,
+        data={
+            "query": query,
+            "output_dir": str(resolved_output_dir),
+            "manifest_path": str(manifest_path),
+            "item_count": manifest.item_count,
+            "filters": filters,
+            "documents": [document.model_dump(mode="json") for document in manifest.documents],
         },
     )
     emit(payload, output)

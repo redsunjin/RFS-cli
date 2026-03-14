@@ -2,18 +2,20 @@
 
 ## Mission
 
-Build a personal CLI agent that unifies knowledge retrieval, developer utilities, and AI-tool execution into one consistent interface.
+Build a local-first CLI agent that unifies knowledge retrieval, developer utilities, and AI-assisted guidance into one consistent and approachable interface.
 
 ## Why this project exists
 
-The project is primarily a learning vehicle, but it must also become a real tool that is useful in daily work. The CLI should reduce friction when searching notes, inspecting files, summarizing project state, and providing reliable tool output for AI agents. It should also evolve beyond a loose command set into a single, recognizable agent that can use its own tools while keeping a consistent interaction style.
+The project is primarily a learning vehicle, but it must also become a real tool that is useful in daily work. The CLI should reduce friction when searching notes, inspecting files, summarizing project state, and providing reliable tool output for AI agents. It should also evolve beyond a loose command set into a single, recognizable agent that can use its own tools while keeping a consistent interaction style. A core product goal is to make that capability approachable even for users who do not think in CLI syntax and need task-first guidance.
 
 ## Primary outcomes
 
 - Make personal knowledge easy to search across Obsidian and local documents
 - Provide a practical CLI foundation for future integrations such as Google Drive
+- Provide a portable research-export path for curated local knowledge bundles
 - Create AI-safe command contracts with deterministic JSON output
 - Add guided CLI usage so command discovery does not depend on memorizing syntax
+- Make core workflows usable for non-developers through plain-language help, command suggestions, and recovery guidance
 - Turn the CLI into a tool-using agent with a stable voice and clear operating boundaries
 - Require an LLM-backed onboarding path so the agent is configured before normal use
 - Make `rfs` itself the easiest interactive entry point, not just a banner plus help page
@@ -21,6 +23,7 @@ The project is primarily a learning vehicle, but it must also become a real tool
 - Define installation, verification, and recovery paths so the CLI is dependable outside the dev loop
 - Provide a simple diagnostic path so broken local state can be inspected without guesswork
 - Establish a documentation-driven development process from the beginning
+- Keep assistive UX experiments modular so validated ideas can merge back into the stable CLI without destabilizing the core command surface
 
 ## Problem statement
 
@@ -33,6 +36,7 @@ Personal knowledge and project context are fragmented across multiple systems:
 
 The current friction is not only data access, but also the lack of one stable interface that both a human and an AI tool can use consistently.
 There is also a usability gap: even if the CLI has the right features, it is easy to underuse them when the command model is not discoverable at the moment of need.
+That usability gap is larger for non-developer users who know the task they want to complete but not the command or flag structure.
 Finally, most CLIs expose tools but do not behave like a coherent operator. This project aims to close that gap.
 
 ## Product vision
@@ -44,12 +48,14 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - developer workflow support
 - agent tool execution
 - interactive, LLM-assisted command guidance
+- task-first command suggestion for users who do not want to memorize CLI syntax
+- progressive help that starts simple and reveals exact commands only when useful
 - consistent, recognizable interaction
 - a shell mode that keeps context and tool history across turns
 
 ## Target users
 
-- Primary: the project owner
+- Primary: the project owner and nearby human users who prefer task-oriented guidance over memorizing CLI syntax
 - Secondary: local AI agents that need safe filesystem and search capabilities
 
 ## Scope
@@ -64,6 +70,8 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - Required LLM provider configuration and onboarding guide for normal agent workflows
 - A default `rfs` startup flow that launches onboarding or the agent shell in interactive sessions
 - Agent-guided command discovery with a defined interaction style
+- Plain-language task intake that maps user goals to concrete commands or short follow-up questions
+- Progressive help and recovery guidance that explains the next safe step
 - Interactive shell sessions with persisted memory
 - Incremental roadmap and task tracking
 
@@ -89,6 +97,7 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - When a request is underspecified, the CLI asks one short follow-up question instead of inventing detail
 - Shell guidance stays grounded in the current workspace state instead of generic advice
 - The same follow-up behavior applies consistently in both `ask` and `shell`
+- A non-expert user can reach the first successful index and search flow from guided help without reading the full command tree first
 - A user can install, verify, and recover the CLI from the documented flow without hidden steps
 - A user can run one diagnostic command and see the health of config, index, shell memory, and LLM runtime
 - New feature work follows documented scope, design, and roadmap updates
@@ -101,6 +110,8 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - Documentation before expansion
 - Tool-using agent behavior over generic wrapper behavior
 - Expert-reviewed multi-agent delivery to MVP before broadening scope
+- Task-first guidance before syntax-first help
+- Experimental assistive UX modules stay decoupled from stable commands until they are validated
 
 ## Integration strategy
 

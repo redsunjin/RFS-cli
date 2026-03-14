@@ -158,3 +158,30 @@ class DriveCacheEntry(BaseModel):
 class DriveCacheStore(BaseModel):
     schema_version: str = "1"
     entries: List[DriveCacheEntry] = Field(default_factory=list)
+
+
+class ResearchExportDocument(BaseModel):
+    document_id: str
+    title: str
+    source_id: str
+    source_type: SourceType
+    relative_path: str
+    original_path: str
+    export_path: str
+    file_type: str
+    snippet: str
+    tags: List[str] = Field(default_factory=list)
+    aliases: List[str] = Field(default_factory=list)
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+    modified_at: int
+    content_hash: str
+
+
+class ResearchExportManifest(BaseModel):
+    schema_version: str = "1"
+    export_kind: str = "research_bundle"
+    created_at: str
+    query: str
+    filters: Dict[str, Any] = Field(default_factory=dict)
+    item_count: int
+    documents: List[ResearchExportDocument] = Field(default_factory=list)

@@ -2,7 +2,7 @@
 
 ## Product summary
 
-`rfs-cli` is a command-line application for indexing, searching, inspecting, and summarizing personal knowledge and developer context. It is designed for both direct human usage and AI-agent execution, and it now includes guided CLI assistance so users can discover commands conversationally. The longer-term product direction is a CLI-native agent that can use its own tools while preserving a consistent style and bounded domain. That agent identity is now explicitly R2-D2-inspired and backed by a required LLM onboarding path.
+`rfs-cli` is a command-line application for indexing, searching, inspecting, and summarizing personal knowledge and developer context. It is designed for both direct human usage and AI-agent execution, and it now includes guided CLI assistance so users can discover commands conversationally. The longer-term product direction is a CLI-native agent that can use its own tools while preserving a consistent style and bounded domain. That agent identity is now explicitly R2-D2-inspired and backed by a required LLM onboarding path. The current idea branch further emphasizes non-developer-friendly usage so the product can translate a task request into the right command instead of assuming the user already knows CLI structure.
 
 ## MVP definition
 
@@ -40,6 +40,13 @@ Local companion projects such as NestClaw and qa_claw are also deferred until af
 - Use an interactive shell session instead of repeating one-shot commands
 - Start with `rfs` alone in an interactive terminal and let the CLI choose onboarding or shell entry
 
+### Non-expert guided operation
+
+- Describe a task in plain language and get one recommended next step
+- Receive command suggestions without understanding the full command tree first
+- Recover from missing setup, missing index state, or empty results through short guidance
+- Use startup, help, and shell flows that progressively reveal syntax only when needed
+
 ### Agent behavior
 
 - Present one coherent operator instead of a loose collection of commands
@@ -61,6 +68,8 @@ Local companion projects such as NestClaw and qa_claw are also deferred until af
 - As a user, I want the CLI to ask for only the missing detail when my request is underspecified.
 - As a user, I want to stay inside a shell session where previous commands and answers are remembered.
 - As a user, I want onboarding to configure the required LLM first so the agent works from the start.
+- As a non-developer user, I want to describe what I need in plain language and receive the right command to run.
+- As a new user, I want the CLI to explain the next safe step after an error, empty state, or missing setup instead of only printing syntax.
 
 ## Command model
 
@@ -175,6 +184,7 @@ Responsibilities:
 - define and inspect the Google Drive source configuration
 - run a local OAuth installed-app flow and persist Drive token state locally
 - execute metadata-only Google Drive search through a cache-backed adapter
+- keep the active Drive corpus explicit and limited to one supported corpus per config
 - expose cache settings that keep remote behavior aligned with the local-first model
 
 Examples:
@@ -182,6 +192,19 @@ Examples:
 - `rfs drive auth`
 - `rfs drive status`
 - `rfs drive search "proposal"`
+
+### `rfs research`
+
+Responsibilities:
+
+- export curated indexed results into a portable local bundle
+- write a stable `manifest.json` plus document files under `documents/`
+- keep the first export path local-first and NotebookLM-adjacent rather than provider-specific
+
+Examples:
+
+- `rfs research export "agent systems" --output ./exports/agent-systems`
+- `rfs research export "roadmap" --source obsidian --limit 5`
 
 ### Post-MVP external tool providers
 
@@ -227,6 +250,7 @@ Responsibilities:
 
 - answer CLI usage questions conversationally
 - recommend concrete supported commands
+- translate plain-language task descriptions into actionable command suggestions
 - ask one short follow-up question when the request is underspecified
 - avoid inventing unsupported features
 - evolve into the main human-facing agent entrypoint for guided tool usage
@@ -235,6 +259,21 @@ Examples:
 
 - `rfs ask "How do I add my Obsidian vault?"`
 - `rfs ask "How do I search only markdown files?"`
+
+### Assistive help surfaces
+
+Responsibilities:
+
+- keep startup, `--help`, `ask`, and `shell` guidance aligned
+- lead with one recommended command before listing alternatives
+- explain missing setup or missing local state in plain Korean
+- reveal advanced flags and subcommands progressively instead of dumping them first
+
+Examples:
+
+- `rfs`
+- `rfs --help`
+- inside shell: `내 노트에서 roadmap 찾아줘`
 
 ### `rfs agent`
 
@@ -258,6 +297,44 @@ Examples:
 - Allow re-index by source or path
 - Allow Drive-specific configuration and auth state to exist before live remote search is exposed
 
+### Assistive UX requirements
+
+- Accept task-oriented natural-language input in Korean by default
+- Turn a user goal into one recommended command plus a short explanation
+- Ask for only the single most important missing detail before proceeding
+- Explain empty states and setup blockers in plain language instead of only showing raw syntax
+- Keep guidance grounded in current config, index, shell, and doctor-visible state
+- Distinguish between read-only suggestions and state-changing commands
+- Keep existing JSON contracts stable unless an AI tooling review explicitly approves a new guidance payload
+
+## Idea-branch experimental modules
+
+The current experimental track should stay behind existing entrypoints such as `rfs`, `rfs ask`, and `rfs shell`. It should not introduce a new top-level command until the behavior is validated.
+
+### Intent interpreter
+
+Responsibilities:
+
+- normalize plain-language requests into a small internal intent model
+- detect the likely task category and extract obvious entities
+- identify the one missing detail that blocks an actionable command
+
+### Suggestion planner
+
+Responsibilities:
+
+- map an interpreted task plus runtime state to supported commands
+- decide whether to suggest onboarding, indexing, search, inspection, or diagnostics first
+- rank one primary recommendation and one fallback
+
+### Guidance renderer
+
+Responsibilities:
+
+- present one recommended command in a plain-language answer
+- explain why the recommendation fits the task and local state
+- keep the answer short and operational rather than chatty
+
 ### Search
 
 - Support keyword search across indexed text
@@ -265,6 +342,13 @@ Examples:
 - Support filters for source, file type, tag, and path prefix
 - Support source-id filtering when multiple roots of the same source type exist
 - Support Obsidian alias and frontmatter-aware retrieval
+
+### Research export
+
+- Export indexed search results into a bundle directory with `manifest.json` and `documents/`
+- Preserve source metadata, paths, tags, aliases, content hash, and snippets in the manifest
+- Allow the same source and metadata filters used by indexed search
+- Keep the first implementation local-index-based and text-first
 
 ### Content inspection
 
@@ -319,6 +403,7 @@ Examples:
 - Persist shell session memory so later turns can stay grounded in earlier interaction
 - Load a dedicated onboarding document into the agent prompt so the LLM learns the CLI's actual usage model
 - Load a dedicated agent contract into the prompt so response style and boundaries stay stable
+- Teach the agent that `rfs research export` is the portable handoff path for curated local results
 
 ### Agent identity
 

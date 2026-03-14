@@ -127,9 +127,11 @@ Current slice status:
 - Drive adapter integration tests: complete
 - Real Google Drive smoke: blocked in the current environment because no Drive client-secret env vars or token file are available
 - Cache expiry and invalidation review: complete through command-level cache-hit, expiry, and page-size invalidation tests
+- Research export bundle format: complete
+- First `rfs research export` command: complete
 
 ## Recommended next three tasks
 
 1. Run a real Google Drive smoke pass when client secrets or token state are available.
-2. Define export format for curated document bundles.
-3. Implement research export command.
+2. Document NotebookLM-adjacent workflow examples.
+3. Review `research export` bundle ergonomics and naming.

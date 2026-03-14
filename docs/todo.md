@@ -85,8 +85,8 @@ When scope changes, update these files in order:
 
 ## Phase 5: Research workflow extensions
 
-- [ ] Define export format for curated document bundles
-- [ ] Implement research export command
+- [x] Define export format for curated document bundles
+- [x] Implement research export command
 - [ ] Document NotebookLM-adjacent workflow examples
 
 ## Post-MVP external tool providers
@@ -107,8 +107,24 @@ When scope changes, update these files in order:
 ## Current recommended next three tasks
 
 - [ ] Run a real Google Drive smoke pass when client secrets or token state are available
-- [ ] Define export format for curated document bundles
-- [ ] Implement research export command
+- [ ] Document NotebookLM-adjacent workflow examples
+- [ ] Review `research export` bundle ergonomics and naming
+
+## Idea branch recommended next three tasks
+
+- [ ] Define `UserIntent`, `CommandSuggestion`, and `GuidanceResponse` internal models
+- [ ] Extract an intent interpreter and suggestion planner behind `rfs ask`
+- [ ] Add tests for plain-language command suggestion and short follow-up behavior
+
+## Idea branch: Assistive UX experiments
+
+- [ ] Create internal guidance modules instead of adding a new top-level command surface
+- [ ] Define intent categories such as setup, add-source, search, inspect, and diagnose
+- [ ] Ground command suggestions in config, index, shell-memory, and doctor-visible state
+- [ ] Add progressive help rendering for bare `rfs`, `--help`, `ask`, and `shell`
+- [ ] Explain empty states and missing setup in plain Korean with one recommended next step
+- [ ] Distinguish read-only suggestions from state-changing suggestions before execution automation
+- [ ] Add contract review before exposing any machine-readable guidance payload
 
 ## Post-MVP gamification track
 

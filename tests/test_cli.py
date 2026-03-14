@@ -1471,6 +1471,70 @@ def test_search_supports_tag_path_prefix_and_file_type_filters(tmp_path: Path) -
     assert payload["data"]["results"][0]["relative_path"] == "ideas/agent-systems.md"
 
 
+def test_research_export_writes_bundle_manifest_and_documents(tmp_path: Path) -> None:
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    state_dir = tmp_path / ".rfs"
+    output_dir = tmp_path / "exports" / "bundle-a"
+
+    build_index_with_source(state_dir, fixture_root, "obsidian")
+    rebuild_index(state_dir)
+
+    result = runner.invoke(
+        app,
+        [
+            "research",
+            "export",
+            "agent",
+            "--state-dir",
+            str(state_dir),
+            "--output",
+            str(output_dir),
+            "--limit",
+            "2",
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "research_export", True)
+    assert payload["data"]["query"] == "agent"
+    assert payload["data"]["item_count"] >= 1
+    manifest_path = Path(payload["data"]["manifest_path"])
+    assert manifest_path.exists()
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert manifest["export_kind"] == "research_bundle"
+    assert manifest["query"] == "agent"
+    assert manifest["item_count"] >= 1
+    first_doc = manifest["documents"][0]
+    assert Path(first_doc["export_path"]).exists()
+    exported_content = Path(first_doc["export_path"]).read_text(encoding="utf-8")
+    assert exported_content
+
+
+def test_research_export_requires_index(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+
+    result = runner.invoke(
+        app,
+        [
+            "research",
+            "export",
+            "agent",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 1
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "research_export", False)
+    assert payload["error"]["code"] == "missing_index"
+
+
 def test_show_by_path_returns_indexed_metadata_when_available(tmp_path: Path) -> None:
     fixture_root = Path("tests/fixtures/obsidian").resolve()
     state_dir = tmp_path / ".rfs"

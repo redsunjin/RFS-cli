@@ -91,6 +91,7 @@ Current baseline:
 - Drive local metadata cache strategy is implemented
 - live cache-backed metadata search is implemented
 - Drive adapter integration tests are implemented
+- Drive corpus selection is validated down to one supported active corpus
 - real Google Drive smoke is still environment-blocked until client secrets or token state exist
 
 ## Phase 5: Research workflow extensions
@@ -103,6 +104,11 @@ Exit criteria:
 
 - Export workflow exists for selected documents
 - Research-oriented command patterns are documented
+
+Current baseline:
+
+- first research export bundle format is defined
+- first `rfs research export` command is implemented for local indexed content
 
 ## Post-MVP external tool integration track
 
@@ -170,10 +176,31 @@ Current status:
 - natural-language guidance inside `rfs shell` now mirrors the same short follow-up behavior
 - the current implementation is ready to move from agent hardening into release-readiness work
 
+## Experimental assistive UX track
+
+Goal:
+
+Make `rfs-cli` easier for non-expert users by turning task-oriented requests into safe, grounded command suggestions.
+
+Candidate milestones:
+
+- define an internal intent model for plain-language requests
+- extract a suggestion-planning module from current `ask` and `shell` flows
+- align startup, `--help`, `ask`, `shell`, and recovery copy around one recommended next step
+- distinguish read-only guidance from state-changing suggestions before later execution automation
+- validate the experimental guidance loop without changing stable JSON contracts prematurely
+
+Current slice status:
+
+- branch direction for non-expert-friendly AI assistance is now documented
+- first three experimental modules are defined as intent interpreter, suggestion planner, and guidance renderer
+- the next implementation slice is to extract internal models and helpers behind existing commands
+
 ## Sequencing rationale
 
 - Phase 1 delivers the core user value soonest
 - Phase 2 proves the CLI is useful outside pure search
 - Phase 3 makes the tool dependable for AI integration and easier to learn at the point of use
 - The agentification track builds on that foundation instead of replacing the direct-command model
+- The assistive UX track builds on `ask`, `shell`, and startup behavior instead of adding a parallel command surface too early
 - Phase 4 is intentionally delayed because auth and remote state add complexity

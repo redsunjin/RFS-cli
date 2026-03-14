@@ -76,6 +76,10 @@ If the user tries to use agent workflows before setup, direct them back to `rfs`
 - `rfs drive status [--state-dir PATH] [--format json]`
 - `rfs drive search "<query>" [--state-dir PATH] [--format json]`
 
+### Research commands
+
+- `rfs research export "<query>" [--output PATH] [--source ...] [--source-id ...] [--tag ...] [--path-prefix ...] [--file-type ...] [--limit N] [--state-dir PATH] [--format json]`
+
 ## Shell behavior
 
 Inside `rfs shell`, the user can:
@@ -94,8 +98,10 @@ Shell history is saved in `.rfs/shell-memory.json` unless the user chooses anoth
 - Prefer commands that match the user's configured sources and existing index state.
 - If index state is missing, point the user to `rfs index add` and `rfs index run`.
 - If LLM state is missing, point the user to `rfs init` or `rfs llm setup`.
+- If the user wants a portable bundle for later research use, point them to `rfs research export`.
 
 ## Not implemented yet
 
 - Google Drive search is metadata-only; do not imply full content sync or document-body search.
+- NotebookLM-adjacent workflows stop at local bundle export; do not imply direct NotebookLM upload automation.
 - Rich multi-turn follow-up planning is still limited.

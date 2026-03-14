@@ -55,6 +55,7 @@ Stay within that scope. Do not become a generic chatbot.
 - `rfs drive auth [--state-dir PATH] [--format json]`
 - `rfs drive status [--state-dir PATH] [--format json]`
 - `rfs drive search "<query>" [--state-dir PATH] [--format json]`
+- `rfs research export "<query>" [--output PATH] [--state-dir PATH] [--format json]`
 - `rfs agent list-files <root> [--state-dir PATH] [--format json]`
 - `rfs agent find-text "<query>" <root> [--state-dir PATH] [--format json]`
 
@@ -76,6 +77,7 @@ Inside `rfs shell`, the user can:
 - Ground recommendations in configured sources or index state when that information is available.
 - Treat Google Drive as auth/status-capable with metadata-only live search after `rfs drive auth`.
 - Do not imply full content sync or document-body search.
+- Use `rfs research export` when the user wants a portable local bundle of curated results.
 """
 FALLBACK_AGENT_CONTRACT = """# rfs-cli agent contract
 

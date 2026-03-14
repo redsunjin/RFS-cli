@@ -2,7 +2,7 @@
 
 ## Overview
 
-The system should be built as a modular CLI with a shared application core and separate source adapters. The architecture must support both human-readable terminal output and stable machine-readable output. It should also support a CLI-native agent layer that helps users operate the tool without turning the system into a generic chatbot. That agent layer now assumes a configured LLM and a packaged onboarding document as part of the normal startup path.
+The system should be built as a modular CLI with a shared application core and separate source adapters. The architecture must support both human-readable terminal output and stable machine-readable output. It should also support a CLI-native agent layer that helps users operate the tool without turning the system into a generic chatbot. That agent layer now assumes a configured LLM and a packaged onboarding document as part of the normal startup path. The current idea branch adds a stronger requirement that the guidance layer remain approachable for non-expert users who start from a task description instead of command syntax.
 
 ## Selected implementation stack
 
@@ -33,6 +33,8 @@ Responsibilities:
 - translate between adapters and output models
 - provide guided command assistance backed by a configured LLM provider
 - enforce agent behavior rules such as style, domain boundaries, and grounding to implemented commands
+- convert task-oriented requests into concrete command suggestions
+- keep help and recovery guidance progressive and state-aware
 
 ### Domain layer
 
@@ -75,6 +77,43 @@ The current index stores relative paths, file types, tags, aliases, and source-s
 The frontmatter parser supports a lightweight nested subset for practical note metadata such as lists, booleans, numbers, and simple nested maps.
 The same workspace config now also stores required LLM provider settings for conversational command guidance.
 The current implementation exposes one-shot guided help through `rfs ask`, an interactive `rfs shell` loop that saves shell memory under the workspace state directory, an `rfs init` onboarding path, and a default `rfs` startup flow that chooses onboarding or shell automatically in interactive terminals.
+
+## Assistive UX module split for the idea branch
+
+The current implementation still concentrates much of the conversational and shell guidance flow inside `main.py`. The next modularization step should extract assistive UX logic without changing the documented top-level command surface.
+
+### Intent interpreter
+
+Responsibilities:
+
+- classify a plain-language request into a supported task type
+- extract entities such as query text, source type, path, or output goal
+- surface the single blocking missing field for follow-up questions
+
+### Suggestion planner
+
+Responsibilities:
+
+- combine interpreted intent with runtime state such as config, index, and shell session
+- choose the best supported command path
+- decide whether the response should suggest, redirect, or stop for clarification
+
+### Guidance renderer
+
+Responsibilities:
+
+- format one recommended command and a short explanation
+- align wording across startup, `ask`, `shell`, and recovery messages
+- preserve Korean-first, compact, operational responses
+
+### Near-term extraction target inside the current package
+
+```text
+src/rfs_cli/
+  guidance_intent.py
+  guidance_suggestions.py
+  guidance_renderer.py
+```
 
 ## Data model
 
@@ -121,7 +160,7 @@ The current implementation exposes one-shot guided help through `rfs ask`, an in
 
 - `enabled`
 - `include_shared_drives`
-- `corpora`
+- `corpora` (single-item list; exactly one active corpus is supported)
 - `metadata_fields`
 - `auth`
 - `cache`
@@ -157,6 +196,37 @@ The current implementation exposes one-shot guided help through `rfs ask`, an in
 - `updated_at`
 - `events`
 
+### Experimental UserIntent
+
+- `goal`
+- `entities`
+- `missing_fields`
+- `confidence`
+
+### Experimental CommandSuggestion
+
+- `command`
+- `reason`
+- `mode`
+- `missing_state`
+
+### Experimental GuidanceResponse
+
+- `summary`
+- `recommended_command`
+- `next_step`
+- `alternatives`
+
+### ResearchExportManifest
+
+- `schema_version`
+- `export_kind`
+- `created_at`
+- `query`
+- `filters`
+- `item_count`
+- `documents`
+
 ## Command flow
 
 ### Index flow
@@ -189,6 +259,14 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 7. Otherwise send the user question plus runtime context to the provider adapter
 8. Sanitize provider-specific reasoning or control tokens from the answer
 9. Return text or JSON with the answer payload
+
+### Assistive guidance flow
+
+1. Inspect current runtime state such as config, index, and shell session
+2. Interpret the user's task into a small internal intent model
+3. Rank the supported command paths that match both the intent and current state
+4. If a critical field is missing, ask one short follow-up question
+5. Otherwise render one recommended command plus a short explanation and optional fallback
 
 ### Init flow
 
@@ -225,6 +303,15 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 7. Persist bounded cache entries under the workspace state directory
 8. Expose live metadata-only `drive search` with cache hit or miss details
 
+### Research export flow
+
+1. Load the local index
+2. Run indexed search with optional source and metadata filters
+3. Resolve the matched documents from the index store
+4. Write document content into a bundle `documents/` directory
+5. Write `manifest.json` with stable export metadata
+6. Return text or JSON with the bundle output paths
+
 ### Planned agent-interaction flow
 
 1. Inspect the current workspace state such as configured sources and index availability
@@ -253,6 +340,8 @@ Every command should expose:
 
 - human mode for direct CLI use
 - JSON mode with a versioned schema field
+
+Human-facing guidance copy may evolve more quickly than command payloads, but any new machine-readable guidance shape must be versioned and reviewed before it becomes a public contract.
 
 Example response shape:
 

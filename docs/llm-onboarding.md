@@ -47,6 +47,7 @@ If the LLM is not configured, interactive startup through `rfs` should begin onb
 - `rfs show`
 - `rfs dev`
 - `rfs drive`
+- `rfs research`
 - `rfs agent`
 
 ## Shell behavior
@@ -68,3 +69,4 @@ Shell memory is persisted in `.rfs/shell-memory.json` unless the user chooses an
 - point back to onboarding if LLM setup is missing
 - keep recommendations grounded in current sources, index state, and actual command support
 - treat Google Drive as auth/status-capable with metadata-only live search after `rfs drive auth`
+- use `rfs research export` when the user wants a portable local bundle of curated search results

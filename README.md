@@ -13,6 +13,7 @@
 `rfs-cli` is a personal knowledge and developer utility CLI agent designed for three modes of use:
 
 - Human-first local workflows
+- Non-developer-friendly task guidance
 - AI-friendly tool execution with structured output
 - CLI-native agent guidance with a consistent style
 
@@ -28,6 +29,7 @@ That agent now assumes a configured LLM as part of normal onboarding, and its ru
 - Expose stable, machine-readable commands that AI agents can call safely
 - Turn the CLI into a tool-using agent with a clear identity and grounded behavior
 - Build the system incrementally from a small, usable MVP
+- Make the CLI approachable for users who know the task they want, but not the command syntax
 
 ## Product direction
 
@@ -52,6 +54,9 @@ That agent now assumes a configured LLM as part of normal onboarding, and its ru
 - [Release checklist](./docs/release-checklist.md)
 - [Smoke checklist](./docs/smoke-checklist.md)
 - [QA report](./docs/qa-report.md)
+- [Idea track](./docs/idea-track.md)
+- [Easy CLI principles](./docs/easy-cli-principles.md)
+- [Research export format](./docs/research-export-format.md)
 - [LLM onboarding guide](./docs/llm-onboarding.md)
 - [Agent profile](./docs/agent-profile.md)
 - [Agent contract](./docs/agent-contract.md)
@@ -73,6 +78,7 @@ Planned command groups:
 - `rfs llm`
 - `rfs ask`
 - `rfs drive`
+- `rfs research`
 
 ## Selected stack
 
@@ -108,6 +114,7 @@ The current codebase includes:
 - interactive shell mode with saved session memory and internal tool execution
 - a local `doctor` command for state and runtime diagnostics
 - a Google Drive auth/config baseline with local token storage, cache-backed metadata retrieval, and live metadata-only `drive search`
+- a first `research export` command that writes curated local bundles with a manifest and document files
 - required onboarding through `rfs init` and a packaged LLM guide
 - default interactive startup through `rfs` itself
 
@@ -126,6 +133,7 @@ uv run rfs index run
 uv run rfs search "agent memory" --format json
 uv run rfs show <document-id> --format json
 uv run rfs dev find-todo --path . --format json
+uv run rfs research export "agent systems" --output ./exports/agent-systems --format json
 ```
 
 The default workspace state directory is `.rfs/`.
