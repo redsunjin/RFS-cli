@@ -70,7 +70,7 @@ When scope changes, update these files in order:
 - [x] Ground shell guidance in the fact that the user is already inside `rfs shell`
 - [x] Define agent persona and response-style contract
 - [x] Add source-aware and index-aware command suggestions to `rfs ask`
-- [ ] Add a short follow-up question path for ambiguous requests
+- [x] Add a short follow-up question path for ambiguous requests
 
 ## Phase 4: Google Drive integration
 
@@ -104,9 +104,9 @@ When scope changes, update these files in order:
 
 ## Current recommended next three tasks
 
-- [ ] Add a short follow-up question path for ambiguous requests
 - [ ] Carry workspace-state grounding into natural-language guidance inside `rfs shell`
 - [ ] Define release-readiness installation and checklist basics
+- [ ] Add runtime validation for ambiguous follow-up behavior against LM Studio
 
 ## MVP execution backlog
 
@@ -136,7 +136,7 @@ When scope changes, update these files in order:
 - [x] Load packaged onboarding documentation into the prompt layer
 - [x] Add command suggestions that incorporate current source configuration and index availability
 - [x] Define the agent persona/profile and response-style contract
-- [ ] Add a short follow-up question flow for ambiguous asks
+- [x] Add a short follow-up question flow for ambiguous asks
 
 ### Workstream 4: MVP release prep
 

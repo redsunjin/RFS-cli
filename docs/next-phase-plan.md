@@ -59,7 +59,7 @@ Current slice status:
 
 - persona and response-style contract: complete
 - source-aware and index-aware `rfs ask`: complete
-- short follow-up behavior: pending
+- short follow-up behavior: complete
 - richer shell guidance grounding: pending
 
 Exit definition:
@@ -101,6 +101,6 @@ Candidate tracks:
 
 ## Recommended next three tasks
 
-1. Add a short follow-up question path for ambiguous asks.
-2. Carry workspace-state grounding into natural-language guidance inside `rfs shell`.
-3. Define release-readiness installation and checklist basics.
+1. Carry workspace-state grounding into natural-language guidance inside `rfs shell`.
+2. Define release-readiness installation and checklist basics.
+3. Add runtime validation for ambiguous follow-up behavior against LM Studio.

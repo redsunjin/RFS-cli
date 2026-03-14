@@ -571,6 +571,58 @@ def build_guidance_runtime_context(app_config: AppConfig, state_dir: Path) -> li
     return [{"role": "system", "content": "\n".join(lines)}]
 
 
+def contains_path_hint(text: str) -> bool:
+    return any(token in text for token in ["/", "\\", "~", ".md", ".txt", ":\\"])
+
+
+def detect_ambiguous_ask(question: str, app_config: AppConfig, state_dir: Path) -> Optional[str]:
+    lowered = question.lower()
+    enabled_sources = [source for source in app_config.sources if source.enabled]
+
+    wants_search = any(
+        keyword in lowered for keyword in ["search", "find", "lookup", "검색", "찾", "조회"]
+    )
+    wants_setup = any(
+        keyword in lowered
+        for keyword in ["index", "add", "connect", "setup", "start", "등록", "추가", "연결", "설정"]
+    )
+    mentions_source_kind = any(
+        keyword in lowered
+        for keyword in ["obsidian", "local", "vault", "볼트", "폴더", "folder", "directory"]
+    )
+
+    try:
+        index_store = load_index(state_dir=resolve_state_dir(state_dir))
+    except ValueError:
+        index_store = None
+
+    if not enabled_sources and (wants_search or wants_setup):
+        if not mentions_source_kind or not contains_path_hint(question):
+            return (
+                "어떤 경로를 먼저 연결할까요? local 폴더인지 Obsidian vault인지와 "
+                "경로를 한 줄로 알려주세요."
+            )
+
+    if len(enabled_sources) > 1 and index_store is None and wants_search:
+        source_ids = [source.id for source in enabled_sources]
+        if not any(source_id.lower() in lowered for source_id in source_ids):
+            return (
+                "어느 source부터 인덱싱할까요? "
+                f"{', '.join(source_ids)} 중 하나를 알려주세요."
+            )
+
+    if index_store is not None and any(
+        keyword in lowered for keyword in ["show", "open", "문서", "파일", "노트", "보여", "열어"]
+    ):
+        has_target_hint = contains_path_hint(question) or any(
+            document.document_id in question for document in index_store.documents[:20]
+        )
+        if not has_target_hint:
+            return "어떤 문서를 열어볼까요? 경로, 문서 ID, 또는 검색어를 한 줄로 알려주세요."
+
+    return None
+
+
 def shell_history_messages(
     memory: ShellMemory,
     limit: int = 8,
@@ -735,6 +787,23 @@ def ask(
     app_config = load_agent_config_or_fail("ask", state_dir, output)
 
     prompt = question or typer.prompt("What do you want to do with rfs?")
+    follow_up_question = detect_ambiguous_ask(prompt, app_config, state_dir)
+
+    if follow_up_question is not None:
+        payload = CommandPayload(
+            command="ask",
+            ok=True,
+            data={
+                "question": prompt,
+                "provider": app_config.llm.provider,
+                "model": app_config.llm.model,
+                "answer": follow_up_question,
+                "follow_up_required": True,
+                "follow_up_question": follow_up_question,
+            },
+        )
+        emit(payload, output)
+        return
 
     try:
         answer = ask_llm(
@@ -753,6 +822,8 @@ def ask(
             "provider": app_config.llm.provider,
             "model": app_config.llm.model,
             "answer": answer,
+            "follow_up_required": False,
+            "follow_up_question": None,
         },
     )
     emit(payload, output)

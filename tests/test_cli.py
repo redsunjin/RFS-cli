@@ -274,6 +274,8 @@ def test_ask_json_uses_configured_llm(tmp_path: Path, monkeypatch) -> None:
     assert_command_payload(payload, "ask", True)
     assert payload["data"]["provider"] == "ollama"
     assert "rfs search" in payload["data"]["answer"]
+    assert payload["data"]["follow_up_required"] is False
+    assert payload["data"]["follow_up_question"] is None
     assert captured["history"][0]["role"] == "system"
     assert "Configured sources: none." in captured["history"][0]["content"]
     assert "- index_status: missing" in captured["history"][0]["content"]
@@ -319,6 +321,51 @@ def test_ask_fails_without_llm_config(tmp_path: Path) -> None:
     payload = json.loads(result.stdout)
     assert_command_payload(payload, "ask", False)
     assert payload["error"]["code"] == "missing_llm"
+
+
+def test_ask_returns_follow_up_when_no_sources_are_configured(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError("LLM should not be called for deterministic follow-up questions.")
+
+    monkeypatch.setattr("rfs_cli.main.ask_llm", fail_if_called)
+
+    result = runner.invoke(
+        app,
+        ["ask", "검색을 시작하려면 어떻게 해?", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "ask", True)
+    assert payload["data"]["follow_up_required"] is True
+    assert "어떤 경로를 먼저 연결할까요?" in payload["data"]["follow_up_question"]
+    assert payload["data"]["answer"] == payload["data"]["follow_up_question"]
+
+
+def test_ask_returns_follow_up_when_show_target_is_missing(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    build_index_with_source(state_dir, fixture_root, "obsidian", source_id="vault")
+    rebuild_index(state_dir)
+
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError("LLM should not be called for deterministic follow-up questions.")
+
+    monkeypatch.setattr("rfs_cli.main.ask_llm", fail_if_called)
+
+    result = runner.invoke(
+        app,
+        ["ask", "문서 보여줘", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "ask", True)
+    assert payload["data"]["follow_up_required"] is True
+    assert "어떤 문서를 열어볼까요?" in payload["data"]["follow_up_question"]
 
 
 def test_shell_runs_internal_command_and_saves_memory(tmp_path: Path) -> None:

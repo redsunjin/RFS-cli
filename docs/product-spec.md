@@ -203,6 +203,7 @@ Responsibilities:
 
 - answer CLI usage questions conversationally
 - recommend concrete supported commands
+- ask one short follow-up question when the request is underspecified
 - avoid inventing unsupported features
 - evolve into the main human-facing agent entrypoint for guided tool usage
 
@@ -267,7 +268,7 @@ Examples:
 - Expose a provider status command that checks reachability and visible model IDs
 - Allow `rfs ask` to work from a configured provider and answer with current supported commands only
 - Incorporate current source configuration and index availability into command suggestions by default
-- Reserve the right to ask a brief follow-up question before recommending a command
+- Use a short deterministic follow-up path before provider guidance when critical detail is missing
 - Persist shell session memory so later turns can stay grounded in earlier interaction
 - Load a dedicated onboarding document into the agent prompt so the LLM learns the CLI's actual usage model
 - Load a dedicated agent contract into the prompt so response style and boundaries stay stable

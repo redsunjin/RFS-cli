@@ -150,9 +150,11 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 2. Resolve configured LLM provider
 3. Load the packaged onboarding guide and agent contract
 4. Build runtime guidance context from configured sources and index state
-5. Send the user question plus runtime context to the provider adapter
-6. Sanitize provider-specific reasoning or control tokens from the answer
-7. Return text or JSON with the answer payload
+5. Run deterministic ambiguity checks for missing source, path, or target details
+6. If the question is underspecified, return one short follow-up question without calling the provider
+7. Otherwise send the user question plus runtime context to the provider adapter
+8. Sanitize provider-specific reasoning or control tokens from the answer
+9. Return text or JSON with the answer payload
 
 ### Init flow
 
