@@ -172,13 +172,15 @@ Examples:
 
 Responsibilities:
 
-- authenticate configured Google Drive access
-- search remote file metadata and selected synced content
-- optionally cache search results locally
+- define and inspect the Google Drive source configuration
+- define the auth boundary for a future OAuth-based flow
+- define the metadata-only search contract before remote execution exists
+- expose cache settings that keep remote behavior aligned with the local-first model
 
 Examples:
 
 - `rfs drive auth`
+- `rfs drive status`
 - `rfs drive search "proposal"`
 
 ### Post-MVP external tool providers
@@ -254,6 +256,7 @@ Examples:
 - Support multiple indexed roots
 - Tag each root with a source type such as `local`, `obsidian`, or `drive`
 - Allow re-index by source or path
+- Allow Drive-specific configuration to exist before live remote retrieval is implemented
 
 ### Search
 
@@ -281,6 +284,7 @@ Examples:
 - Store source roots and preferences in a local config file
 - Support environment variable overrides where useful
 - Store LLM provider settings in the same local config file
+- Store Google Drive auth and cache boundary settings in the same local config file
 - Treat LLM configuration as required for normal agent workflows
 
 ### Installation and release readiness
@@ -293,6 +297,13 @@ Examples:
 - Document the workspace state directory and how to recover it when `.rfs/` becomes stale
 - Document a pre-1.0 versioning policy and keep runtime/package versions aligned
 - Maintain a release checklist that covers docs, tests, build, and runtime smoke
+
+### Google Drive contract baseline
+
+- Define a persisted Drive source config model
+- Define an OAuth-installed-app auth boundary without pretending auth is fully implemented
+- Define a metadata-only result contract for future `drive search`
+- Define cache settings before remote retrieval starts
 
 ### Guided assistance
 

@@ -322,6 +322,107 @@ def test_llm_status_json_reports_configured_state(tmp_path: Path, monkeypatch) -
     assert payload["data"]["reachable"] is True
 
 
+def test_drive_auth_persists_drive_config(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+
+    result = runner.invoke(
+        app,
+        [
+            "drive",
+            "auth",
+            "--state-dir",
+            str(state_dir),
+            "--client-id-env",
+            "TEST_DRIVE_CLIENT_ID",
+            "--client-secret-env",
+            "TEST_DRIVE_CLIENT_SECRET",
+            "--refresh-token-env",
+            "TEST_DRIVE_REFRESH_TOKEN",
+            "--include-shared-drives",
+            "--corpus",
+            "user",
+            "--corpus",
+            "allDrives",
+            "--metadata-field",
+            "id",
+            "--metadata-field",
+            "name",
+            "--cache-mode",
+            "metadata-only",
+            "--cache-ttl-minutes",
+            "30",
+            "--cache-max-entries",
+            "250",
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "drive_auth", True)
+    assert payload["data"]["configured"] is True
+    assert payload["data"]["client_id_env"] == "TEST_DRIVE_CLIENT_ID"
+    assert payload["data"]["include_shared_drives"] is True
+    assert payload["data"]["cache_ttl_minutes"] == 30
+
+    config = load_config(state_dir=state_dir)
+    assert config.drive is not None
+    assert config.drive.auth.client_id_env == "TEST_DRIVE_CLIENT_ID"
+    assert config.drive.cache.max_entries == 250
+
+
+def test_drive_status_reports_env_presence(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    result = runner.invoke(
+        app,
+        [
+            "drive",
+            "auth",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+    assert result.exit_code == 0
+
+    monkeypatch.setenv("GOOGLE_DRIVE_CLIENT_ID", "client")
+    monkeypatch.setenv("GOOGLE_DRIVE_CLIENT_SECRET", "secret")
+    monkeypatch.delenv("GOOGLE_DRIVE_REFRESH_TOKEN", raising=False)
+
+    status_result = runner.invoke(
+        app,
+        ["drive", "status", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert status_result.exit_code == 0
+    payload = json.loads(status_result.stdout)
+    assert_command_payload(payload, "drive_status", True)
+    assert payload["data"]["configured"] is True
+    assert payload["data"]["client_id_present"] is True
+    assert payload["data"]["client_secret_present"] is True
+    assert payload["data"]["refresh_token_present"] is False
+    assert "configuration and response contract" in payload["data"]["note"]
+
+
+def test_drive_search_json_exposes_planned_contract(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+
+    result = runner.invoke(
+        app,
+        ["drive", "search", "proposal", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 1
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "drive_search", False)
+    assert payload["error"]["code"] == "not_implemented"
+    assert payload["data"]["query"] == "proposal"
+    assert "file_id" in payload["data"]["planned_result_contract"]["result_fields"]
+    assert payload["data"]["drive_config"]["configured"] is False
+
+
 def test_ask_json_uses_configured_llm(tmp_path: Path, monkeypatch) -> None:
     state_dir = tmp_path / ".rfs"
     save_llm_config(state_dir)

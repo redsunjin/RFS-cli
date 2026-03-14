@@ -117,8 +117,14 @@ Candidate tracks:
 - external tool provider contracts for NestClaw and qa_claw
 - optional harbor/rest TUI gamification track
 
+Current slice status:
+
+- Drive source config model: complete
+- Drive auth and cache boundary: complete
+- Drive metadata retrieval shape and response contract: complete
+
 ## Recommended next three tasks
 
-1. Define the Google Drive source config model.
-2. Define the Google Drive auth flow and local cache boundary.
-3. Define the Google Drive metadata retrieval shape and response contract.
+1. Implement the Google Drive auth flow.
+2. Implement Google Drive file metadata retrieval.
+3. Implement the Google Drive cache strategy.

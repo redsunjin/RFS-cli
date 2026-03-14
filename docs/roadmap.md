@@ -83,6 +83,13 @@ Exit criteria:
 - Drive metadata can be searched
 - Cache or sync behavior is documented and tested
 
+Current baseline:
+
+- Drive source config model is defined
+- Drive auth and cache boundary are defined
+- Drive metadata result contract is defined
+- remote execution is still pending
+
 ## Phase 5: Research workflow extensions
 
 Goal:

@@ -117,6 +117,26 @@ The current implementation exposes one-shot guided help through `rfs ask`, an in
 - `api_key_env`
 - `enabled`
 
+### DriveConfig
+
+- `enabled`
+- `include_shared_drives`
+- `corpora`
+- `metadata_fields`
+- `auth`
+- `cache`
+
+### DriveFileRecord
+
+- `file_id`
+- `name`
+- `mime_type`
+- `modified_time`
+- `web_view_link`
+- `drive_id`
+- `parents`
+- `size_bytes`
+
 ### ShellMemory
 
 - `session_id`
@@ -181,6 +201,13 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 4. Probe the configured LLM runtime when configuration is valid
 5. Return one diagnostic payload plus a short suggestion list
 
+### Drive contract flow
+
+1. Load the local app config
+2. Read or persist the Drive auth/cache boundary
+3. Expose Drive status without pretending remote access already exists
+4. Return a metadata-only result contract for future `drive search`
+
 ### Planned agent-interaction flow
 
 1. Inspect the current workspace state such as configured sources and index availability
@@ -240,6 +267,7 @@ Example response shape:
 
 - Keep it isolated behind a source adapter boundary
 - Add local caching so search behavior remains consistent with local sources
+- Start with config and response contracts before implementing OAuth exchange and metadata retrieval
 
 ### External tool provider adapters
 

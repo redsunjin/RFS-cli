@@ -70,6 +70,12 @@ If the user tries to use agent workflows before setup, direct them back to `rfs`
 - `rfs agent list-files <root> [--state-dir PATH] [--format json]`
 - `rfs agent find-text "<query>" <root> [--state-dir PATH] [--format json]`
 
+### Drive commands
+
+- `rfs drive auth [--state-dir PATH] [--format json]`
+- `rfs drive status [--state-dir PATH] [--format json]`
+- `rfs drive search "<query>" [--state-dir PATH] [--format json]`
+
 ## Shell behavior
 
 Inside `rfs shell`, the user can:
@@ -91,5 +97,5 @@ Shell history is saved in `.rfs/shell-memory.json` unless the user chooses anoth
 
 ## Not implemented yet
 
-- Google Drive search remains a placeholder.
+- Google Drive auth/search execution is not implemented yet beyond config and response-contract setup.
 - Rich multi-turn follow-up planning is still limited.

@@ -7,6 +7,8 @@ from pydantic import BaseModel, Field
 SourceType = Literal["local", "obsidian", "drive"]
 OutputFormat = Literal["text", "json"]
 LLMProvider = Literal["ollama", "lmstudio", "openai-compatible"]
+DriveAuthFlow = Literal["oauth-installed-app"]
+DriveCacheMode = Literal["disabled", "metadata-only"]
 
 
 class SourceConfig(BaseModel):
@@ -23,6 +25,42 @@ class LLMConfig(BaseModel):
     model: str
     api_key_env: Optional[str] = None
     enabled: bool = True
+
+
+class DriveAuthConfig(BaseModel):
+    flow: DriveAuthFlow = "oauth-installed-app"
+    client_id_env: str = "GOOGLE_DRIVE_CLIENT_ID"
+    client_secret_env: str = "GOOGLE_DRIVE_CLIENT_SECRET"
+    refresh_token_env: str = "GOOGLE_DRIVE_REFRESH_TOKEN"
+    scopes: List[str] = Field(
+        default_factory=lambda: ["https://www.googleapis.com/auth/drive.metadata.readonly"]
+    )
+
+
+class DriveCacheConfig(BaseModel):
+    mode: DriveCacheMode = "metadata-only"
+    ttl_minutes: int = 60
+    max_entries: int = 1000
+
+
+class DriveConfig(BaseModel):
+    enabled: bool = True
+    include_shared_drives: bool = False
+    corpora: List[str] = Field(default_factory=lambda: ["user"])
+    metadata_fields: List[str] = Field(
+        default_factory=lambda: [
+            "id",
+            "name",
+            "mimeType",
+            "modifiedTime",
+            "parents",
+            "driveId",
+            "webViewLink",
+            "size",
+        ]
+    )
+    auth: DriveAuthConfig = Field(default_factory=DriveAuthConfig)
+    cache: DriveCacheConfig = Field(default_factory=DriveCacheConfig)
 
 
 class ShellEvent(BaseModel):
@@ -45,6 +83,7 @@ class AppConfig(BaseModel):
     default_output_format: OutputFormat = "text"
     sources: List[SourceConfig] = Field(default_factory=list)
     llm: Optional[LLMConfig] = None
+    drive: Optional[DriveConfig] = None
 
 
 class ErrorPayload(BaseModel):
@@ -80,3 +119,14 @@ class IndexStore(BaseModel):
     schema_version: str = "1"
     generated_at: str
     documents: List[IndexDocument] = Field(default_factory=list)
+
+
+class DriveFileRecord(BaseModel):
+    file_id: str
+    name: str
+    mime_type: str
+    modified_time: str
+    web_view_link: Optional[str] = None
+    drive_id: Optional[str] = None
+    parents: List[str] = Field(default_factory=list)
+    size_bytes: Optional[int] = None

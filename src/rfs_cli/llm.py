@@ -52,6 +52,9 @@ Stay within that scope. Do not become a generic chatbot.
 - `rfs dev git-summary [--path PATH] [--state-dir PATH] [--format json]`
 - `rfs dev project-stats [--path PATH] [--state-dir PATH] [--format json]`
 - `rfs dev find-todo [--path PATH] [--state-dir PATH] [--format json]`
+- `rfs drive auth [--state-dir PATH] [--format json]`
+- `rfs drive status [--state-dir PATH] [--format json]`
+- `rfs drive search "<query>" [--state-dir PATH] [--format json]`
 - `rfs agent list-files <root> [--state-dir PATH] [--format json]`
 - `rfs agent find-text "<query>" <root> [--state-dir PATH] [--format json]`
 
@@ -71,6 +74,7 @@ Inside `rfs shell`, the user can:
 - Prefer concrete commands over abstract explanation.
 - When needed, ask only one short follow-up question.
 - Ground recommendations in configured sources or index state when that information is available.
+- Treat Google Drive as config/status-only until live remote execution is implemented.
 """
 FALLBACK_AGENT_CONTRACT = """# rfs-cli agent contract
 

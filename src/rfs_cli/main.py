@@ -16,6 +16,7 @@ from typing import Any, Optional
 
 import click
 import typer
+from pydantic import ValidationError
 from typer.main import get_command
 
 from rfs_cli import __version__
@@ -44,6 +45,10 @@ from rfs_cli.llm import (
 from rfs_cli.models import (
     AppConfig,
     CommandPayload,
+    DriveAuthConfig,
+    DriveCacheConfig,
+    DriveConfig,
+    DriveFileRecord,
     ErrorPayload,
     LLMConfig,
     ShellEvent,
@@ -63,7 +68,7 @@ app = typer.Typer(help="Personal knowledge, developer utility, and AI-tool CLI."
 index_app = typer.Typer(help="Index-related commands.")
 dev_app = typer.Typer(help="Developer utility commands.")
 agent_app = typer.Typer(help="AI-safe commands.")
-drive_app = typer.Typer(help="Google Drive placeholder commands.")
+drive_app = typer.Typer(help="Google Drive commands.")
 llm_app = typer.Typer(help="LLM setup and guidance commands.")
 
 app.add_typer(index_app, name="index")
@@ -78,6 +83,11 @@ class OutputMode(str, Enum):
     json = "json"
 
 
+class DriveCacheModeOption(str, Enum):
+    disabled = "disabled"
+    metadata_only = "metadata-only"
+
+
 BANNER_LINES = [
     " ____  _____    _    ______   __   _____ ___  ____    ____  _____    _",
     "|  _ \\| ____|  / \\  |  _ \\ \\ / /  |  ___/ _ \\|  _ \\  / ___|| ____|  / \\ ",
@@ -90,6 +100,10 @@ TEXT_GRADIENT_START = (245, 124, 92)
 TEXT_GRADIENT_END = (255, 182, 118)
 WAVE_GRADIENT_START = (77, 151, 255)
 WAVE_GRADIENT_END = (113, 211, 255)
+DRIVE_CONTRACT_NOTE = (
+    "Drive OAuth exchange and remote search execution are not implemented yet. "
+    "Current commands only define the configuration and response contract."
+)
 SHELL_PROMPT = "rfs> "
 KNOWN_SHELL_COMMANDS = {
     "doctor",
@@ -199,6 +213,7 @@ def collect_config_diagnostics(state_dir: Path) -> tuple[dict[str, object], Opti
             "source_ids": [source.id for source in app_config.sources],
             "llm_configured": bool(app_config.llm and app_config.llm.enabled),
             "llm_provider": app_config.llm.provider if app_config.llm else None,
+            "drive_configured": bool(app_config.drive and app_config.drive.enabled),
             "default_output_format": app_config.default_output_format,
         }
     )
@@ -323,7 +338,8 @@ def format_doctor_text_status(label: str, details: dict[str, object]) -> str:
     if label == "Config":
         return (
             f'{label}: ok ({details["source_count"]} source(s), '
-            f'llm={"yes" if details["llm_configured"] else "no"})'
+            f'llm={"yes" if details["llm_configured"] else "no"}, '
+            f'drive={"yes" if details["drive_configured"] else "no"})'
         )
     if label == "Index":
         return f'{label}: ok ({details["document_count"]} document(s))'
@@ -374,6 +390,41 @@ def build_doctor_payload(state_dir: Path, verbose: bool) -> CommandPayload:
             ),
         },
     )
+
+
+def build_drive_status_data(app_config: AppConfig) -> dict[str, object]:
+    if app_config.drive is None or not app_config.drive.enabled:
+        return {"configured": False, "note": DRIVE_CONTRACT_NOTE}
+
+    drive_config = app_config.drive
+    auth = drive_config.auth
+    cache = drive_config.cache
+    return {
+        "configured": True,
+        "flow": auth.flow,
+        "client_id_env": auth.client_id_env,
+        "client_id_present": bool(os.environ.get(auth.client_id_env)),
+        "client_secret_env": auth.client_secret_env,
+        "client_secret_present": bool(os.environ.get(auth.client_secret_env)),
+        "refresh_token_env": auth.refresh_token_env,
+        "refresh_token_present": bool(os.environ.get(auth.refresh_token_env)),
+        "scopes": auth.scopes,
+        "include_shared_drives": drive_config.include_shared_drives,
+        "corpora": drive_config.corpora,
+        "metadata_fields": drive_config.metadata_fields,
+        "cache_mode": cache.mode,
+        "cache_ttl_minutes": cache.ttl_minutes,
+        "cache_max_entries": cache.max_entries,
+        "note": DRIVE_CONTRACT_NOTE,
+    }
+
+
+def build_drive_result_contract() -> dict[str, object]:
+    return {
+        "result_fields": list(DriveFileRecord.model_fields.keys()),
+        "search_scope": "metadata-only",
+        "cache_modes": [option.value for option in DriveCacheModeOption],
+    }
 
 
 def stringify_metadata_value(value: Any) -> str:
@@ -552,6 +603,39 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
                     typer.echo(f"- {model_name}")
             if data.get("error"):
                 typer.echo(f'Error: {data["error"]}')
+            return
+
+        if command == "drive_auth":
+            typer.echo("Configured Google Drive auth boundary")
+            typer.echo(f'Client ID env: {data["client_id_env"]}')
+            typer.echo(f'Client secret env: {data["client_secret_env"]}')
+            typer.echo(f'Refresh token env: {data["refresh_token_env"]}')
+            typer.echo(f'Cache mode: {data["cache_mode"]}')
+            typer.echo(f'Config: {data["config_path"]}')
+            typer.echo(data["note"])
+            return
+
+        if command == "drive_status":
+            if not data["configured"]:
+                typer.echo("Google Drive is not configured. Run `rfs drive auth` first.")
+                typer.echo(data["note"])
+                return
+            typer.echo(f'Auth flow: {data["flow"]}')
+            typer.echo(
+                f'Client ID env: {data["client_id_env"]} '
+                f'({"yes" if data["client_id_present"] else "no"})'
+            )
+            typer.echo(
+                f'Client secret env: {data["client_secret_env"]} '
+                f'({"yes" if data["client_secret_present"] else "no"})'
+            )
+            typer.echo(
+                f'Refresh token env: {data["refresh_token_env"]} '
+                f'({"yes" if data["refresh_token_present"] else "no"})'
+            )
+            typer.echo(f'Cache mode: {data["cache_mode"]}')
+            typer.echo(f'Shared drives: {"yes" if data["include_shared_drives"] else "no"}')
+            typer.echo(data["note"])
             return
 
         if command == "ask":
@@ -1697,17 +1781,96 @@ def llm_status(
     emit(payload, output)
 
 
+@drive_app.command("auth")
+def drive_auth(
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
+    client_id_env: str = typer.Option("GOOGLE_DRIVE_CLIENT_ID", "--client-id-env"),
+    client_secret_env: str = typer.Option("GOOGLE_DRIVE_CLIENT_SECRET", "--client-secret-env"),
+    refresh_token_env: str = typer.Option("GOOGLE_DRIVE_REFRESH_TOKEN", "--refresh-token-env"),
+    include_shared_drives: bool = typer.Option(False, "--include-shared-drives"),
+    corpus: Optional[list[str]] = typer.Option(None, "--corpus"),
+    metadata_field: Optional[list[str]] = typer.Option(None, "--metadata-field"),
+    cache_mode: DriveCacheModeOption = typer.Option(
+        DriveCacheModeOption.metadata_only,
+        "--cache-mode",
+    ),
+    cache_ttl_minutes: int = typer.Option(60, "--cache-ttl-minutes", min=1),
+    cache_max_entries: int = typer.Option(1000, "--cache-max-entries", min=1),
+    output: OutputMode = typer.Option(OutputMode.text, "--format"),
+) -> None:
+    app_config = load_config_or_fail("drive_auth", state_dir, output)
+
+    try:
+        drive_config = DriveConfig(
+            enabled=True,
+            include_shared_drives=include_shared_drives,
+            corpora=corpus or ["user"],
+            metadata_fields=metadata_field or DriveConfig().metadata_fields,
+            auth=DriveAuthConfig(
+                client_id_env=client_id_env,
+                client_secret_env=client_secret_env,
+                refresh_token_env=refresh_token_env,
+            ),
+            cache=DriveCacheConfig(
+                mode=cache_mode.value,
+                ttl_minutes=cache_ttl_minutes,
+                max_entries=cache_max_entries,
+            ),
+        )
+    except ValidationError as exc:
+        message = exc.errors()[0]["msg"] if exc.errors() else "Invalid Google Drive config."
+        fail("drive_auth", message, output, code="invalid_drive_config")
+
+    app_config.drive = drive_config
+    config_path = save_config(app_config, state_dir=state_dir)
+    payload = CommandPayload(
+        command="drive_auth",
+        ok=True,
+        data={
+            **build_drive_status_data(app_config),
+            "config_path": str(config_path),
+        },
+    )
+    emit(payload, output)
+
+
+@drive_app.command("status")
+def drive_status(
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
+    output: OutputMode = typer.Option(OutputMode.text, "--format"),
+) -> None:
+    app_config = load_config_or_fail("drive_status", state_dir, output)
+    payload = CommandPayload(
+        command="drive_status",
+        ok=True,
+        data=build_drive_status_data(app_config),
+    )
+    emit(payload, output)
+
+
 @drive_app.command("search")
 def drive_search(
     query: str = typer.Argument(...),
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
     output: OutputMode = typer.Option(OutputMode.text, "--format"),
 ) -> None:
-    fail(
-        "drive_search",
-        f'Drive integration is scheduled for Phase 4. Query "{query}" was not executed.',
-        output,
-        code="not_implemented",
+    app_config = load_config_or_fail("drive_search", state_dir, output)
+    payload = CommandPayload(
+        command="drive_search",
+        ok=False,
+        data={
+            "query": query,
+            "drive_config": build_drive_status_data(app_config),
+            "planned_result_contract": build_drive_result_contract(),
+            "note": DRIVE_CONTRACT_NOTE,
+        },
+        error=ErrorPayload(
+            code="not_implemented",
+            message=f'Drive search is not implemented yet. Query "{query}" was not executed.',
+        ),
     )
+    emit(payload, output)
+    raise typer.Exit(code=1)
 
 
 def main() -> None:
