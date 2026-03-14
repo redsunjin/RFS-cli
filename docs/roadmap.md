@@ -138,6 +138,7 @@ Current status:
 - `rfs ask` now has a deterministic short follow-up path for ambiguous requests
 - natural-language guidance inside `rfs shell` now carries workspace-state grounding
 - natural-language guidance inside `rfs shell` now mirrors the same short follow-up behavior
+- the current implementation is ready to move from agent hardening into release-readiness work
 
 ## Sequencing rationale
 

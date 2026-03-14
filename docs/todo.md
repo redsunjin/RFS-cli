@@ -107,7 +107,7 @@ When scope changes, update these files in order:
 ## Current recommended next three tasks
 
  - [ ] Define release-readiness installation and checklist basics
- - [ ] Add runtime validation for ambiguous follow-up behavior against LM Studio
+ - [ ] Add release versioning policy and release checklist baseline
 - [ ] Add release-readiness diagnostics/logging basics
 
 ## MVP execution backlog

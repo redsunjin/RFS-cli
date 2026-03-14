@@ -6,7 +6,7 @@
 
 ## Current active stage
 
-Stage 2: Agent guidance hardening
+Stage 3: Release readiness baseline
 
 ## Planning intent
 
@@ -62,6 +62,10 @@ Current slice status:
 - short follow-up behavior: complete
 - richer shell guidance grounding: complete
 
+Status:
+
+Completed.
+
 Exit definition:
 
 - persona contract is documented
@@ -102,5 +106,5 @@ Candidate tracks:
 ## Recommended next three tasks
 
 1. Define release-readiness installation and checklist basics.
-2. Add runtime validation for ambiguous follow-up behavior against LM Studio.
+2. Add release versioning policy and release checklist baseline.
 3. Add release-readiness diagnostics and logging basics.

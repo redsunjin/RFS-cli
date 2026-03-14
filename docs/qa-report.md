@@ -23,6 +23,7 @@ Commands executed successfully:
 
 - `uv run rfs llm status --state-dir .rfs --format json`
 - `uv run rfs ask "옵시디언 볼트를 추가하려면 어떻게 해야 해? 한 줄 명령 예시도 줘." --state-dir .rfs --format json`
+- `uv run rfs ask "검색을 시작하려면 어떻게 해?" --state-dir .rfs --format json`
 - `uv run rfs shell --state-dir .rfs`
 
 Observed checks:
@@ -30,8 +31,10 @@ Observed checks:
 - the configured LM Studio endpoint at `http://127.0.0.1:1234` was reachable
 - the configured model `qwen3.5-9b-mlx` was available
 - `rfs ask` returned a grounded command answer against the real runtime
+- `rfs ask` returned a deterministic follow-up question for an underspecified search-start request
 - provider-specific reasoning tags such as `<think>` and control markers such as `<|im_end|>` are now stripped before output
 - shell responses now carry active-session context so the agent no longer tells the user to run `rfs shell` while already inside it
+- shell responses now mirror the same deterministic follow-up behavior for underspecified requests
 
 ### Fixture-based smoke run
 
