@@ -39,6 +39,7 @@ If the LLM is not configured, interactive startup through `rfs` should begin onb
 
 - `rfs init`
 - `rfs shell`
+- `rfs doctor`
 - `rfs llm`
 - `rfs ask`
 - `rfs index`

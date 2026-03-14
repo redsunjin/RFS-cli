@@ -45,6 +45,7 @@ If the user tries to use agent workflows before setup, direct them back to `rfs`
 
 - `rfs init`
 - `rfs shell`
+- `rfs doctor [--verbose]`
 - `rfs version`
 - `rfs llm setup`
 - `rfs llm status`

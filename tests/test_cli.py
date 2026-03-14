@@ -1,10 +1,12 @@
 import json
+import re
 import subprocess
 from pathlib import Path
 from typing import Optional
 
 from typer.testing import CliRunner
 
+from rfs_cli import __version__
 from rfs_cli.config import load_config, load_shell_memory, save_config
 from rfs_cli.llm import extract_message_content, history_to_messages
 from rfs_cli.main import app, render_banner
@@ -56,6 +58,73 @@ def test_version_json() -> None:
     payload = json.loads(result.stdout)
     assert_command_payload(payload, "version", True)
     assert payload["data"]["version"] == "0.1.0"
+
+
+def test_pyproject_version_matches_package_version() -> None:
+    pyproject_text = Path("pyproject.toml").read_text(encoding="utf-8")
+    match = re.search(r'^version = "([^"]+)"$', pyproject_text, re.MULTILINE)
+
+    assert match is not None
+    assert match.group(1) == __version__
+
+
+def test_doctor_json_reports_workspace_state(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    build_index_with_source(state_dir, fixture_root, "obsidian", source_id="vault")
+    rebuild_index(state_dir)
+
+    monkeypatch.setattr(
+        "rfs_cli.main.get_llm_status",
+        lambda config: {
+            "configured": True,
+            "provider": config.provider,
+            "base_url": config.base_url,
+            "model": config.model,
+            "api_key_env": None,
+            "api_key_present": None,
+            "reachable": True,
+            "available_models": [config.model],
+            "default_model_available": True,
+            "error": None,
+        },
+    )
+
+    result = runner.invoke(
+        app,
+        ["doctor", "--state-dir", str(state_dir), "--verbose", "--format", "json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "doctor", True)
+    assert payload["data"]["version"] == __version__
+    assert payload["data"]["verbose"] is True
+    assert payload["data"]["config"]["valid"] is True
+    assert payload["data"]["config"]["source_count"] == 1
+    assert payload["data"]["index"]["valid"] is True
+    assert payload["data"]["index"]["document_count"] >= 1
+    assert payload["data"]["llm_runtime"]["reachable"] is True
+    assert payload["data"]["environment"]["state_dir"] == str(state_dir.resolve())
+
+
+def test_doctor_reports_invalid_state_files_without_failing(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    state_dir.mkdir(parents=True, exist_ok=True)
+    (state_dir / "config.json").write_text("{invalid", encoding="utf-8")
+    (state_dir / "index.json").write_text("{invalid", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        ["doctor", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "doctor", True)
+    assert payload["data"]["config"]["valid"] is False
+    assert payload["data"]["index"]["valid"] is False
+    assert "Inspect `.rfs/config.json`" in payload["data"]["suggestions"][0]
 
 
 def test_root_without_args_shows_banner_and_help_when_non_interactive(monkeypatch) -> None:

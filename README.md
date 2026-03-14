@@ -48,6 +48,7 @@ That agent now assumes a configured LLM as part of normal onboarding, and its ru
 - [MVP status](./docs/mvp-status.md)
 - [Next phase plan](./docs/next-phase-plan.md)
 - [Installation guide](./docs/installation.md)
+- [Versioning policy](./docs/versioning-policy.md)
 - [Release checklist](./docs/release-checklist.md)
 - [Smoke checklist](./docs/smoke-checklist.md)
 - [QA report](./docs/qa-report.md)
@@ -65,6 +66,7 @@ Planned command groups:
 - `rfs show`
 - `rfs init`
 - `rfs shell`
+- `rfs doctor`
 - `rfs dev`
 - `rfs agent`
 - `rfs llm`
@@ -103,6 +105,7 @@ The current codebase includes:
 - workspace-state grounding for natural-language guidance inside `rfs shell`
 - matching deterministic follow-up behavior inside `rfs shell`
 - interactive shell mode with saved session memory and internal tool execution
+- a local `doctor` command for state and runtime diagnostics
 - required onboarding through `rfs init` and a packaged LLM guide
 - default interactive startup through `rfs` itself
 
@@ -114,6 +117,7 @@ Google Drive and broader metadata enrichment remain roadmap work.
 uv sync --all-groups
 uv run rfs
 uv run rfs llm status
+uv run rfs doctor --verbose --format json
 uv run rfs index add /path/to/obsidian-vault --source obsidian
 uv run rfs index add /path/to/local-notes --source local
 uv run rfs index run
@@ -150,6 +154,7 @@ rfs --help
 ```
 
 For the full install, verification, and recovery flow, see [Installation guide](./docs/installation.md).
+For versioning rules, see [Versioning policy](./docs/versioning-policy.md).
 For release sign-off criteria, see [Release checklist](./docs/release-checklist.md).
 
 ## LLM-assisted usage

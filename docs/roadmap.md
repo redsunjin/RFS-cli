@@ -123,6 +123,8 @@ Current baseline:
 
 - installation flow documentation is defined
 - release checklist baseline is defined
+- versioning policy baseline is defined
+- `rfs doctor` now provides a local diagnostic and verbose inspection baseline
 
 ## Agentification track
 

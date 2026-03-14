@@ -24,6 +24,7 @@ from rfs_cli.config import (
     load_index,
     load_shell_memory,
     resolve_config_path,
+    resolve_index_path,
     resolve_shell_memory_path,
     resolve_state_dir,
     save_config,
@@ -91,6 +92,7 @@ WAVE_GRADIENT_START = (77, 151, 255)
 WAVE_GRADIENT_END = (113, 211, 255)
 SHELL_PROMPT = "rfs> "
 KNOWN_SHELL_COMMANDS = {
+    "doctor",
     "init",
     "version",
     "ask",
@@ -102,7 +104,7 @@ KNOWN_SHELL_COMMANDS = {
     "drive",
     "llm",
 }
-STATEFUL_COMMANDS = {"ask", "search", "show", "index", "dev", "agent", "drive", "llm"}
+STATEFUL_COMMANDS = {"ask", "doctor", "search", "show", "index", "dev", "agent", "drive", "llm"}
 
 
 def should_use_color() -> bool:
@@ -164,6 +166,214 @@ def build_dev_data(
     }
     data.update(details)
     return data
+
+
+def summarize_doctor_file(path: Path) -> dict[str, object]:
+    return {
+        "path": str(path),
+        "exists": path.exists(),
+        "valid": False,
+        "error": None,
+        "size_bytes": path.stat().st_size if path.exists() and path.is_file() else None,
+    }
+
+
+def collect_config_diagnostics(state_dir: Path) -> tuple[dict[str, object], Optional[AppConfig]]:
+    config_path = resolve_config_path(state_dir=state_dir)
+    data = summarize_doctor_file(config_path)
+    if not data["exists"]:
+        return data, None
+
+    try:
+        app_config = load_config(state_dir=state_dir)
+    except ValueError as exc:
+        data["error"] = str(exc)
+        return data, None
+
+    data.update(
+        {
+            "valid": True,
+            "schema_version": app_config.schema_version,
+            "source_count": len(app_config.sources),
+            "enabled_source_count": sum(1 for source in app_config.sources if source.enabled),
+            "source_ids": [source.id for source in app_config.sources],
+            "llm_configured": bool(app_config.llm and app_config.llm.enabled),
+            "llm_provider": app_config.llm.provider if app_config.llm else None,
+            "default_output_format": app_config.default_output_format,
+        }
+    )
+    return data, app_config
+
+
+def collect_index_diagnostics(state_dir: Path) -> dict[str, object]:
+    index_path = resolve_index_path(state_dir=state_dir)
+    data = summarize_doctor_file(index_path)
+    if not data["exists"]:
+        return data
+
+    try:
+        index_store = load_index(state_dir=state_dir)
+    except ValueError as exc:
+        data["error"] = str(exc)
+        return data
+
+    if index_store is None:
+        return data
+
+    data.update(
+        {
+            "valid": True,
+            "schema_version": index_store.schema_version,
+            "generated_at": index_store.generated_at,
+            "document_count": len(index_store.documents),
+            "source_ids": sorted({document.source_id for document in index_store.documents}),
+            "file_types": sorted({document.file_type for document in index_store.documents}),
+        }
+    )
+    return data
+
+
+def collect_shell_memory_diagnostics(state_dir: Path) -> dict[str, object]:
+    memory_path = resolve_shell_memory_path(state_dir=state_dir)
+    data = summarize_doctor_file(memory_path)
+    if not data["exists"]:
+        return data
+
+    try:
+        memory = load_shell_memory(state_dir=state_dir)
+    except ValueError as exc:
+        data["error"] = str(exc)
+        return data
+
+    if memory is None:
+        return data
+
+    data.update(
+        {
+            "valid": True,
+            "schema_version": memory.schema_version,
+            "session_id": memory.session_id,
+            "event_count": len(memory.events),
+            "updated_at": memory.updated_at,
+        }
+    )
+    return data
+
+
+def collect_llm_runtime_diagnostics(app_config: Optional[AppConfig]) -> dict[str, object]:
+    if app_config is None or app_config.llm is None or not app_config.llm.enabled:
+        return {
+            "configured": False,
+            "provider": None,
+            "model": None,
+            "base_url": None,
+            "reachable": False,
+            "available_models": [],
+            "default_model_available": None,
+            "error": None,
+        }
+    return get_llm_status(app_config.llm)
+
+
+def build_doctor_suggestions(
+    config: dict[str, object],
+    index: dict[str, object],
+    shell_memory: dict[str, object],
+    llm_runtime: dict[str, object],
+) -> list[str]:
+    suggestions: list[str] = []
+    if config.get("exists") and not config.get("valid"):
+        suggestions.append("Inspect `.rfs/config.json` or rerun `rfs init` to rebuild the config.")
+        return suggestions
+
+    if not llm_runtime.get("configured"):
+        suggestions.append("Run `rfs` or `rfs init` to configure the required LLM flow.")
+        return suggestions
+
+    if not llm_runtime.get("reachable"):
+        suggestions.append(
+            "Check that the configured LLM runtime is running, then retry `rfs llm status`."
+        )
+
+    if config.get("valid") and not config.get("source_count"):
+        suggestions.append("Run `rfs index add <path> --source local|obsidian` to add a source.")
+
+    if index.get("exists") and not index.get("valid"):
+        suggestions.append(
+            "Inspect `.rfs/index.json` or rerun `rfs index run` to rebuild the index."
+        )
+    elif config.get("source_count") and not index.get("exists"):
+        suggestions.append("Run `rfs index run` to build the local index.")
+
+    if shell_memory.get("exists") and not shell_memory.get("valid"):
+        suggestions.append("Move or remove `.rfs/shell-memory.json` if shell state needs a reset.")
+
+    if not suggestions:
+        suggestions.append("No immediate release-readiness issues were detected.")
+    return suggestions
+
+
+def format_doctor_text_status(label: str, details: dict[str, object]) -> str:
+    if not details["exists"]:
+        return f"{label}: missing"
+    if not details["valid"]:
+        error_message = details.get("error") or "invalid"
+        return f"{label}: invalid ({error_message})"
+
+    if label == "Config":
+        return (
+            f'{label}: ok ({details["source_count"]} source(s), '
+            f'llm={"yes" if details["llm_configured"] else "no"})'
+        )
+    if label == "Index":
+        return f'{label}: ok ({details["document_count"]} document(s))'
+    if label == "Shell memory":
+        return f'{label}: ok ({details["event_count"]} event(s))'
+    return f"{label}: ok"
+
+
+def format_doctor_llm_text_status(details: dict[str, object]) -> str:
+    if not details["configured"]:
+        return "LLM runtime: not configured"
+    if details["reachable"]:
+        return f'LLM runtime: reachable ({details["provider"]} / {details["model"]})'
+    error_message = details.get("error") or "runtime not reachable"
+    return f"LLM runtime: configured but unreachable ({error_message})"
+
+
+def build_doctor_payload(state_dir: Path, verbose: bool) -> CommandPayload:
+    resolved_state_dir = resolve_state_dir(state_dir)
+    config_details, app_config = collect_config_diagnostics(resolved_state_dir)
+    index_details = collect_index_diagnostics(resolved_state_dir)
+    shell_memory_details = collect_shell_memory_diagnostics(resolved_state_dir)
+    llm_runtime_details = collect_llm_runtime_diagnostics(app_config)
+
+    return CommandPayload(
+        command="doctor",
+        ok=True,
+        data={
+            "version": __version__,
+            "verbose": verbose,
+            "environment": {
+                "cwd": str(Path.cwd().resolve()),
+                "state_dir": str(resolved_state_dir),
+                "interactive": is_interactive_session(),
+                "color_enabled": should_use_color(),
+                "python_version": sys.version.split()[0],
+                "platform": sys.platform,
+            },
+            "config": config_details,
+            "index": index_details,
+            "shell_memory": shell_memory_details,
+            "llm_runtime": llm_runtime_details,
+            "suggestions": build_doctor_suggestions(
+                config_details,
+                index_details,
+                shell_memory_details,
+                llm_runtime_details,
+            ),
+        },
+    )
 
 
 def stringify_metadata_value(value: Any) -> str:
@@ -289,6 +499,30 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
 
         if command == "version":
             typer.echo(data["version"])
+            return
+
+        if command == "doctor":
+            environment = data["environment"]
+            typer.echo(f'rfs-cli doctor ({data["version"]})')
+            typer.echo(f'Python: {environment["python_version"]}')
+            typer.echo(f'State dir: {environment["state_dir"]}')
+            typer.echo(f'Interactive: {"yes" if environment["interactive"] else "no"}')
+            typer.echo(f'Color enabled: {"yes" if environment["color_enabled"] else "no"}')
+            typer.echo(format_doctor_text_status("Config", data["config"]))
+            typer.echo(format_doctor_text_status("Index", data["index"]))
+            typer.echo(format_doctor_text_status("Shell memory", data["shell_memory"]))
+            typer.echo(format_doctor_llm_text_status(data["llm_runtime"]))
+
+            suggestions = data.get("suggestions") or []
+            if suggestions:
+                typer.echo("Suggestions:")
+                for suggestion in suggestions:
+                    typer.echo(f"- {suggestion}")
+
+            if data.get("verbose"):
+                typer.echo("")
+                typer.echo("Verbose details:")
+                typer.echo(json.dumps(data, indent=2))
             return
 
         if command == "llm_setup":
@@ -859,6 +1093,15 @@ def version(output: OutputMode = typer.Option(OutputMode.text, "--format")) -> N
 
 
 @app.command()
+def doctor(
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
+    verbose: bool = typer.Option(False, "--verbose"),
+    output: OutputMode = typer.Option(OutputMode.text, "--format"),
+) -> None:
+    emit(build_doctor_payload(state_dir, verbose), output)
+
+
+@app.command()
 def init(
     state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
     provider: Optional[str] = typer.Option(None, "--provider"),
@@ -985,6 +1228,7 @@ def run_shell_session(
                     "- !<command>: run an external CLI command and store the result",
                     "- /exit: leave the shell",
                     "You can also type commands directly, for example:",
+                    "  doctor --verbose",
                     "  index sources",
                     "  search roadmap",
                     "  dev project-stats --path .",

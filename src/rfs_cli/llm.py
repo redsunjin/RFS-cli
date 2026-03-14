@@ -38,6 +38,7 @@ Stay within that scope. Do not become a generic chatbot.
 
 - `rfs init`
 - `rfs shell`
+- `rfs doctor [--verbose]`
 - `rfs version`
 - `rfs llm setup`
 - `rfs llm status`

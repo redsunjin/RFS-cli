@@ -173,6 +173,14 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 4. If no LLM config exists, launch onboarding automatically
 5. If LLM config exists, launch the interactive shell automatically
 
+### Doctor flow
+
+1. Resolve the selected state directory
+2. Inspect config, index, and shell-memory files independently
+3. Load each file if possible without failing the whole command
+4. Probe the configured LLM runtime when configuration is valid
+5. Return one diagnostic payload plus a short suggestion list
+
 ### Planned agent-interaction flow
 
 1. Inspect the current workspace state such as configured sources and index availability
@@ -276,4 +284,5 @@ Example response shape:
 
 - Development usage should continue to rely on `uv sync --all-groups` plus `uv run rfs ...`
 - Tool-style installation should rely on `uv tool install .` or a Git URL install path
+- Version values in `pyproject.toml` and `src/rfs_cli/__init__.py` must stay aligned until versioning is consolidated
 - Runtime prompt assets such as onboarding and agent-contract documents must remain included in the built wheel

@@ -65,6 +65,7 @@ After install, verify these steps:
 2. `rfs llm status --state-dir .rfs --format json` returns a valid payload.
 3. `rfs` enters onboarding or shell in an interactive terminal.
 4. `rfs ask "검색을 시작하려면 어떻게 해?" --state-dir .rfs --format json` returns a valid payload.
+5. `rfs doctor --verbose --state-dir .rfs --format json` reports current workspace health.
 
 ## Workspace state
 

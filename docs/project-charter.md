@@ -19,6 +19,7 @@ The project is primarily a learning vehicle, but it must also become a real tool
 - Make `rfs` itself the easiest interactive entry point, not just a banner plus help page
 - Keep the conversational agent aligned to a documented persona and response-style contract
 - Define installation, verification, and recovery paths so the CLI is dependable outside the dev loop
+- Provide a simple diagnostic path so broken local state can be inspected without guesswork
 - Establish a documentation-driven development process from the beginning
 
 ## Problem statement
@@ -88,6 +89,7 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - Shell guidance stays grounded in the current workspace state instead of generic advice
 - The same follow-up behavior applies consistently in both `ask` and `shell`
 - A user can install, verify, and recover the CLI from the documented flow without hidden steps
+- A user can run one diagnostic command and see the health of config, index, shell memory, and LLM runtime
 - New feature work follows documented scope, design, and roadmap updates
 
 ## Strategic principles

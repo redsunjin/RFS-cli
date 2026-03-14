@@ -89,8 +89,8 @@ Current slice status:
 
 - installation flow baseline: complete
 - release checklist baseline: complete
-- versioning policy: pending
-- diagnostics and logging basics: pending
+- versioning policy: complete
+- diagnostics and logging basics: complete
 
 Exit definition:
 
@@ -112,6 +112,6 @@ Candidate tracks:
 
 ## Recommended next three tasks
 
-1. Add release versioning policy baseline.
-2. Add release-readiness diagnostics and logging basics.
-3. Run an end-to-end smoke pass against the documented install flow.
+1. Run an end-to-end smoke pass against the documented install flow.
+2. Document the user-facing agent profile and operating boundaries.
+3. Record the Stage 3 smoke result and sign-off status in QA and planning docs.

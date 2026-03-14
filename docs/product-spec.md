@@ -125,6 +125,20 @@ Examples:
 - inside shell: `/run index sources`
 - inside shell: `!git status`
 
+### `rfs doctor`
+
+Responsibilities:
+
+- inspect workspace state under the selected `.rfs` directory
+- report config, index, shell-memory, and LLM runtime health
+- provide one local diagnostic entrypoint before deeper manual inspection
+- support a verbose mode for richer local debugging details
+
+Examples:
+
+- `rfs doctor`
+- `rfs doctor --verbose --format json`
+
 ### `rfs` startup behavior
 
 Responsibilities:
@@ -269,7 +283,9 @@ Examples:
 - Document a tool-style install flow with `uv tool install .`
 - Document a Git-based install flow for a remote repository URL
 - Document how to verify the install with `rfs --help` or `uv run rfs --help`
+- Document how to verify local state with `rfs doctor --verbose`
 - Document the workspace state directory and how to recover it when `.rfs/` becomes stale
+- Document a pre-1.0 versioning policy and keep runtime/package versions aligned
 - Maintain a release checklist that covers docs, tests, build, and runtime smoke
 
 ### Guided assistance

@@ -10,6 +10,7 @@ It is intended for personal releases and repeatable local verification.
 - [ ] README reflects the current install and quickstart flow
 - [ ] planning docs reflect the current scope and stage
 - [ ] onboarding and agent-contract documents match runtime behavior
+- [ ] versioning policy reflects the current release scope
 
 ## Quality gates
 
@@ -21,6 +22,7 @@ It is intended for personal releases and repeatable local verification.
 
 - [ ] `rfs --help` or `uv run rfs --help`
 - [ ] `rfs llm status --state-dir .rfs --format json`
+- [ ] `rfs doctor --verbose --state-dir .rfs --format json`
 - [ ] `rfs ask "검색을 시작하려면 어떻게 해?" --state-dir .rfs --format json`
 - [ ] `rfs shell` starts in an interactive terminal
 
