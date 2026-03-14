@@ -130,7 +130,7 @@ The current implementation exposes one-shot guided help through `rfs ask`, an in
 
 - stored in `.rfs/drive-token.json`
 - separate from `config.json`
-- used by `drive status` and future metadata retrieval commands
+- used by `drive status` and Drive metadata retrieval commands
 
 ### DriveFileRecord
 
@@ -212,8 +212,9 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 1. Load the local app config
 2. Read or persist the Drive auth/cache boundary
 3. Run an installed-app OAuth flow when requested and save token state locally
-4. Expose Drive status without pretending metadata search already exists
-5. Return a metadata-only result contract for future `drive search`
+4. Refresh Drive credentials locally when read-only metadata access needs a valid token
+5. Fetch metadata-only file records from the Drive files API
+6. Expose Drive status while keeping live cache-backed `drive search` disabled
 
 ### Planned agent-interaction flow
 
@@ -274,7 +275,7 @@ Example response shape:
 
 - Keep it isolated behind a source adapter boundary
 - Add local caching so search behavior remains consistent with local sources
-- Start with local token handling before implementing metadata retrieval
+- Start with local token handling and read-only metadata retrieval before enabling live search
 
 ### External tool provider adapters
 

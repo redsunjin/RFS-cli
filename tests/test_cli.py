@@ -8,9 +8,10 @@ from typer.testing import CliRunner
 
 from rfs_cli import __version__
 from rfs_cli.config import load_config, load_shell_memory, save_config
+from rfs_cli.drive import fetch_drive_file_metadata
 from rfs_cli.llm import extract_message_content, history_to_messages
 from rfs_cli.main import app, render_banner
-from rfs_cli.models import LLMConfig
+from rfs_cli.models import DriveConfig, LLMConfig
 
 runner = CliRunner()
 WAVE_LINE = "~" * 76
@@ -503,7 +504,9 @@ def test_drive_status_reports_env_presence(tmp_path: Path, monkeypatch) -> None:
     assert payload["data"]["client_secret_present"] is True
     assert payload["data"]["refresh_token_present"] is False
     assert payload["data"]["authenticated"] is False
-    assert "configuration, local auth, and response-contract setup" in payload["data"]["note"]
+    assert payload["data"]["metadata_retrieval_ready"] is True
+    assert payload["data"]["live_search_available"] is False
+    assert "metadata retrieval are implemented" in payload["data"]["note"]
 
 
 def test_drive_status_reports_state_file_auth(tmp_path: Path) -> None:
@@ -546,6 +549,83 @@ def test_drive_status_reports_state_file_auth(tmp_path: Path) -> None:
     assert payload["data"]["authenticated"] is True
     assert payload["data"]["token_file_exists"] is True
     assert payload["data"]["auth_source"] == "state_file"
+    assert payload["data"]["metadata_retrieval_ready"] is True
+    assert payload["data"]["live_search_available"] is False
+
+
+def test_fetch_drive_file_metadata_normalizes_records(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    captured: dict[str, object] = {}
+
+    class FakeCredentials:
+        token = "access-token"
+
+    def fake_ensure_drive_credentials(drive_config, state_dir_arg):
+        captured["state_dir"] = Path(state_dir_arg)
+        return FakeCredentials(), "state_file", Path(state_dir_arg) / "drive-token.json"
+
+    def fake_request_drive_json(url: str, access_token: str, timeout: float = 30.0):
+        captured["url"] = url
+        captured["access_token"] = access_token
+        captured["timeout"] = timeout
+        return {
+            "nextPageToken": "next-page",
+            "incompleteSearch": False,
+            "files": [
+                {
+                    "id": "file-1",
+                    "name": "Proposal Draft",
+                    "mimeType": "application/pdf",
+                    "modifiedTime": "2026-03-14T09:30:00Z",
+                    "parents": ["root"],
+                    "driveId": "drive-123",
+                    "webViewLink": "https://drive.google.com/file/d/file-1/view",
+                    "size": "2048",
+                }
+            ],
+        }
+
+    monkeypatch.setattr("rfs_cli.drive.ensure_drive_credentials", fake_ensure_drive_credentials)
+    monkeypatch.setattr("rfs_cli.drive.request_drive_json", fake_request_drive_json)
+
+    result = fetch_drive_file_metadata(
+        DriveConfig(include_shared_drives=True, corpora=["allDrives"]),
+        state_dir=state_dir,
+        query="proposal",
+        page_size=7,
+    )
+
+    assert result["query"] == "proposal"
+    assert result["page_size"] == 7
+    assert result["next_page_token"] == "next-page"
+    assert result["incomplete_search"] is False
+    assert result["auth_source"] == "state_file"
+    assert result["token_path"] == str(state_dir / "drive-token.json")
+    assert captured["access_token"] == "access-token"
+    assert "name+contains+%27proposal%27" in str(captured["url"])
+    assert "pageSize=7" in str(captured["url"])
+    assert "includeItemsFromAllDrives=true" in str(captured["url"])
+    records = result["records"]
+    assert len(records) == 1
+    assert records[0].file_id == "file-1"
+    assert records[0].name == "Proposal Draft"
+    assert records[0].size_bytes == 2048
+
+
+def test_fetch_drive_file_metadata_requires_auth(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+
+    def fail_auth(*args, **kwargs):
+        raise ValueError("Google Drive is not authenticated. Run `rfs drive auth` first.")
+
+    monkeypatch.setattr("rfs_cli.drive.ensure_drive_credentials", fail_auth)
+
+    try:
+        fetch_drive_file_metadata(DriveConfig(), state_dir=state_dir, query="proposal")
+    except ValueError as exc:
+        assert "Google Drive is not authenticated" in str(exc)
+    else:  # pragma: no cover - defensive assertion
+        raise AssertionError("Expected Drive auth failure.")
 
 
 def test_drive_search_json_exposes_planned_contract(tmp_path: Path) -> None:

@@ -174,7 +174,7 @@ Responsibilities:
 
 - define and inspect the Google Drive source configuration
 - run a local OAuth installed-app flow and persist Drive token state locally
-- define the metadata-only search contract before remote execution exists
+- implement a read-only metadata retrieval adapter before live search is exposed
 - expose cache settings that keep remote behavior aligned with the local-first model
 
 Examples:
@@ -256,7 +256,7 @@ Examples:
 - Support multiple indexed roots
 - Tag each root with a source type such as `local`, `obsidian`, or `drive`
 - Allow re-index by source or path
-- Allow Drive-specific configuration to exist before live remote retrieval is implemented
+- Allow Drive-specific configuration and auth state to exist before live remote search is exposed
 
 ### Search
 
@@ -303,8 +303,8 @@ Examples:
 
 - Define a persisted Drive source config model
 - Implement an OAuth-installed-app auth flow with local token persistence
-- Define a metadata-only result contract for future `drive search`
-- Define cache settings before remote retrieval starts
+- Implement read-only metadata retrieval against the Drive files API
+- Keep live `drive search` disabled until cache behavior is defined
 
 ### Guided assistance
 

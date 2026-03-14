@@ -103,8 +103,8 @@ TEXT_GRADIENT_END = (255, 182, 118)
 WAVE_GRADIENT_START = (77, 151, 255)
 WAVE_GRADIENT_END = (113, 211, 255)
 DRIVE_CONTRACT_NOTE = (
-    "Drive metadata search execution is not implemented yet. "
-    "Current commands support configuration, local auth, and response-contract setup."
+    "Drive auth and metadata retrieval are implemented. "
+    "Live `drive search` remains disabled until cache behavior is finalized."
 )
 SHELL_PROMPT = "rfs> "
 KNOWN_SHELL_COMMANDS = {
@@ -437,6 +437,8 @@ def build_drive_status_data(app_config: AppConfig, state_dir: Path) -> dict[str,
         "credential_refreshable": bool(credentials and credentials.refresh_token),
         "credential_expired": bool(credentials and credentials.expired),
         "credential_scopes": credentials.scopes if credentials is not None else [],
+        "metadata_retrieval_ready": True,
+        "live_search_available": False,
         "error": error_message,
         "note": DRIVE_CONTRACT_NOTE,
     }
@@ -636,6 +638,9 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
             typer.echo(f'Cache mode: {data["cache_mode"]}')
             typer.echo(f'Token path: {data["token_path"]}')
             typer.echo(f'Authenticated: {"yes" if data["authenticated"] else "no"}')
+            typer.echo(
+                f'Metadata retrieval adapter: {"yes" if data["metadata_retrieval_ready"] else "no"}'
+            )
             typer.echo(f'Config: {data["config_path"]}')
             if data.get("error"):
                 typer.echo(f'Error: {data["error"]}')
@@ -663,6 +668,10 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
             typer.echo(f'Cache mode: {data["cache_mode"]}')
             typer.echo(f'Shared drives: {"yes" if data["include_shared_drives"] else "no"}')
             typer.echo(f'Authenticated: {"yes" if data["authenticated"] else "no"}')
+            typer.echo(
+                f'Metadata retrieval adapter: {"yes" if data["metadata_retrieval_ready"] else "no"}'
+            )
+            typer.echo(f'Live search: {"yes" if data["live_search_available"] else "no"}')
             typer.echo(f'Token path: {data["token_path"]}')
             if data.get("error"):
                 typer.echo(f'Error: {data["error"]}')
@@ -1916,7 +1925,10 @@ def drive_search(
         },
         error=ErrorPayload(
             code="not_implemented",
-            message=f'Drive search is not implemented yet. Query "{query}" was not executed.',
+            message=(
+                f'Drive search is not enabled yet. Query "{query}" was not executed because '
+                "cache-backed search is still pending."
+            ),
         ),
     )
     emit(payload, output)

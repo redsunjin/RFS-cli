@@ -86,9 +86,9 @@ Exit criteria:
 Current baseline:
 
 - Drive source config model is defined
-- Drive auth flow and local token persistence are defined
-- Drive metadata result contract is defined
-- remote execution is still pending
+- Drive auth flow and local token persistence are implemented
+- Drive read-only metadata retrieval is implemented
+- live cache-backed search is still pending
 
 ## Phase 5: Research workflow extensions
 

@@ -97,5 +97,5 @@ Shell history is saved in `.rfs/shell-memory.json` unless the user chooses anoth
 
 ## Not implemented yet
 
-- Google Drive metadata search execution is not implemented yet beyond auth, config, and response-contract setup.
+- Google Drive auth and read-only metadata retrieval exist, but live `drive search` is still disabled.
 - Rich multi-turn follow-up planning is still limited.
