@@ -103,4 +103,4 @@ Candidate tracks:
 
 1. Define release-readiness installation and checklist basics.
 2. Add runtime validation for ambiguous follow-up behavior against LM Studio.
-3. Expand shell-side ambiguous follow-up behavior to match `rfs ask`.
+3. Add release-readiness diagnostics and logging basics.

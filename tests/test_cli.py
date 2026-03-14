@@ -448,6 +448,33 @@ def test_shell_includes_source_and_index_context_for_llm(tmp_path: Path, monkeyp
     assert "- index_status: available" in captured["history"][0]["content"]
 
 
+def test_shell_returns_follow_up_without_calling_llm(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError("LLM should not be called for deterministic shell follow-up.")
+
+    monkeypatch.setattr("rfs_cli.main.ask_llm", fail_if_called)
+
+    result = runner.invoke(
+        app,
+        ["shell", "--state-dir", str(state_dir)],
+        input="검색을 시작하려면 어떻게 해?\n/exit\n",
+    )
+
+    assert result.exit_code == 0
+    assert "어떤 경로를 먼저 연결할까요?" in result.stdout
+
+    memory = load_shell_memory(state_dir=state_dir)
+    assert memory is not None
+    assert any(
+        event.kind == "assistant"
+        and "어떤 경로를 먼저 연결할까요?" in event.content
+        for event in memory.events
+    )
+
+
 def test_shell_survives_llm_timeout(tmp_path: Path, monkeypatch) -> None:
     state_dir = tmp_path / ".rfs"
     save_llm_config(state_dir)

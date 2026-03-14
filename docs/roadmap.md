@@ -137,6 +137,7 @@ Current status:
 - `rfs ask` now has a baseline of source-aware and index-aware grounding
 - `rfs ask` now has a deterministic short follow-up path for ambiguous requests
 - natural-language guidance inside `rfs shell` now carries workspace-state grounding
+- natural-language guidance inside `rfs shell` now mirrors the same short follow-up behavior
 
 ## Sequencing rationale
 

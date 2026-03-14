@@ -116,6 +116,7 @@ Responsibilities:
 - store conversation and tool history as shell memory
 - support controlled external CLI execution when explicitly requested
 - ground natural-language shell guidance in current source and index state
+- use the same short follow-up behavior as `rfs ask` when a shell request is underspecified
 
 Examples:
 

@@ -72,6 +72,7 @@ When scope changes, update these files in order:
 - [x] Add source-aware and index-aware command suggestions to `rfs ask`
 - [x] Add a short follow-up question path for ambiguous requests
 - [x] Carry workspace-state grounding into natural-language guidance inside `rfs shell`
+- [x] Expand shell-side ambiguous follow-up behavior to match `rfs ask`
 
 ## Phase 4: Google Drive integration
 
@@ -105,9 +106,9 @@ When scope changes, update these files in order:
 
 ## Current recommended next three tasks
 
-- [ ] Define release-readiness installation and checklist basics
-- [ ] Add runtime validation for ambiguous follow-up behavior against LM Studio
-- [ ] Expand shell-side ambiguous follow-up behavior to match `rfs ask`
+ - [ ] Define release-readiness installation and checklist basics
+ - [ ] Add runtime validation for ambiguous follow-up behavior against LM Studio
+- [ ] Add release-readiness diagnostics/logging basics
 
 ## MVP execution backlog
 

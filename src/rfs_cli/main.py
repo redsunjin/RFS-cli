@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -575,9 +576,90 @@ def contains_path_hint(text: str) -> bool:
     return any(token in text for token in ["/", "\\", "~", ".md", ".txt", ":\\"])
 
 
+AMBIGUOUS_ASK_STOPWORDS = {
+    "a",
+    "add",
+    "and",
+    "connect",
+    "do",
+    "find",
+    "for",
+    "get",
+    "hae",
+    "how",
+    "i",
+    "index",
+    "lookup",
+    "notes",
+    "query",
+    "search",
+    "setup",
+    "show",
+    "start",
+    "the",
+    "to",
+    "use",
+    "what",
+    "검색",
+    "문서",
+    "방법",
+    "보여",
+    "시작",
+    "어떻게",
+    "어케",
+    "열어",
+    "조회",
+    "찾",
+    "찾기",
+    "파일",
+    "해",
+}
+
+
+def normalize_guidance_token(token: str) -> str:
+    normalized = token.lower()
+    suffixes = [
+        "하려면",
+        "하려",
+        "하면",
+        "하기",
+        "하고",
+        "에서",
+        "으로",
+        "부터",
+        "까지",
+        "처럼",
+        "한줄",
+        "은",
+        "는",
+        "이",
+        "가",
+        "을",
+        "를",
+        "에",
+        "와",
+        "과",
+        "도",
+        "만",
+        "요",
+    ]
+    for suffix in suffixes:
+        if normalized.endswith(suffix) and len(normalized) > len(suffix) + 1:
+            normalized = normalized[: -len(suffix)]
+            break
+    return normalized
+
+
+def meaningful_guidance_terms(question: str) -> list[str]:
+    tokens = re.findall(r"[A-Za-z0-9가-힣_-]+", question.lower())
+    normalized_tokens = [normalize_guidance_token(token) for token in tokens]
+    return [token for token in normalized_tokens if token not in AMBIGUOUS_ASK_STOPWORDS]
+
+
 def detect_ambiguous_ask(question: str, app_config: AppConfig, state_dir: Path) -> Optional[str]:
     lowered = question.lower()
     enabled_sources = [source for source in app_config.sources if source.enabled]
+    meaningful_terms = meaningful_guidance_terms(question)
 
     wants_search = any(
         keyword in lowered for keyword in ["search", "find", "lookup", "검색", "찾", "조회"]
@@ -597,7 +679,11 @@ def detect_ambiguous_ask(question: str, app_config: AppConfig, state_dir: Path) 
         index_store = None
 
     if not enabled_sources and (wants_search or wants_setup):
-        if not mentions_source_kind or not contains_path_hint(question):
+        if (
+            not mentions_source_kind
+            and not contains_path_hint(question)
+            and not meaningful_terms
+        ):
             return (
                 "어떤 경로를 먼저 연결할까요? local 폴더인지 Obsidian vault인지와 "
                 "경로를 한 줄로 알려주세요."
@@ -977,6 +1063,13 @@ def run_shell_session(
                 output or status_text,
                 metadata={"command": " ".join(command_tokens), "exit_code": exit_code},
             )
+            save_shell_memory(memory, state_dir=resolved_state_dir)
+            continue
+
+        follow_up_question = detect_ambiguous_ask(user_input, app_config, resolved_state_dir)
+        if follow_up_question is not None:
+            typer.echo(follow_up_question)
+            append_shell_event(memory, "assistant", follow_up_question)
             save_shell_memory(memory, state_dir=resolved_state_dir)
             continue
 

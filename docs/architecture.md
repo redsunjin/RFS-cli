@@ -191,7 +191,8 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
    - natural-language guidance request
 4. Attach shell-session context so the agent knows the user is already inside the shell
 5. Attach workspace-state guidance context so shell answers can adapt to configured sources and index state
-6. Save conversation and tool output back into shell memory
+6. Run deterministic ambiguity checks before provider guidance when critical detail is missing
+7. Save conversation and tool output back into shell memory
 
 ## Output contract strategy
 
