@@ -135,3 +135,13 @@ Current slice status:
 1. Run a real Google Drive smoke pass when client secrets or token state are available.
 2. Document NotebookLM-adjacent workflow examples.
 3. Review `research export` bundle ergonomics and naming.
+
+## Current work-group execution order
+
+Use `docs/work-groups.md` as the batch-planning layer above individual TODO items.
+
+Current order:
+
+1. `WG-01` Google Drive runtime validation when credentials or token state are available
+2. `WG-02` Research export polish
+3. `WG-03` Assistive UX batch A

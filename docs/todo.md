@@ -110,6 +110,16 @@ When scope changes, update these files in order:
 - [ ] Document NotebookLM-adjacent workflow examples
 - [ ] Review `research export` bundle ergonomics and naming
 
+## Current work groups
+
+- [ ] `WG-01` Google Drive runtime validation
+- [ ] `WG-02` Research export polish
+- [ ] `WG-03` Assistive UX batch A
+- [ ] `WG-04` External tool provider design
+- [ ] `WG-05` Harbor and game planning
+
+See `docs/work-groups.md` for batch contents, blockers, and review order.
+
 ## Idea branch recommended next three tasks
 
 - [ ] Define `UserIntent`, `CommandSuggestion`, and `GuidanceResponse` internal models
