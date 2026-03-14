@@ -89,7 +89,7 @@ Current baseline:
 - Drive auth flow and local token persistence are implemented
 - Drive read-only metadata retrieval is implemented
 - Drive local metadata cache strategy is implemented
-- live cache-backed search is still pending
+- live cache-backed metadata search is implemented
 
 ## Phase 5: Research workflow extensions
 

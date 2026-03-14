@@ -11,7 +11,7 @@ from rfs_cli.config import load_config, load_drive_cache, load_shell_memory, sav
 from rfs_cli.drive import fetch_drive_file_metadata
 from rfs_cli.llm import extract_message_content, history_to_messages
 from rfs_cli.main import app, render_banner
-from rfs_cli.models import DriveConfig, LLMConfig
+from rfs_cli.models import DriveConfig, DriveFileRecord, LLMConfig
 
 runner = CliRunner()
 WAVE_LINE = "~" * 76
@@ -505,10 +505,10 @@ def test_drive_status_reports_env_presence(tmp_path: Path, monkeypatch) -> None:
     assert payload["data"]["refresh_token_present"] is False
     assert payload["data"]["authenticated"] is False
     assert payload["data"]["metadata_retrieval_ready"] is True
-    assert payload["data"]["live_search_available"] is False
+    assert payload["data"]["live_search_available"] is True
     assert payload["data"]["cache_file_exists"] is False
     assert payload["data"]["cache_entry_count"] == 0
-    assert "local metadata cache are implemented" in payload["data"]["note"]
+    assert "drive search` are implemented" in payload["data"]["note"]
 
 
 def test_drive_status_reports_state_file_auth(tmp_path: Path) -> None:
@@ -552,7 +552,7 @@ def test_drive_status_reports_state_file_auth(tmp_path: Path) -> None:
     assert payload["data"]["token_file_exists"] is True
     assert payload["data"]["auth_source"] == "state_file"
     assert payload["data"]["metadata_retrieval_ready"] is True
-    assert payload["data"]["live_search_available"] is False
+    assert payload["data"]["live_search_available"] is True
     assert payload["data"]["cache_file_exists"] is False
 
 
@@ -677,7 +677,7 @@ def test_fetch_drive_file_metadata_requires_auth(tmp_path: Path, monkeypatch) ->
         raise AssertionError("Expected Drive auth failure.")
 
 
-def test_drive_search_json_exposes_planned_contract(tmp_path: Path) -> None:
+def test_drive_search_requires_drive_config(tmp_path: Path) -> None:
     state_dir = tmp_path / ".rfs"
 
     result = runner.invoke(
@@ -688,10 +688,113 @@ def test_drive_search_json_exposes_planned_contract(tmp_path: Path) -> None:
     assert result.exit_code == 1
     payload = json.loads(result.stdout)
     assert_command_payload(payload, "drive_search", False)
-    assert payload["error"]["code"] == "not_implemented"
+    assert payload["error"]["code"] == "missing_drive_config"
+
+
+def test_drive_search_returns_structured_auth_error(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    runner.invoke(
+        app,
+        [
+            "drive",
+            "auth",
+            "--state-dir",
+            str(state_dir),
+            "--configure-only",
+            "--format",
+            "json",
+        ],
+    )
+
+    def fail_auth(*args, **kwargs):
+        raise ValueError("Google Drive is not authenticated. Run `rfs drive auth` first.")
+
+    monkeypatch.setattr("rfs_cli.main.fetch_drive_file_metadata", fail_auth)
+
+    result = runner.invoke(
+        app,
+        ["drive", "search", "proposal", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 1
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "drive_search", False)
+    assert payload["error"]["code"] == "missing_drive_auth"
+
+
+def test_drive_search_returns_live_results(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    runner.invoke(
+        app,
+        [
+            "drive",
+            "auth",
+            "--state-dir",
+            str(state_dir),
+            "--configure-only",
+            "--format",
+            "json",
+        ],
+    )
+
+    def fake_fetch_drive_file_metadata(
+        drive_config,
+        state_dir,
+        query,
+        page_size=20,
+        page_token=None,
+    ):
+        return {
+            "query": query,
+            "page_size": page_size,
+            "next_page_token": "next-page",
+            "incomplete_search": False,
+            "auth_source": "state_file",
+            "token_path": str(Path(state_dir) / "drive-token.json"),
+            "cache_path": str(Path(state_dir) / "drive-cache.json"),
+            "cache_key": "drive:test",
+            "cache_hit": False,
+            "fetched_at": "2026-03-14T10:00:00+00:00",
+            "expires_at": "2026-03-14T11:00:00+00:00",
+            "records": [
+                DriveFileRecord(
+                    file_id="file-1",
+                    name="Proposal Draft",
+                    mime_type="application/pdf",
+                    modified_time="2026-03-14T09:30:00Z",
+                    web_view_link="https://drive.google.com/file/d/file-1/view",
+                    parents=["root"],
+                    size_bytes=2048,
+                )
+            ],
+        }
+
+    monkeypatch.setattr("rfs_cli.main.fetch_drive_file_metadata", fake_fetch_drive_file_metadata)
+
+    result = runner.invoke(
+        app,
+        [
+            "drive",
+            "search",
+            "proposal",
+            "--page-size",
+            "5",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "drive_search", True)
     assert payload["data"]["query"] == "proposal"
-    assert "file_id" in payload["data"]["planned_result_contract"]["result_fields"]
-    assert payload["data"]["drive_config"]["configured"] is False
+    assert payload["data"]["page_size"] == 5
+    assert payload["data"]["result_count"] == 1
+    assert payload["data"]["cache_hit"] is False
+    assert payload["data"]["next_page_token"] == "next-page"
+    assert payload["data"]["planned_result_contract"]["live_search_available"] is True
 
 
 def test_ask_json_uses_configured_llm(tmp_path: Path, monkeypatch) -> None:

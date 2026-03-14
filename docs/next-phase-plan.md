@@ -123,9 +123,10 @@ Current slice status:
 - Drive auth flow and local token persistence: complete
 - Drive file metadata retrieval: complete
 - Drive local metadata cache strategy: complete
+- Live metadata-only `drive search`: complete
 
 ## Recommended next three tasks
 
-1. Implement live `drive search`.
-2. Add integration tests for Drive adapter behavior.
-3. Run a real Google Drive smoke pass after live search is enabled.
+1. Add integration tests for Drive adapter behavior.
+2. Run a real Google Drive smoke pass.
+3. Review cache expiry and invalidation behavior under live search.

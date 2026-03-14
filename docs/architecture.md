@@ -223,7 +223,7 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 5. Check the local Drive metadata cache before remote retrieval
 6. Fetch metadata-only file records from the Drive files API on a cache miss
 7. Persist bounded cache entries under the workspace state directory
-8. Expose Drive status while keeping live cache-backed `drive search` disabled
+8. Expose live metadata-only `drive search` with cache hit or miss details
 
 ### Planned agent-interaction flow
 
@@ -284,7 +284,7 @@ Example response shape:
 
 - Keep it isolated behind a source adapter boundary
 - Add local caching so search behavior remains consistent with local sources
-- Start with local token handling and read-only metadata retrieval before enabling live search
+- Keep search metadata-only until a broader sync or content strategy is defined
 
 ### External tool provider adapters
 

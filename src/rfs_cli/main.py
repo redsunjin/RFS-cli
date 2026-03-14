@@ -35,7 +35,11 @@ from rfs_cli.config import (
     save_index,
     save_shell_memory,
 )
-from rfs_cli.drive import load_drive_credentials, run_drive_installed_app_auth
+from rfs_cli.drive import (
+    fetch_drive_file_metadata,
+    load_drive_credentials,
+    run_drive_installed_app_auth,
+)
 from rfs_cli.indexing import build_index, build_source_id, resolve_index_document, search_index
 from rfs_cli.llm import (
     ask_llm,
@@ -105,8 +109,8 @@ TEXT_GRADIENT_END = (255, 182, 118)
 WAVE_GRADIENT_START = (77, 151, 255)
 WAVE_GRADIENT_END = (113, 211, 255)
 DRIVE_CONTRACT_NOTE = (
-    "Drive auth, metadata retrieval, and local metadata cache are implemented. "
-    "Live `drive search` remains disabled until the command surface is finalized."
+    "Drive auth, metadata retrieval, local metadata cache, and metadata-only "
+    "`drive search` are implemented."
 )
 SHELL_PROMPT = "rfs> "
 KNOWN_SHELL_COMMANDS = {
@@ -457,7 +461,7 @@ def build_drive_status_data(app_config: AppConfig, state_dir: Path) -> dict[str,
         "credential_expired": bool(credentials and credentials.expired),
         "credential_scopes": credentials.scopes if credentials is not None else [],
         "metadata_retrieval_ready": True,
-        "live_search_available": False,
+        "live_search_available": True,
         "error": error_message,
         "cache_error": cache_error_message,
         "note": DRIVE_CONTRACT_NOTE,
@@ -468,6 +472,7 @@ def build_drive_result_contract() -> dict[str, object]:
     return {
         "result_fields": list(DriveFileRecord.model_fields.keys()),
         "search_scope": "metadata-only",
+        "live_search_available": True,
         "cache_modes": [option.value for option in DriveCacheModeOption],
     }
 
@@ -704,6 +709,20 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
             if data.get("cache_error"):
                 typer.echo(f'Cache error: {data["cache_error"]}')
             typer.echo(data["note"])
+            return
+
+        if command == "drive_search":
+            cache_label = "hit" if data.get("cache_hit") else "miss"
+            typer.echo(f'{data["result_count"]} Drive file(s) for "{data["query"]}"')
+            typer.echo(f"Cache: {cache_label}")
+            if data.get("next_page_token"):
+                typer.echo(f'Next page token: {data["next_page_token"]}')
+            for result in data["results"]:
+                typer.echo(f'- {result["name"]} [{result["mime_type"]}]')
+                typer.echo(f'  id: {result["file_id"]}')
+                typer.echo(f'  modified: {result["modified_time"]}')
+                if result.get("web_view_link"):
+                    typer.echo(f'  link: {result["web_view_link"]}')
             return
 
         if command == "ask":
@@ -1938,29 +1957,58 @@ def drive_status(
 @drive_app.command("search")
 def drive_search(
     query: str = typer.Argument(...),
+    page_size: int = typer.Option(20, "--page-size", min=1, max=100),
+    page_token: Optional[str] = typer.Option(None, "--page-token"),
     state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
     output: OutputMode = typer.Option(OutputMode.text, "--format"),
 ) -> None:
     app_config = load_config_or_fail("drive_search", state_dir, output)
+    if app_config.drive is None or not app_config.drive.enabled:
+        fail(
+            "drive_search",
+            "Google Drive is not configured. Run `rfs drive auth` first.",
+            output,
+            code="missing_drive_config",
+        )
+
+    try:
+        result = fetch_drive_file_metadata(
+            app_config.drive,
+            state_dir=state_dir,
+            query=query,
+            page_size=page_size,
+            page_token=page_token,
+        )
+    except ValueError as exc:
+        message = str(exc)
+        error_code = "drive_search_error"
+        if "not authenticated" in message.lower():
+            error_code = "missing_drive_auth"
+        fail("drive_search", message, output, code=error_code)
+
     payload = CommandPayload(
         command="drive_search",
-        ok=False,
+        ok=True,
         data={
             "query": query,
-            "drive_config": build_drive_status_data(app_config, state_dir),
+            "page_size": page_size,
+            "page_token": page_token,
+            "result_count": len(result["records"]),
+            "results": [record.model_dump(mode="json") for record in result["records"]],
+            "next_page_token": result["next_page_token"],
+            "incomplete_search": result["incomplete_search"],
+            "auth_source": result["auth_source"],
+            "cache_hit": result["cache_hit"],
+            "cache_key": result["cache_key"],
+            "cache_path": result["cache_path"],
+            "fetched_at": result["fetched_at"],
+            "expires_at": result["expires_at"],
+            "search_scope": "metadata-only",
             "planned_result_contract": build_drive_result_contract(),
             "note": DRIVE_CONTRACT_NOTE,
         },
-        error=ErrorPayload(
-            code="not_implemented",
-            message=(
-                f'Drive search is not enabled yet. Query "{query}" was not executed because '
-                "cache-backed search is still pending."
-            ),
-        ),
     )
     emit(payload, output)
-    raise typer.Exit(code=1)
 
 
 def main() -> None:

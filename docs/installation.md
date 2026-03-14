@@ -66,6 +66,7 @@ After install, verify these steps:
 3. `rfs` enters onboarding or shell in an interactive terminal.
 4. `rfs ask "검색을 시작하려면 어떻게 해?" --state-dir .rfs --format json` returns a valid payload.
 5. `rfs doctor --verbose --state-dir .rfs --format json` reports current workspace health.
+6. `rfs drive search "proposal" --state-dir .rfs --format json` works after Drive auth is configured.
 
 ## Workspace state
 
@@ -101,5 +102,5 @@ rfs
 ## Current limits
 
 - Normal agent workflows require an LLM configuration
-- Google Drive live search is still disabled while the cached command surface is being finalized
+- Google Drive search is metadata-only and depends on valid Drive auth
 - A real Obsidian smoke run depends on a real vault path existing in the environment

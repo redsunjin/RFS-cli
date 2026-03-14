@@ -107,11 +107,11 @@ The current codebase includes:
 - matching deterministic follow-up behavior inside `rfs shell`
 - interactive shell mode with saved session memory and internal tool execution
 - a local `doctor` command for state and runtime diagnostics
-- a Google Drive auth/config baseline with local token storage, read-only metadata retrieval, and a local metadata cache
+- a Google Drive auth/config baseline with local token storage, cache-backed metadata retrieval, and live metadata-only `drive search`
 - required onboarding through `rfs init` and a packaged LLM guide
 - default interactive startup through `rfs` itself
 
-Google Drive live search and broader metadata enrichment remain roadmap work.
+Google Drive sync breadth and broader metadata enrichment remain roadmap work.
 
 ## Quickstart
 

@@ -174,7 +174,7 @@ Responsibilities:
 
 - define and inspect the Google Drive source configuration
 - run a local OAuth installed-app flow and persist Drive token state locally
-- implement a read-only metadata retrieval adapter before live search is exposed
+- execute metadata-only Google Drive search through a cache-backed adapter
 - expose cache settings that keep remote behavior aligned with the local-first model
 
 Examples:
@@ -306,7 +306,7 @@ Examples:
 - Implement an OAuth-installed-app auth flow with local token persistence
 - Implement read-only metadata retrieval against the Drive files API
 - Implement a local metadata cache boundary for repeated Drive reads
-- Keep live `drive search` disabled until the cached command surface is defined
+- Expose live metadata-only `drive search` on top of the cached adapter
 
 ### Guided assistance
 

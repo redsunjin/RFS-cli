@@ -80,7 +80,7 @@ When scope changes, update these files in order:
 - [x] Implement auth flow
 - [x] Implement file metadata retrieval
 - [x] Implement cache strategy
-- [ ] Add `drive search`
+- [x] Add `drive search`
 - [ ] Add integration tests for adapter behavior
 
 ## Phase 5: Research workflow extensions
@@ -106,9 +106,9 @@ When scope changes, update these files in order:
 
 ## Current recommended next three tasks
 
-- [ ] Implement live `drive search`
 - [ ] Add integration tests for Drive adapter behavior
 - [ ] Run a real Google Drive smoke pass after live search is enabled
+- [ ] Review cache expiry and invalidation behavior under live search
 
 ## Post-MVP gamification track
 
