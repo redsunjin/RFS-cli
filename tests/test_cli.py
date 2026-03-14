@@ -412,11 +412,40 @@ def test_shell_uses_llm_and_persists_conversation(tmp_path: Path, monkeypatch) -
     assert 'Use `rfs search "roadmap"`.' in result.stdout
     assert captured["question"] == "How do I search roadmap notes?"
     assert captured["history"][0]["role"] == "system"
-    assert "already active `rfs shell` session" in captured["history"][0]["content"]
+    assert "Workspace guidance context:" in captured["history"][0]["content"]
+    assert "Configured sources: none." in captured["history"][0]["content"]
+    assert captured["history"][1]["role"] == "system"
+    assert "already active `rfs shell` session" in captured["history"][1]["content"]
 
     memory = load_shell_memory(state_dir=state_dir)
     assert memory is not None
     assert any(event.kind == "assistant" for event in memory.events)
+
+
+def test_shell_includes_source_and_index_context_for_llm(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    build_index_with_source(state_dir, fixture_root, "obsidian", source_id="vault")
+    rebuild_index(state_dir)
+    captured: dict[str, object] = {}
+
+    def fake_ask_llm(config, question, history=None):
+        captured["history"] = history or []
+        return "Use `search roadmap --source-id vault`."
+
+    monkeypatch.setattr("rfs_cli.main.ask_llm", fake_ask_llm)
+
+    result = runner.invoke(
+        app,
+        ["shell", "--state-dir", str(state_dir)],
+        input="roadmap note 찾고 싶어\n/exit\n",
+    )
+
+    assert result.exit_code == 0
+    assert "Use `search roadmap --source-id vault`." in result.stdout
+    assert "Configured sources: 1" in captured["history"][0]["content"]
+    assert "- vault [obsidian] enabled" in captured["history"][0]["content"]
+    assert "- index_status: available" in captured["history"][0]["content"]
 
 
 def test_shell_survives_llm_timeout(tmp_path: Path, monkeypatch) -> None:

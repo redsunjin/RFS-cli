@@ -98,6 +98,7 @@ The current codebase includes:
 - required LLM setup and guided CLI usage with `rfs ask`
 - documented agent contract plus source-aware guidance for `rfs ask`
 - deterministic short follow-up questions for ambiguous `rfs ask` requests
+- workspace-state grounding for natural-language guidance inside `rfs shell`
 - interactive shell mode with saved session memory and internal tool execution
 - required onboarding through `rfs init` and a packaged LLM guide
 - default interactive startup through `rfs` itself

@@ -84,6 +84,7 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - The CLI remains grounded in its actual tools rather than drifting into generic assistant behavior
 - The CLI agent follows one stable, documented response contract across `ask` and `shell`
 - When a request is underspecified, the CLI asks one short follow-up question instead of inventing detail
+- Shell guidance stays grounded in the current workspace state instead of generic advice
 - New feature work follows documented scope, design, and roadmap updates
 
 ## Strategic principles

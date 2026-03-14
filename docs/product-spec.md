@@ -115,6 +115,7 @@ Responsibilities:
 - run supported `rfs` commands without repeating the top-level executable name
 - store conversation and tool history as shell memory
 - support controlled external CLI execution when explicitly requested
+- ground natural-language shell guidance in current source and index state
 
 Examples:
 

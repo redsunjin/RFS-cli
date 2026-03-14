@@ -623,6 +623,17 @@ def detect_ambiguous_ask(question: str, app_config: AppConfig, state_dir: Path) 
     return None
 
 
+def build_shell_guidance_history(
+    app_config: AppConfig,
+    state_dir: Path,
+    memory: ShellMemory,
+) -> list[dict[str, str]]:
+    return build_guidance_runtime_context(app_config, state_dir) + shell_history_messages(
+        memory,
+        include_latest=False,
+    )
+
+
 def shell_history_messages(
     memory: ShellMemory,
     limit: int = 8,
@@ -973,7 +984,11 @@ def run_shell_session(
             answer = ask_llm(
                 app_config.llm,
                 user_input,
-                history=shell_history_messages(memory, include_latest=False),
+                history=build_shell_guidance_history(
+                    app_config,
+                    resolved_state_dir,
+                    memory,
+                ),
             )
         except ValueError as exc:
             answer = f"LLM error: {exc}"
