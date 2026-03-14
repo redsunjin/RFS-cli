@@ -96,6 +96,13 @@ class DriveCacheModeOption(str, Enum):
     metadata_only = "metadata-only"
 
 
+class DriveCorpusOption(str, Enum):
+    user = "user"
+    domain = "domain"
+    drive = "drive"
+    all_drives = "allDrives"
+
+
 BANNER_LINES = [
     " ____  _____    _    ______   __   _____ ___  ____    ____  _____    _",
     "|  _ \\| ____|  / \\  |  _ \\ \\ / /  |  ___/ _ \\|  _ \\  / ___|| ____|  / \\ ",
@@ -444,6 +451,7 @@ def build_drive_status_data(app_config: AppConfig, state_dir: Path) -> dict[str,
         "refresh_token_present": refresh_token_present,
         "scopes": auth.scopes,
         "include_shared_drives": drive_config.include_shared_drives,
+        "corpus": drive_config.corpora[0],
         "corpora": drive_config.corpora,
         "metadata_fields": drive_config.metadata_fields,
         "cache_mode": cache.mode,
@@ -661,6 +669,7 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
             typer.echo(f'Client secret env: {data["client_secret_env"]}')
             typer.echo(f'Refresh token env: {data["refresh_token_env"]}')
             typer.echo(f'Cache mode: {data["cache_mode"]}')
+            typer.echo(f'Corpus: {data["corpus"]}')
             typer.echo(f'Cache path: {data["cache_path"]}')
             typer.echo(f'Cache entries: {data["cache_entry_count"]}')
             typer.echo(f'Token path: {data["token_path"]}')
@@ -694,6 +703,7 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
                 f'Refresh token env: {data["refresh_token_env"]} '
                 f'({"yes" if data["refresh_token_present"] else "no"})'
             )
+            typer.echo(f'Corpus: {data["corpus"]}')
             typer.echo(f'Cache mode: {data["cache_mode"]}')
             typer.echo(f'Cache path: {data["cache_path"]}')
             typer.echo(f'Cache entries: {data["cache_entry_count"]}')
@@ -1875,7 +1885,7 @@ def drive_auth(
     client_secret_env: str = typer.Option("GOOGLE_DRIVE_CLIENT_SECRET", "--client-secret-env"),
     refresh_token_env: str = typer.Option("GOOGLE_DRIVE_REFRESH_TOKEN", "--refresh-token-env"),
     include_shared_drives: bool = typer.Option(False, "--include-shared-drives"),
-    corpus: Optional[list[str]] = typer.Option(None, "--corpus"),
+    corpus: DriveCorpusOption = typer.Option(DriveCorpusOption.user, "--corpus"),
     metadata_field: Optional[list[str]] = typer.Option(None, "--metadata-field"),
     cache_mode: DriveCacheModeOption = typer.Option(
         DriveCacheModeOption.metadata_only,
@@ -1894,7 +1904,7 @@ def drive_auth(
         drive_config = DriveConfig(
             enabled=True,
             include_shared_drives=include_shared_drives,
-            corpora=corpus or ["user"],
+            corpora=[corpus.value],
             metadata_fields=metadata_field or DriveConfig().metadata_fields,
             auth=DriveAuthConfig(
                 client_id_env=client_id_env,

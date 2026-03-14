@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 SourceType = Literal["local", "obsidian", "drive"]
 OutputFormat = Literal["text", "json"]
 LLMProvider = Literal["ollama", "lmstudio", "openai-compatible"]
 DriveAuthFlow = Literal["oauth-installed-app"]
 DriveCacheMode = Literal["disabled", "metadata-only"]
+DriveCorpus = Literal["user", "domain", "drive", "allDrives"]
 
 
 class SourceConfig(BaseModel):
@@ -46,7 +47,7 @@ class DriveCacheConfig(BaseModel):
 class DriveConfig(BaseModel):
     enabled: bool = True
     include_shared_drives: bool = False
-    corpora: List[str] = Field(default_factory=lambda: ["user"])
+    corpora: List[DriveCorpus] = Field(default_factory=lambda: ["user"])
     metadata_fields: List[str] = Field(
         default_factory=lambda: [
             "id",
@@ -61,6 +62,15 @@ class DriveConfig(BaseModel):
     )
     auth: DriveAuthConfig = Field(default_factory=DriveAuthConfig)
     cache: DriveCacheConfig = Field(default_factory=DriveCacheConfig)
+
+    @field_validator("corpora")
+    @classmethod
+    def validate_single_corpus(cls, value: List[DriveCorpus]) -> List[DriveCorpus]:
+        if not value:
+            return ["user"]
+        if len(value) != 1:
+            raise ValueError("Only one Google Drive corpus is supported.")
+        return value
 
 
 class ShellEvent(BaseModel):

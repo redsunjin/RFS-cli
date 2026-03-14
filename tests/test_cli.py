@@ -341,8 +341,6 @@ def test_drive_auth_persists_drive_config(tmp_path: Path) -> None:
             "TEST_DRIVE_REFRESH_TOKEN",
             "--include-shared-drives",
             "--corpus",
-            "user",
-            "--corpus",
             "allDrives",
             "--metadata-field",
             "id",
@@ -366,6 +364,7 @@ def test_drive_auth_persists_drive_config(tmp_path: Path) -> None:
     assert payload["data"]["configured"] is True
     assert payload["data"]["client_id_env"] == "TEST_DRIVE_CLIENT_ID"
     assert payload["data"]["include_shared_drives"] is True
+    assert payload["data"]["corpus"] == "allDrives"
     assert payload["data"]["cache_ttl_minutes"] == 30
     assert payload["data"]["configure_only"] is True
     assert payload["data"]["authenticated"] is False
@@ -373,6 +372,7 @@ def test_drive_auth_persists_drive_config(tmp_path: Path) -> None:
     config = load_config(state_dir=state_dir)
     assert config.drive is not None
     assert config.drive.auth.client_id_env == "TEST_DRIVE_CLIENT_ID"
+    assert config.drive.corpora == ["allDrives"]
     assert config.drive.cache.max_entries == 250
 
 
@@ -503,6 +503,7 @@ def test_drive_status_reports_env_presence(tmp_path: Path, monkeypatch) -> None:
     assert payload["data"]["client_id_present"] is True
     assert payload["data"]["client_secret_present"] is True
     assert payload["data"]["refresh_token_present"] is False
+    assert payload["data"]["corpus"] == "user"
     assert payload["data"]["authenticated"] is False
     assert payload["data"]["metadata_retrieval_ready"] is True
     assert payload["data"]["live_search_available"] is True
@@ -548,6 +549,7 @@ def test_drive_status_reports_state_file_auth(tmp_path: Path) -> None:
 
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
+    assert payload["data"]["corpus"] == "user"
     assert payload["data"]["authenticated"] is True
     assert payload["data"]["token_file_exists"] is True
     assert payload["data"]["auth_source"] == "state_file"
@@ -620,6 +622,55 @@ def test_fetch_drive_file_metadata_normalizes_records(tmp_path: Path, monkeypatc
     assert cache_store is not None
     assert len(cache_store.entries) == 1
     assert cache_store.entries[0].query == "proposal"
+
+
+def test_drive_status_rejects_legacy_multi_corpus_config(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    state_dir.mkdir(parents=True, exist_ok=True)
+    (state_dir / "config.json").write_text(
+        json.dumps(
+            {
+                "schema_version": "1",
+                "sources": [],
+                "llm": {
+                    "provider": "ollama",
+                    "base_url": "http://127.0.0.1:11434",
+                    "model": "qwen2.5:7b-instruct",
+                    "enabled": True,
+                },
+                "drive": {
+                    "enabled": True,
+                    "include_shared_drives": True,
+                    "corpora": ["user", "allDrives"],
+                    "metadata_fields": ["id", "name"],
+                    "auth": {
+                        "flow": "oauth-installed-app",
+                        "client_id_env": "GOOGLE_DRIVE_CLIENT_ID",
+                        "client_secret_env": "GOOGLE_DRIVE_CLIENT_SECRET",
+                        "refresh_token_env": "GOOGLE_DRIVE_REFRESH_TOKEN",
+                        "scopes": ["https://www.googleapis.com/auth/drive.metadata.readonly"],
+                    },
+                    "cache": {
+                        "mode": "metadata-only",
+                        "ttl_minutes": 60,
+                        "max_entries": 1000,
+                    },
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(
+        app,
+        ["drive", "status", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 1
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "drive_status", False)
+    assert payload["error"]["code"] == "invalid_config"
+    assert "Only one Google Drive corpus is supported" in payload["error"]["message"]
 
 
 def test_fetch_drive_file_metadata_uses_cache_when_available(tmp_path: Path, monkeypatch) -> None:
