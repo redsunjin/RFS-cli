@@ -52,6 +52,7 @@ Responsibilities:
 - index storage
 - git inspection service
 - config persistence
+- packaging and distribution metadata
 
 ## Proposed package layout
 
@@ -270,3 +271,9 @@ Example response shape:
 - Contract tests for JSON output
 - Integration tests for source adapters where practical
 - Mocked tests for LLM setup, status, and guided-help command behavior
+
+## Packaging and install notes
+
+- Development usage should continue to rely on `uv sync --all-groups` plus `uv run rfs ...`
+- Tool-style installation should rely on `uv tool install .` or a Git URL install path
+- Runtime prompt assets such as onboarding and agent-contract documents must remain included in the built wheel

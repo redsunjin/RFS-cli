@@ -263,6 +263,15 @@ Examples:
 - Store LLM provider settings in the same local config file
 - Treat LLM configuration as required for normal agent workflows
 
+### Installation and release readiness
+
+- Document a local development install flow with `uv sync --all-groups`
+- Document a tool-style install flow with `uv tool install .`
+- Document a Git-based install flow for a remote repository URL
+- Document how to verify the install with `rfs --help` or `uv run rfs --help`
+- Document the workspace state directory and how to recover it when `.rfs/` becomes stale
+- Maintain a release checklist that covers docs, tests, build, and runtime smoke
+
 ### Guided assistance
 
 - Support `ollama`, `lmstudio`, and generic OpenAI-compatible HTTP providers

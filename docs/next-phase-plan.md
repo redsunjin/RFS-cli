@@ -11,7 +11,7 @@ Stage 3: Release readiness baseline
 ## Planning intent
 
 This plan starts from the current state of `rfs-cli` as a nearly signed-off MVP and defines the next execution order.
-The goal is to finish MVP sign-off cleanly, then improve the CLI agent's guidance quality before expanding into new integrations.
+The goal is to keep the signed-off MVP usable as a dependable personal CLI agent, then expand only after the release baseline is clear.
 
 ## Current baseline
 
@@ -85,6 +85,13 @@ Tasks:
 - add basic logging and diagnostics switches
 - run an end-to-end smoke pass on the final baseline
 
+Current slice status:
+
+- installation flow baseline: complete
+- release checklist baseline: complete
+- versioning policy: pending
+- diagnostics and logging basics: pending
+
 Exit definition:
 
 - install/use/recover flows are documented
@@ -105,6 +112,6 @@ Candidate tracks:
 
 ## Recommended next three tasks
 
-1. Define release-readiness installation and checklist basics.
-2. Add release versioning policy and release checklist baseline.
-3. Add release-readiness diagnostics and logging basics.
+1. Add release versioning policy baseline.
+2. Add release-readiness diagnostics and logging basics.
+3. Run an end-to-end smoke pass against the documented install flow.

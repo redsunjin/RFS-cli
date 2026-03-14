@@ -97,18 +97,18 @@ When scope changes, update these files in order:
 
 ## Phase 6: Release readiness
 
-- [ ] Define installation flow
+- [x] Define installation flow
 - [ ] Add release versioning policy
 - [ ] Add logging and diagnostics switches
-- [ ] Create release checklist
+- [x] Create release checklist
 - [ ] Run end-to-end smoke tests
 - [ ] Document the user-facing agent profile and operating boundaries
 
 ## Current recommended next three tasks
 
- - [ ] Define release-readiness installation and checklist basics
- - [ ] Add release versioning policy and release checklist baseline
+- [ ] Add release versioning policy baseline
 - [ ] Add release-readiness diagnostics/logging basics
+- [ ] Run an end-to-end smoke pass against the documented install flow
 
 ## MVP execution backlog
 

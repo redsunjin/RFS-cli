@@ -47,6 +47,8 @@ That agent now assumes a configured LLM as part of normal onboarding, and its ru
 - [MVP plan](./docs/mvp-plan.md)
 - [MVP status](./docs/mvp-status.md)
 - [Next phase plan](./docs/next-phase-plan.md)
+- [Installation guide](./docs/installation.md)
+- [Release checklist](./docs/release-checklist.md)
 - [Smoke checklist](./docs/smoke-checklist.md)
 - [QA report](./docs/qa-report.md)
 - [LLM onboarding guide](./docs/llm-onboarding.md)
@@ -121,6 +123,34 @@ uv run rfs dev find-todo --path . --format json
 ```
 
 The default workspace state directory is `.rfs/`.
+
+## Installation
+
+Development usage:
+
+```bash
+cd /Users/Agent/ps-workspace/rfs-cli
+uv sync --all-groups
+uv run rfs --help
+```
+
+Tool-style local install:
+
+```bash
+cd /Users/Agent/ps-workspace/rfs-cli
+uv tool install .
+rfs --help
+```
+
+Tool-style Git install:
+
+```bash
+uv tool install git+https://github.com/redsunjin/RFS-cli.git
+rfs --help
+```
+
+For the full install, verification, and recovery flow, see [Installation guide](./docs/installation.md).
+For release sign-off criteria, see [Release checklist](./docs/release-checklist.md).
 
 ## LLM-assisted usage
 

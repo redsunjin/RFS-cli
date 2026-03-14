@@ -119,6 +119,11 @@ Exit criteria:
 - Release checklist exists
 - Agent interaction profile and user-facing behavior are documented
 
+Current baseline:
+
+- installation flow documentation is defined
+- release checklist baseline is defined
+
 ## Agentification track
 
 After the current MVP hardening work, the next product-shaping track is turning `rfs-cli` into a stronger CLI-native agent.
