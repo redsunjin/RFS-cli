@@ -797,6 +797,206 @@ def test_drive_search_returns_live_results(tmp_path: Path, monkeypatch) -> None:
     assert payload["data"]["planned_result_contract"]["live_search_available"] is True
 
 
+def test_drive_search_command_uses_cache_end_to_end(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    call_count = {"requests": 0}
+
+    runner.invoke(
+        app,
+        [
+            "drive",
+            "auth",
+            "--state-dir",
+            str(state_dir),
+            "--configure-only",
+            "--format",
+            "json",
+        ],
+    )
+
+    class FakeCredentials:
+        token = "access-token"
+
+    def fake_ensure_drive_credentials(drive_config, state_dir_arg):
+        return FakeCredentials(), "state_file", Path(state_dir_arg) / "drive-token.json"
+
+    def fake_request_drive_json(url: str, access_token: str, timeout: float = 30.0):
+        call_count["requests"] += 1
+        return {
+            "files": [
+                {
+                    "id": "file-1",
+                    "name": "Cached Proposal",
+                    "mimeType": "application/pdf",
+                    "modifiedTime": "2026-03-15T08:00:00Z",
+                }
+            ]
+        }
+
+    monkeypatch.setattr("rfs_cli.drive.ensure_drive_credentials", fake_ensure_drive_credentials)
+    monkeypatch.setattr("rfs_cli.drive.request_drive_json", fake_request_drive_json)
+
+    first = runner.invoke(
+        app,
+        ["drive", "search", "proposal", "--state-dir", str(state_dir), "--format", "json"],
+    )
+    second = runner.invoke(
+        app,
+        ["drive", "search", "proposal", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert first.exit_code == 0
+    assert second.exit_code == 0
+    first_payload = json.loads(first.stdout)
+    second_payload = json.loads(second.stdout)
+    assert first_payload["data"]["cache_hit"] is False
+    assert second_payload["data"]["cache_hit"] is True
+    assert second_payload["data"]["results"][0]["name"] == "Cached Proposal"
+    assert call_count["requests"] == 1
+
+
+def test_drive_search_command_refetches_after_cache_expiry(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    call_count = {"requests": 0}
+
+    runner.invoke(
+        app,
+        [
+            "drive",
+            "auth",
+            "--state-dir",
+            str(state_dir),
+            "--configure-only",
+            "--format",
+            "json",
+        ],
+    )
+
+    class FakeCredentials:
+        token = "access-token"
+
+    def fake_ensure_drive_credentials(drive_config, state_dir_arg):
+        return FakeCredentials(), "state_file", Path(state_dir_arg) / "drive-token.json"
+
+    def fake_request_drive_json(url: str, access_token: str, timeout: float = 30.0):
+        call_count["requests"] += 1
+        return {
+            "files": [
+                {
+                    "id": f"file-{call_count['requests']}",
+                    "name": f"Proposal {call_count['requests']}",
+                    "mimeType": "application/pdf",
+                    "modifiedTime": "2026-03-15T08:00:00Z",
+                }
+            ]
+        }
+
+    monkeypatch.setattr("rfs_cli.drive.ensure_drive_credentials", fake_ensure_drive_credentials)
+    monkeypatch.setattr("rfs_cli.drive.request_drive_json", fake_request_drive_json)
+
+    first = runner.invoke(
+        app,
+        ["drive", "search", "proposal", "--state-dir", str(state_dir), "--format", "json"],
+    )
+    assert first.exit_code == 0
+
+    cache_path = state_dir / "drive-cache.json"
+    cache_payload = json.loads(cache_path.read_text(encoding="utf-8"))
+    cache_payload["entries"][0]["expires_at"] = "2000-01-01T00:00:00+00:00"
+    cache_path.write_text(json.dumps(cache_payload), encoding="utf-8")
+
+    second = runner.invoke(
+        app,
+        ["drive", "search", "proposal", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert second.exit_code == 0
+    second_payload = json.loads(second.stdout)
+    assert second_payload["data"]["cache_hit"] is False
+    assert second_payload["data"]["results"][0]["name"] == "Proposal 2"
+    assert call_count["requests"] == 2
+
+
+def test_drive_search_command_invalidates_cache_for_different_page_size(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    state_dir = tmp_path / ".rfs"
+    call_count = {"requests": 0}
+
+    runner.invoke(
+        app,
+        [
+            "drive",
+            "auth",
+            "--state-dir",
+            str(state_dir),
+            "--configure-only",
+            "--format",
+            "json",
+        ],
+    )
+
+    class FakeCredentials:
+        token = "access-token"
+
+    def fake_ensure_drive_credentials(drive_config, state_dir_arg):
+        return FakeCredentials(), "state_file", Path(state_dir_arg) / "drive-token.json"
+
+    def fake_request_drive_json(url: str, access_token: str, timeout: float = 30.0):
+        call_count["requests"] += 1
+        return {
+            "files": [
+                {
+                    "id": f"file-{call_count['requests']}",
+                    "name": f"Proposal {call_count['requests']}",
+                    "mimeType": "application/pdf",
+                    "modifiedTime": "2026-03-15T08:00:00Z",
+                }
+            ]
+        }
+
+    monkeypatch.setattr("rfs_cli.drive.ensure_drive_credentials", fake_ensure_drive_credentials)
+    monkeypatch.setattr("rfs_cli.drive.request_drive_json", fake_request_drive_json)
+
+    first = runner.invoke(
+        app,
+        [
+            "drive",
+            "search",
+            "proposal",
+            "--page-size",
+            "5",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+    second = runner.invoke(
+        app,
+        [
+            "drive",
+            "search",
+            "proposal",
+            "--page-size",
+            "10",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert first.exit_code == 0
+    assert second.exit_code == 0
+    first_payload = json.loads(first.stdout)
+    second_payload = json.loads(second.stdout)
+    assert first_payload["data"]["cache_hit"] is False
+    assert second_payload["data"]["cache_hit"] is False
+    assert call_count["requests"] == 2
+
+
 def test_ask_json_uses_configured_llm(tmp_path: Path, monkeypatch) -> None:
     state_dir = tmp_path / ".rfs"
     save_llm_config(state_dir)

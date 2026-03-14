@@ -124,9 +124,12 @@ Current slice status:
 - Drive file metadata retrieval: complete
 - Drive local metadata cache strategy: complete
 - Live metadata-only `drive search`: complete
+- Drive adapter integration tests: complete
+- Real Google Drive smoke: blocked in the current environment because no Drive client-secret env vars or token file are available
+- Cache expiry and invalidation review: complete through command-level cache-hit, expiry, and page-size invalidation tests
 
 ## Recommended next three tasks
 
-1. Add integration tests for Drive adapter behavior.
-2. Run a real Google Drive smoke pass.
-3. Review cache expiry and invalidation behavior under live search.
+1. Run a real Google Drive smoke pass when client secrets or token state are available.
+2. Define export format for curated document bundles.
+3. Implement research export command.

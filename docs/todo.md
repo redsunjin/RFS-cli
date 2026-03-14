@@ -81,7 +81,7 @@ When scope changes, update these files in order:
 - [x] Implement file metadata retrieval
 - [x] Implement cache strategy
 - [x] Add `drive search`
-- [ ] Add integration tests for adapter behavior
+- [x] Add integration tests for adapter behavior
 
 ## Phase 5: Research workflow extensions
 
@@ -106,9 +106,9 @@ When scope changes, update these files in order:
 
 ## Current recommended next three tasks
 
-- [ ] Add integration tests for Drive adapter behavior
-- [ ] Run a real Google Drive smoke pass after live search is enabled
-- [ ] Review cache expiry and invalidation behavior under live search
+- [ ] Run a real Google Drive smoke pass when client secrets or token state are available
+- [ ] Define export format for curated document bundles
+- [ ] Implement research export command
 
 ## Post-MVP gamification track
 

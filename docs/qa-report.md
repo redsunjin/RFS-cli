@@ -2,7 +2,7 @@
 
 ## Date
 
-2026-03-14
+2026-03-15
 
 ## Scope
 
@@ -101,6 +101,32 @@ Observed checks:
 - `agent list-files` and `agent find-text` both returned valid JSON payloads on the same root
 - no actual Obsidian vault was discovered in the current machine environment, so the real-data smoke run could only validate the local source flow
 
+### Google Drive integration validation
+
+Commands executed successfully:
+
+- `uv run pytest`
+- `uv run ruff check .`
+- `uv run rfs drive status --state-dir .rfs --format json`
+
+Observed checks:
+
+- command-level integration tests now cover cache hit, cache expiry refetch, and cache invalidation by page-size change
+- the live `rfs drive search` command is wired to the cache-backed metadata adapter
+- `rfs drive status` now exposes cache path, cache entry count, and cache validity details
+
+Commands attempted but environment-blocked:
+
+- `uv run rfs drive search proposal --state-dir .rfs --format json`
+- `uv run rfs drive auth --state-dir /tmp/rfs-drive-real-smoke --format json`
+
+Observed blocker:
+
+- the current environment has no configured Drive source in `.rfs/config.json`
+- no `GOOGLE_DRIVE_CLIENT_ID` or `GOOGLE_DRIVE_CLIENT_SECRET` env vars were present
+- no local `drive-token.json` was discovered under the workspace paths that were checked
+- because of that, the real Google Drive smoke pass could not complete in this environment
+
 ## Findings
 
 - No blocking defects were found in this QA pass.
@@ -110,8 +136,9 @@ Observed checks:
 
 - The local-source smoke checklist has been executed with real user data.
 - A real Obsidian vault path was not available in this environment. A quick scan under `/Users/Agent` only found the test fixture vault, not a user vault.
+- A real Google Drive smoke pass is still blocked in this environment until Drive client secrets or a persisted Drive token become available.
 
 ## Recommendation
 
-Treat the current codebase as fixture-validated, local-real-data-validated, real-LM-Studio-validated, and release-readiness-smoke-validated in the current environment.
-Use an environment-specific waiver for the Obsidian real-data smoke step until a real vault path becomes available.
+Treat the current codebase as fixture-validated, local-real-data-validated, real-LM-Studio-validated, release-readiness-smoke-validated, and Drive-integration-test-validated in the current environment.
+Use environment-specific waivers for the Obsidian real-data smoke step and the Google Drive real-runtime smoke step until the required local paths and credentials become available.

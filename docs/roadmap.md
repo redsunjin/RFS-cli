@@ -90,6 +90,8 @@ Current baseline:
 - Drive read-only metadata retrieval is implemented
 - Drive local metadata cache strategy is implemented
 - live cache-backed metadata search is implemented
+- Drive adapter integration tests are implemented
+- real Google Drive smoke is still environment-blocked until client secrets or token state exist
 
 ## Phase 5: Research workflow extensions
 
