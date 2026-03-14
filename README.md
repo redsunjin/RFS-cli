@@ -53,6 +53,7 @@ That agent now assumes a configured LLM as part of normal onboarding, and its ru
 - [Smoke checklist](./docs/smoke-checklist.md)
 - [QA report](./docs/qa-report.md)
 - [LLM onboarding guide](./docs/llm-onboarding.md)
+- [Agent profile](./docs/agent-profile.md)
 - [Agent contract](./docs/agent-contract.md)
 - [TODO plan](./docs/todo.md)
 - [Agent operating model](./AGENTS.md)

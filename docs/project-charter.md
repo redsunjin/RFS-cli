@@ -72,6 +72,7 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - Full cloud sync engine
 - Complex multi-user collaboration
 - UI-first workflows
+- Gamified TUI harbor or mini-game layers
 - Broad third-party SaaS integrations beyond selected essentials
 - General-purpose open-ended chat unrelated to the CLI's domain
 

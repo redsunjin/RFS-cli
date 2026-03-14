@@ -9,6 +9,7 @@ It is intended for personal releases and repeatable local verification.
 
 - [ ] README reflects the current install and quickstart flow
 - [ ] planning docs reflect the current scope and stage
+- [ ] user-facing agent profile matches the current runtime behavior
 - [ ] onboarding and agent-contract documents match runtime behavior
 - [ ] versioning policy reflects the current release scope
 

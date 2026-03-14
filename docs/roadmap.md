@@ -125,6 +125,19 @@ Current baseline:
 - release checklist baseline is defined
 - versioning policy baseline is defined
 - `rfs doctor` now provides a local diagnostic and verbose inspection baseline
+- install-flow smoke and user-facing agent profile are complete in the current environment
+
+## Post-MVP gamification track
+
+Goal:
+
+Define an optional harbor-like TUI rest space without disturbing the core CLI agent workflow.
+
+Candidate milestones:
+
+- define an `rfs harbor` hub concept
+- define short opt-in TUI mini-games
+- keep progression and rewards isolated from core CLI state
 
 ## Agentification track
 

@@ -247,6 +247,12 @@ Example response shape:
 - Treat qa_claw as a future provider behind a script-runner adapter boundary
 - Keep both outside the core MVP command surface until the current CLI agent baseline is complete
 
+### Optional gamification layer
+
+- Keep any future `rfs harbor` or rest-space TUI behind a separate command boundary
+- Keep game state optional and isolated from required config, index, and shell state
+- Do not let mini-game logic alter core command contracts or release-readiness checks
+
 ### Developer utility services
 
 - Keep `dev` commands separate from knowledge indexing internals

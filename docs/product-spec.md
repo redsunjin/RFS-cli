@@ -186,6 +186,12 @@ Examples:
 - NestClaw: API or CLI-backed orchestration tool provider
 - qa_claw: script-backed workflow and verification tool provider
 
+### Post-MVP optional harbor layer
+
+- an optional `rfs harbor` or similar TUI rest space
+- short opt-in mini-games that do not block core workflows
+- progression or reward state that stays separate from core CLI correctness
+
 ### `rfs llm`
 
 Responsibilities:

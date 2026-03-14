@@ -2,7 +2,7 @@
 
 ## Date
 
-2026-03-13
+2026-03-14
 
 ## Scope
 
@@ -35,6 +35,29 @@ Observed checks:
 - provider-specific reasoning tags such as `<think>` and control markers such as `<|im_end|>` are now stripped before output
 - shell responses now carry active-session context so the agent no longer tells the user to run `rfs shell` while already inside it
 - shell responses now mirror the same deterministic follow-up behavior for underspecified requests
+
+### Release-readiness install-flow smoke
+
+Commands executed successfully:
+
+- `uv sync --all-groups`
+- `uv run rfs --help`
+- `uv run rfs llm status --state-dir .rfs --format json`
+- `uv run rfs doctor --verbose --state-dir .rfs --format json`
+- `uv run rfs ask "검색을 시작하려면 어떻게 해?" --state-dir .rfs --format json`
+- `uv tool install --reinstall .`
+- `rfs --help`
+- `rfs doctor --state-dir .rfs --format json`
+- `rfs --state-dir .rfs`
+
+Observed checks:
+
+- the documented development install flow remained valid
+- the tool-style install path was refreshed successfully with `uv tool install --reinstall .`
+- the refreshed global `rfs` command exposed the same latest command surface as `uv run rfs`
+- `rfs doctor` returned valid workspace and LM Studio health data from both dev-style and tool-style entrypoints
+- `rfs ask` returned the expected deterministic follow-up for an underspecified search-start request
+- bare `rfs` entered the interactive shell directly when LLM setup already existed, and the session exited cleanly with `/exit`
 
 ### Fixture-based smoke run
 
@@ -90,5 +113,5 @@ Observed checks:
 
 ## Recommendation
 
-Treat the current codebase as fixture-validated, local-real-data-validated, and real-LM-Studio-validated.
+Treat the current codebase as fixture-validated, local-real-data-validated, real-LM-Studio-validated, and release-readiness-smoke-validated in the current environment.
 Use an environment-specific waiver for the Obsidian real-data smoke step until a real vault path becomes available.

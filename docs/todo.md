@@ -101,14 +101,20 @@ When scope changes, update these files in order:
 - [x] Add release versioning policy
 - [x] Add logging and diagnostics switches
 - [x] Create release checklist
-- [ ] Run end-to-end smoke tests
-- [ ] Document the user-facing agent profile and operating boundaries
+- [x] Run end-to-end smoke tests
+- [x] Document the user-facing agent profile and operating boundaries
 
 ## Current recommended next three tasks
 
-- [ ] Run an end-to-end smoke pass against the documented install flow
-- [ ] Document the user-facing agent profile and operating boundaries
-- [ ] Record the Stage 3 smoke result and sign-off status in QA and planning docs
+- [ ] Define Drive source config model
+- [ ] Define Drive auth flow and cache boundary
+- [ ] Define Drive metadata retrieval shape and response contract
+
+## Post-MVP gamification track
+
+- [ ] Define an optional `rfs harbor` rest-space concept
+- [ ] Design a small reward/progression model that stays outside core CLI state
+- [ ] Design one or two short TUI mini-games for optional use
 
 ## MVP execution backlog
 

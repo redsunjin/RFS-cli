@@ -2,11 +2,11 @@
 
 ## Date
 
-2026-03-13
+2026-03-14
 
 ## Current active stage
 
-Stage 3: Release readiness baseline
+Stage 4: Post-MVP expansion
 
 ## Planning intent
 
@@ -91,6 +91,12 @@ Current slice status:
 - release checklist baseline: complete
 - versioning policy: complete
 - diagnostics and logging basics: complete
+- end-to-end install-flow smoke: complete
+- user-facing agent profile: complete
+
+Status:
+
+Completed in the current environment.
 
 Exit definition:
 
@@ -109,9 +115,10 @@ Candidate tracks:
 - Google Drive integration
 - NotebookLM-adjacent export workflows
 - external tool provider contracts for NestClaw and qa_claw
+- optional harbor/rest TUI gamification track
 
 ## Recommended next three tasks
 
-1. Run an end-to-end smoke pass against the documented install flow.
-2. Document the user-facing agent profile and operating boundaries.
-3. Record the Stage 3 smoke result and sign-off status in QA and planning docs.
+1. Define the Google Drive source config model.
+2. Define the Google Drive auth flow and local cache boundary.
+3. Define the Google Drive metadata retrieval shape and response contract.

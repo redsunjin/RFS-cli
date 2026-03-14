@@ -2,7 +2,7 @@
 
 ## Date
 
-2026-03-13
+2026-03-14
 
 ## Current status
 
@@ -49,15 +49,14 @@ If a real vault path appears later, run the smoke checklist as an additional con
 
 ## Immediate next build focus
 
-After MVP sign-off, the next product-shaping work should stay inside agent hardening rather than expanding integrations.
+The release-readiness baseline is now complete in the current environment.
+The next work should move into post-MVP expansion rather than further release-baseline hardening.
 
 Priority order:
 
-1. define the agent persona and response-style contract
-2. add source-aware and index-aware command suggestions to `rfs ask`
-3. add a short follow-up question path for ambiguous requests
-4. prepare release-readiness basics such as installation flow and release checklist
-5. keep runtime validation green while agent guidance becomes richer
+1. Google Drive source model and auth boundary
+2. Google Drive metadata retrieval and cache design
+3. post-MVP companion integrations and optional gamification planning
 
 ## Post-MVP areas
 
