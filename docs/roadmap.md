@@ -86,7 +86,7 @@ Exit criteria:
 Current baseline:
 
 - Drive source config model is defined
-- Drive auth and cache boundary are defined
+- Drive auth flow and local token persistence are defined
 - Drive metadata result contract is defined
 - remote execution is still pending
 

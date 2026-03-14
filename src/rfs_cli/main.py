@@ -25,6 +25,7 @@ from rfs_cli.config import (
     load_index,
     load_shell_memory,
     resolve_config_path,
+    resolve_drive_token_path,
     resolve_index_path,
     resolve_shell_memory_path,
     resolve_state_dir,
@@ -32,6 +33,7 @@ from rfs_cli.config import (
     save_index,
     save_shell_memory,
 )
+from rfs_cli.drive import load_drive_credentials, run_drive_installed_app_auth
 from rfs_cli.indexing import build_index, build_source_id, resolve_index_document, search_index
 from rfs_cli.llm import (
     ask_llm,
@@ -101,8 +103,8 @@ TEXT_GRADIENT_END = (255, 182, 118)
 WAVE_GRADIENT_START = (77, 151, 255)
 WAVE_GRADIENT_END = (113, 211, 255)
 DRIVE_CONTRACT_NOTE = (
-    "Drive OAuth exchange and remote search execution are not implemented yet. "
-    "Current commands only define the configuration and response contract."
+    "Drive metadata search execution is not implemented yet. "
+    "Current commands support configuration, local auth, and response-contract setup."
 )
 SHELL_PROMPT = "rfs> "
 KNOWN_SHELL_COMMANDS = {
@@ -392,13 +394,26 @@ def build_doctor_payload(state_dir: Path, verbose: bool) -> CommandPayload:
     )
 
 
-def build_drive_status_data(app_config: AppConfig) -> dict[str, object]:
+def build_drive_status_data(app_config: AppConfig, state_dir: Path) -> dict[str, object]:
     if app_config.drive is None or not app_config.drive.enabled:
         return {"configured": False, "note": DRIVE_CONTRACT_NOTE}
 
+    resolved_state_dir = resolve_state_dir(state_dir)
     drive_config = app_config.drive
     auth = drive_config.auth
     cache = drive_config.cache
+    token_path = resolve_drive_token_path(state_dir=resolved_state_dir)
+    error_message: Optional[str] = None
+    credentials = None
+    auth_source: Optional[str] = None
+
+    try:
+        credentials, auth_source, _ = load_drive_credentials(drive_config, resolved_state_dir)
+    except ValueError as exc:
+        error_message = str(exc)
+
+    refresh_token_present = bool(os.environ.get(auth.refresh_token_env))
+    authenticated = credentials is not None and bool(credentials.refresh_token or credentials.token)
     return {
         "configured": True,
         "flow": auth.flow,
@@ -407,7 +422,7 @@ def build_drive_status_data(app_config: AppConfig) -> dict[str, object]:
         "client_secret_env": auth.client_secret_env,
         "client_secret_present": bool(os.environ.get(auth.client_secret_env)),
         "refresh_token_env": auth.refresh_token_env,
-        "refresh_token_present": bool(os.environ.get(auth.refresh_token_env)),
+        "refresh_token_present": refresh_token_present,
         "scopes": auth.scopes,
         "include_shared_drives": drive_config.include_shared_drives,
         "corpora": drive_config.corpora,
@@ -415,6 +430,14 @@ def build_drive_status_data(app_config: AppConfig) -> dict[str, object]:
         "cache_mode": cache.mode,
         "cache_ttl_minutes": cache.ttl_minutes,
         "cache_max_entries": cache.max_entries,
+        "token_path": str(token_path),
+        "token_file_exists": token_path.exists(),
+        "auth_source": auth_source,
+        "authenticated": authenticated,
+        "credential_refreshable": bool(credentials and credentials.refresh_token),
+        "credential_expired": bool(credentials and credentials.expired),
+        "credential_scopes": credentials.scopes if credentials is not None else [],
+        "error": error_message,
         "note": DRIVE_CONTRACT_NOTE,
     }
 
@@ -611,7 +634,11 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
             typer.echo(f'Client secret env: {data["client_secret_env"]}')
             typer.echo(f'Refresh token env: {data["refresh_token_env"]}')
             typer.echo(f'Cache mode: {data["cache_mode"]}')
+            typer.echo(f'Token path: {data["token_path"]}')
+            typer.echo(f'Authenticated: {"yes" if data["authenticated"] else "no"}')
             typer.echo(f'Config: {data["config_path"]}')
+            if data.get("error"):
+                typer.echo(f'Error: {data["error"]}')
             typer.echo(data["note"])
             return
 
@@ -635,6 +662,10 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
             )
             typer.echo(f'Cache mode: {data["cache_mode"]}')
             typer.echo(f'Shared drives: {"yes" if data["include_shared_drives"] else "no"}')
+            typer.echo(f'Authenticated: {"yes" if data["authenticated"] else "no"}')
+            typer.echo(f'Token path: {data["token_path"]}')
+            if data.get("error"):
+                typer.echo(f'Error: {data["error"]}')
             typer.echo(data["note"])
             return
 
@@ -1796,6 +1827,9 @@ def drive_auth(
     ),
     cache_ttl_minutes: int = typer.Option(60, "--cache-ttl-minutes", min=1),
     cache_max_entries: int = typer.Option(1000, "--cache-max-entries", min=1),
+    configure_only: bool = typer.Option(False, "--configure-only"),
+    launch_browser: bool = typer.Option(True, "--launch-browser/--no-launch-browser"),
+    auth_port: int = typer.Option(0, "--auth-port", min=0, max=65535),
     output: OutputMode = typer.Option(OutputMode.text, "--format"),
 ) -> None:
     app_config = load_config_or_fail("drive_auth", state_dir, output)
@@ -1823,12 +1857,28 @@ def drive_auth(
 
     app_config.drive = drive_config
     config_path = save_config(app_config, state_dir=state_dir)
+    token_path = resolve_drive_token_path(state_dir=state_dir)
+    if not configure_only:
+        try:
+            token_path = run_drive_installed_app_auth(
+                drive_config,
+                state_dir=state_dir,
+                open_browser=launch_browser,
+                port=auth_port,
+            )
+        except ValueError as exc:
+            fail("drive_auth", str(exc), output, code="drive_auth_error")
+
     payload = CommandPayload(
         command="drive_auth",
         ok=True,
         data={
-            **build_drive_status_data(app_config),
+            **build_drive_status_data(app_config, state_dir),
             "config_path": str(config_path),
+            "configure_only": configure_only,
+            "launch_browser": launch_browser,
+            "auth_port": auth_port,
+            "token_path": str(token_path),
         },
     )
     emit(payload, output)
@@ -1843,7 +1893,7 @@ def drive_status(
     payload = CommandPayload(
         command="drive_status",
         ok=True,
-        data=build_drive_status_data(app_config),
+        data=build_drive_status_data(app_config, state_dir),
     )
     emit(payload, output)
 
@@ -1860,7 +1910,7 @@ def drive_search(
         ok=False,
         data={
             "query": query,
-            "drive_config": build_drive_status_data(app_config),
+            "drive_config": build_drive_status_data(app_config, state_dir),
             "planned_result_contract": build_drive_result_contract(),
             "note": DRIVE_CONTRACT_NOTE,
         },

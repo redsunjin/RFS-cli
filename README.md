@@ -107,7 +107,7 @@ The current codebase includes:
 - matching deterministic follow-up behavior inside `rfs shell`
 - interactive shell mode with saved session memory and internal tool execution
 - a local `doctor` command for state and runtime diagnostics
-- a Google Drive config/status contract baseline with placeholder search response shape
+- a Google Drive auth/config baseline with local token storage and placeholder search response shape
 - required onboarding through `rfs init` and a packaged LLM guide
 - default interactive startup through `rfs` itself
 

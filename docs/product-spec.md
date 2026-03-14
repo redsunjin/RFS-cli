@@ -173,7 +173,7 @@ Examples:
 Responsibilities:
 
 - define and inspect the Google Drive source configuration
-- define the auth boundary for a future OAuth-based flow
+- run a local OAuth installed-app flow and persist Drive token state locally
 - define the metadata-only search contract before remote execution exists
 - expose cache settings that keep remote behavior aligned with the local-first model
 
@@ -285,6 +285,7 @@ Examples:
 - Support environment variable overrides where useful
 - Store LLM provider settings in the same local config file
 - Store Google Drive auth and cache boundary settings in the same local config file
+- Store Google Drive token state in the workspace state directory
 - Treat LLM configuration as required for normal agent workflows
 
 ### Installation and release readiness
@@ -301,7 +302,7 @@ Examples:
 ### Google Drive contract baseline
 
 - Define a persisted Drive source config model
-- Define an OAuth-installed-app auth boundary without pretending auth is fully implemented
+- Implement an OAuth-installed-app auth flow with local token persistence
 - Define a metadata-only result contract for future `drive search`
 - Define cache settings before remote retrieval starts
 

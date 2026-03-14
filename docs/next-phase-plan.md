@@ -120,11 +120,11 @@ Candidate tracks:
 Current slice status:
 
 - Drive source config model: complete
-- Drive auth and cache boundary: complete
+- Drive auth flow and local token persistence: complete
 - Drive metadata retrieval shape and response contract: complete
 
 ## Recommended next three tasks
 
-1. Implement the Google Drive auth flow.
-2. Implement Google Drive file metadata retrieval.
-3. Implement the Google Drive cache strategy.
+1. Implement Google Drive file metadata retrieval.
+2. Implement the Google Drive cache strategy.
+3. Implement live `drive search`.

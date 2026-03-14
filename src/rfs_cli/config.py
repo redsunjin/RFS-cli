@@ -12,6 +12,7 @@ DEFAULT_STATE_DIR = ".rfs"
 DEFAULT_CONFIG_NAME = "config.json"
 DEFAULT_INDEX_NAME = "index.json"
 DEFAULT_SHELL_MEMORY_NAME = "shell-memory.json"
+DEFAULT_DRIVE_TOKEN_NAME = "drive-token.json"
 
 
 def resolve_state_dir(state_dir: Optional[Path] = None) -> Path:
@@ -40,6 +41,15 @@ def resolve_shell_memory_path(
     if memory_path is not None:
         return memory_path.resolve()
     return resolve_state_dir(state_dir) / DEFAULT_SHELL_MEMORY_NAME
+
+
+def resolve_drive_token_path(
+    token_path: Optional[Path] = None,
+    state_dir: Optional[Path] = None,
+) -> Path:
+    if token_path is not None:
+        return token_path.resolve()
+    return resolve_state_dir(state_dir) / DEFAULT_DRIVE_TOKEN_NAME
 
 
 def ensure_parent(path: Path) -> None:

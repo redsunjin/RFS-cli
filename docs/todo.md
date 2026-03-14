@@ -77,7 +77,7 @@ When scope changes, update these files in order:
 ## Phase 4: Google Drive integration
 
 - [x] Define Drive source config model
-- [ ] Implement auth flow
+- [x] Implement auth flow
 - [ ] Implement file metadata retrieval
 - [ ] Implement cache strategy
 - [ ] Add `drive search`
@@ -106,9 +106,9 @@ When scope changes, update these files in order:
 
 ## Current recommended next three tasks
 
-- [ ] Implement Drive auth flow
 - [ ] Implement Drive file metadata retrieval
 - [ ] Implement Drive cache strategy
+- [ ] Implement live `drive search`
 
 ## Post-MVP gamification track
 

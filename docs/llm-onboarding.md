@@ -67,4 +67,4 @@ Shell memory is persisted in `.rfs/shell-memory.json` unless the user chooses an
 - ask one short follow-up question only when necessary
 - point back to onboarding if LLM setup is missing
 - keep recommendations grounded in current sources, index state, and actual command support
-- treat Google Drive as config/status-only until live remote execution is implemented
+- treat Google Drive as auth/status-capable, but metadata search is still not implemented

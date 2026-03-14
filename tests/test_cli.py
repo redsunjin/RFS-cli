@@ -353,6 +353,7 @@ def test_drive_auth_persists_drive_config(tmp_path: Path) -> None:
             "30",
             "--cache-max-entries",
             "250",
+            "--configure-only",
             "--format",
             "json",
         ],
@@ -365,11 +366,108 @@ def test_drive_auth_persists_drive_config(tmp_path: Path) -> None:
     assert payload["data"]["client_id_env"] == "TEST_DRIVE_CLIENT_ID"
     assert payload["data"]["include_shared_drives"] is True
     assert payload["data"]["cache_ttl_minutes"] == 30
+    assert payload["data"]["configure_only"] is True
+    assert payload["data"]["authenticated"] is False
 
     config = load_config(state_dir=state_dir)
     assert config.drive is not None
     assert config.drive.auth.client_id_env == "TEST_DRIVE_CLIENT_ID"
     assert config.drive.cache.max_entries == 250
+
+
+def test_drive_auth_runs_local_oauth_flow_and_saves_token(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    captured: dict[str, object] = {}
+
+    def fake_run_drive_installed_app_auth(drive_config, state_dir, open_browser=True, port=0):
+        captured["drive_config"] = drive_config
+        captured["state_dir"] = Path(state_dir)
+        captured["open_browser"] = open_browser
+        captured["port"] = port
+        token_path = captured["state_dir"] / "drive-token.json"
+        token_path.parent.mkdir(parents=True, exist_ok=True)
+        token_path.write_text(
+            json.dumps(
+                {
+                    "token": "access-token",
+                    "refresh_token": "refresh-token",
+                    "token_uri": "https://oauth2.googleapis.com/token",
+                    "client_id": "client-id",
+                    "client_secret": "client-secret",
+                    "scopes": ["https://www.googleapis.com/auth/drive.metadata.readonly"],
+                }
+            ),
+            encoding="utf-8",
+        )
+        return token_path
+
+    monkeypatch.setattr(
+        "rfs_cli.main.run_drive_installed_app_auth",
+        fake_run_drive_installed_app_auth,
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "drive",
+            "auth",
+            "--state-dir",
+            str(state_dir),
+            "--client-id-env",
+            "TEST_DRIVE_CLIENT_ID",
+            "--client-secret-env",
+            "TEST_DRIVE_CLIENT_SECRET",
+            "--refresh-token-env",
+            "TEST_DRIVE_REFRESH_TOKEN",
+            "--no-launch-browser",
+            "--auth-port",
+            "9090",
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "drive_auth", True)
+    assert payload["data"]["authenticated"] is True
+    assert payload["data"]["token_file_exists"] is True
+    assert payload["data"]["auth_source"] == "state_file"
+    assert captured["state_dir"] == state_dir.resolve()
+    assert captured["open_browser"] is False
+    assert captured["port"] == 9090
+
+
+def test_drive_auth_returns_structured_error_on_auth_failure(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+
+    def fail_drive_auth(*args, **kwargs):
+        raise ValueError("Missing Google Drive client secret env var(s): TEST_DRIVE_CLIENT_ID")
+
+    monkeypatch.setattr("rfs_cli.main.run_drive_installed_app_auth", fail_drive_auth)
+
+    result = runner.invoke(
+        app,
+        [
+            "drive",
+            "auth",
+            "--state-dir",
+            str(state_dir),
+            "--client-id-env",
+            "TEST_DRIVE_CLIENT_ID",
+            "--client-secret-env",
+            "TEST_DRIVE_CLIENT_SECRET",
+            "--refresh-token-env",
+            "TEST_DRIVE_REFRESH_TOKEN",
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 1
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "drive_auth", False)
+    assert payload["error"]["code"] == "drive_auth_error"
 
 
 def test_drive_status_reports_env_presence(tmp_path: Path, monkeypatch) -> None:
@@ -381,6 +479,7 @@ def test_drive_status_reports_env_presence(tmp_path: Path, monkeypatch) -> None:
             "auth",
             "--state-dir",
             str(state_dir),
+            "--configure-only",
             "--format",
             "json",
         ],
@@ -403,7 +502,50 @@ def test_drive_status_reports_env_presence(tmp_path: Path, monkeypatch) -> None:
     assert payload["data"]["client_id_present"] is True
     assert payload["data"]["client_secret_present"] is True
     assert payload["data"]["refresh_token_present"] is False
-    assert "configuration and response contract" in payload["data"]["note"]
+    assert payload["data"]["authenticated"] is False
+    assert "configuration, local auth, and response-contract setup" in payload["data"]["note"]
+
+
+def test_drive_status_reports_state_file_auth(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    runner.invoke(
+        app,
+        [
+            "drive",
+            "auth",
+            "--state-dir",
+            str(state_dir),
+            "--configure-only",
+            "--format",
+            "json",
+        ],
+    )
+    token_path = state_dir / "drive-token.json"
+    token_path.parent.mkdir(parents=True, exist_ok=True)
+    token_path.write_text(
+        json.dumps(
+            {
+                "token": "access-token",
+                "refresh_token": "refresh-token",
+                "token_uri": "https://oauth2.googleapis.com/token",
+                "client_id": "client-id",
+                "client_secret": "client-secret",
+                "scopes": ["https://www.googleapis.com/auth/drive.metadata.readonly"],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(
+        app,
+        ["drive", "status", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["data"]["authenticated"] is True
+    assert payload["data"]["token_file_exists"] is True
+    assert payload["data"]["auth_source"] == "state_file"
 
 
 def test_drive_search_json_exposes_planned_contract(tmp_path: Path) -> None:

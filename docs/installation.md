@@ -80,6 +80,7 @@ Important files:
 - `.rfs/config.json`
 - `.rfs/index.json`
 - `.rfs/shell-memory.json`
+- `.rfs/drive-token.json`
 
 ## Recovery
 
