@@ -10,7 +10,7 @@ LLMProvider = Literal["ollama", "lmstudio", "openai-compatible"]
 DriveAuthFlow = Literal["oauth-installed-app"]
 DriveCacheMode = Literal["disabled", "metadata-only"]
 DriveCorpus = Literal["user", "domain", "drive", "allDrives"]
-GuidanceGoal = Literal["search", "setup", "show", "diagnose", "unknown"]
+GuidanceGoal = Literal["search", "setup", "add_source", "inspect", "diagnose", "unknown"]
 GuidanceMode = Literal["follow_up", "recommend"]
 
 

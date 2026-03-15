@@ -1092,7 +1092,14 @@ def test_ask_includes_source_and_index_context(tmp_path: Path, monkeypatch) -> N
 
     result = runner.invoke(
         app,
-        ["ask", "roadmap note를 찾으려면?", "--state-dir", str(state_dir), "--format", "json"],
+        [
+            "ask",
+            "이 워크스페이스의 note 구조를 설명해줘",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
     )
 
     assert result.exit_code == 0
@@ -1172,6 +1179,14 @@ def test_interpret_user_intent_classifies_search_goal() -> None:
     assert "roadmap" in intent.entities["meaningful_terms"]
 
 
+def test_interpret_user_intent_classifies_add_source_goal() -> None:
+    intent = interpret_user_intent('Obsidian 볼트를 "~/vault"로 연결해줘')
+
+    assert intent.goal == "add_source"
+    assert intent.entities["source_type"] == "obsidian"
+    assert intent.entities["path_hint"] == "~/vault"
+
+
 def test_plan_guidance_response_recommends_index_run_when_sources_exist_without_index(
     tmp_path: Path,
 ) -> None:
@@ -1185,6 +1200,24 @@ def test_plan_guidance_response_recommends_index_run_when_sources_exist_without_
     assert response is not None
     assert response.follow_up_question is None
     assert response.recommended_command == "rfs index run"
+
+
+def test_plan_guidance_response_recommends_index_add_when_source_type_and_path_exist(
+    tmp_path: Path,
+) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+
+    app_config = load_config(state_dir=state_dir)
+    response = plan_guidance_response(
+        'Obsidian 볼트를 "~/vault"로 연결해줘',
+        app_config,
+        state_dir,
+    )
+
+    assert response is not None
+    assert response.follow_up_question is None
+    assert response.recommended_command == 'rfs index add "~/vault" --source obsidian'
 
 
 def test_ask_returns_deterministic_index_run_suggestion(tmp_path: Path, monkeypatch) -> None:
@@ -1209,6 +1242,57 @@ def test_ask_returns_deterministic_index_run_suggestion(tmp_path: Path, monkeypa
     assert "rfs index run" in payload["data"]["answer"]
 
 
+def test_ask_returns_grounded_search_suggestion_when_index_exists(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    state_dir = tmp_path / ".rfs"
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    build_index_with_source(state_dir, fixture_root, "obsidian", source_id="vault")
+    rebuild_index(state_dir)
+
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError(
+            "LLM should not be called for grounded deterministic search suggestion."
+        )
+
+    monkeypatch.setattr("rfs_cli.main.ask_llm", fail_if_called)
+
+    result = runner.invoke(
+        app,
+        ["ask", "roadmap note를 찾고 싶어", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "ask", True)
+    assert payload["data"]["follow_up_required"] is False
+    assert 'rfs search "roadmap note"' in payload["data"]["answer"]
+    assert "--source-id vault" in payload["data"]["answer"]
+
+
+def test_ask_recommends_doctor_when_index_state_is_invalid(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+    state_dir.mkdir(parents=True, exist_ok=True)
+    (state_dir / "index.json").write_text("{invalid", encoding="utf-8")
+
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError("LLM should not be called when doctor-visible state is invalid.")
+
+    monkeypatch.setattr("rfs_cli.main.ask_llm", fail_if_called)
+
+    result = runner.invoke(
+        app,
+        ["ask", "검색하려면 어떻게 해?", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "ask", True)
+    assert "rfs doctor --verbose" in payload["data"]["answer"]
+
+
 def test_shell_returns_deterministic_doctor_suggestion(tmp_path: Path, monkeypatch) -> None:
     state_dir = tmp_path / ".rfs"
     save_llm_config(state_dir)
@@ -1226,6 +1310,33 @@ def test_shell_returns_deterministic_doctor_suggestion(tmp_path: Path, monkeypat
 
     assert result.exit_code == 0
     assert "doctor --verbose" in result.stdout
+
+
+def test_shell_returns_grounded_show_search_path_when_index_exists(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    state_dir = tmp_path / ".rfs"
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    build_index_with_source(state_dir, fixture_root, "obsidian", source_id="vault")
+    rebuild_index(state_dir)
+
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError(
+            "LLM should not be called for grounded deterministic inspect suggestion."
+        )
+
+    monkeypatch.setattr("rfs_cli.main.ask_llm", fail_if_called)
+
+    result = runner.invoke(
+        app,
+        ["shell", "--state-dir", str(state_dir)],
+        input="roadmap note 보여줘\n/exit\n",
+    )
+
+    assert result.exit_code == 0
+    assert 'search "roadmap note"' in result.stdout
+    assert "--source-id vault" in result.stdout
 
 
 def test_shell_runs_internal_command_and_saves_memory(tmp_path: Path) -> None:
@@ -1298,7 +1409,7 @@ def test_shell_includes_source_and_index_context_for_llm(tmp_path: Path, monkeyp
     result = runner.invoke(
         app,
         ["shell", "--state-dir", str(state_dir)],
-        input="roadmap note 찾고 싶어\n/exit\n",
+        input="이 워크스페이스에서 roadmap note 흐름을 설명해줘\n/exit\n",
     )
 
     assert result.exit_code == 0

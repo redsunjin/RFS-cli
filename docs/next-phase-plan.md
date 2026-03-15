@@ -136,12 +136,14 @@ Current slice status:
 - Shared external tool-provider contract: complete
 - NestClaw adapter boundary: complete
 - qa_claw adapter boundary: complete
+- Intent categories now distinguish add-source, search, inspect, and diagnose more explicitly
+- Guidance suggestions now use path hints, source-kind hints, index validity, and doctor-visible state more deeply
 
 ## Recommended next three tasks
 
 1. Run a real Google Drive smoke pass when client secrets or token state are available.
-2. Define intent categories such as setup, add-source, search, inspect, and diagnose more explicitly.
-3. Ground command suggestions in config, index, shell-memory, and doctor-visible state more deeply.
+2. Add progressive help rendering for bare `rfs`, `--help`, `ask`, and `shell`.
+3. Distinguish read-only suggestions from state-changing suggestions before execution automation.
 
 ## Current work-group execution order
 

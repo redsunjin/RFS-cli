@@ -99,6 +99,7 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - The same follow-up behavior applies consistently in both `ask` and `shell`
 - A non-expert user can reach the first successful index and search flow from guided help without reading the full command tree first
 - Obvious missing-state cases such as "sources exist but no index" can return a deterministic next command without needing open-ended LLM reasoning first
+- Plain-language requests for source registration, search, inspection, and diagnosis can map to deterministic next commands when path hints and local state are sufficient
 - A user can install, verify, and recover the CLI from the documented flow without hidden steps
 - A user can run one diagnostic command and see the health of config, index, shell memory, and LLM runtime
 - New feature work follows documented scope, design, and roadmap updates

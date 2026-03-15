@@ -107,8 +107,8 @@ When scope changes, update these files in order:
 ## Current recommended next three tasks
 
 - [ ] Run a real Google Drive smoke pass when client secrets or token state are available
-- [ ] Define intent categories such as setup, add-source, search, inspect, and diagnose more explicitly
-- [ ] Ground command suggestions in config, index, shell-memory, and doctor-visible state more deeply
+- [ ] Add progressive help rendering for bare `rfs`, `--help`, `ask`, and `shell`
+- [ ] Distinguish read-only suggestions from state-changing suggestions before execution automation
 
 ## Current work groups
 
@@ -122,9 +122,9 @@ See `docs/work-groups.md` for batch contents, blockers, and review order.
 
 ## Idea branch recommended next three tasks
 
-- [ ] Define intent categories such as setup, add-source, search, inspect, and diagnose more explicitly
-- [ ] Ground command suggestions in config, index, shell-memory, and doctor-visible state more deeply
 - [ ] Add progressive help rendering for bare `rfs`, `--help`, `ask`, and `shell`
+- [ ] Distinguish read-only suggestions from state-changing suggestions before execution automation
+- [ ] Add contract review before exposing any machine-readable guidance payload
 
 ## Idea branch: Assistive UX experiments
 

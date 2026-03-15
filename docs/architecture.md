@@ -88,6 +88,7 @@ Responsibilities:
 
 - classify a plain-language request into a supported task type
 - extract entities such as query text, source type, path, or output goal
+- distinguish categories such as add-source, search, inspect, and diagnose
 - surface the single blocking missing field for follow-up questions
 
 ### Suggestion planner
@@ -95,6 +96,7 @@ Responsibilities:
 Responsibilities:
 
 - combine interpreted intent with runtime state such as config, index, and shell session
+- use doctor-visible state and recent shell context when they change the safest next step
 - choose the best supported command path
 - return deterministic suggestions when the next step is obvious from local state
 - decide whether the response should suggest, redirect, or stop for clarification
@@ -260,7 +262,7 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 
 ### Assistive guidance flow
 
-1. Inspect current runtime state such as config, index, and shell session
+1. Inspect current runtime state such as config, index, shell memory, and doctor-visible state
 2. Interpret the user's task into a small internal intent model
 3. Rank the supported command paths that match both the intent and current state
 4. If a critical field is missing, ask one short follow-up question

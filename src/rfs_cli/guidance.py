@@ -4,17 +4,22 @@ import re
 from pathlib import Path
 from typing import Optional
 
-from rfs_cli.config import load_index, resolve_state_dir
-from rfs_cli.models import AppConfig, CommandSuggestion, GuidanceResponse, UserIntent
+from rfs_cli.config import load_index, load_shell_memory, resolve_state_dir
+from rfs_cli.models import AppConfig, GuidanceResponse, UserIntent
 
 SEARCH_KEYWORDS = ["search", "find", "lookup", "검색", "찾", "조회"]
-SETUP_KEYWORDS = ["index", "add", "connect", "setup", "start", "등록", "추가", "연결", "설정"]
-SHOW_KEYWORDS = ["show", "open", "문서", "파일", "노트", "보여", "열어"]
+SETUP_KEYWORDS = ["index", "connect", "setup", "start", "설정", "연결", "시작"]
+ADD_SOURCE_KEYWORDS = ["add", "register", "등록", "추가", "연결"]
+INSPECT_KEYWORDS = ["show", "open", "inspect", "문서", "파일", "노트", "보여", "열어"]
 DIAGNOSE_KEYWORDS = ["doctor", "status", "diagnose", "check", "진단", "상태", "점검", "확인"]
 SOURCE_KIND_KEYWORDS = ["obsidian", "local", "vault", "볼트", "폴더", "folder", "directory"]
+OBSIDIAN_KEYWORDS = ["obsidian", "vault", "볼트"]
+LOCAL_KEYWORDS = ["local", "folder", "directory", "폴더"]
+RECENT_KEYWORDS = ["recent", "last", "again", "방금", "최근", "다시", "이전"]
 AMBIGUOUS_ASK_STOPWORDS = {
     "a",
     "add",
+    "again",
     "and",
     "check",
     "connect",
@@ -27,9 +32,13 @@ AMBIGUOUS_ASK_STOPWORDS = {
     "how",
     "i",
     "index",
+    "inspect",
     "lookup",
     "notes",
+    "open",
     "query",
+    "recent",
+    "register",
     "search",
     "setup",
     "show",
@@ -42,24 +51,42 @@ AMBIGUOUS_ASK_STOPWORDS = {
     "검색",
     "문서",
     "방법",
+    "방금",
     "보여",
     "상태",
     "시작",
+    "싶어",
     "어떻게",
     "어케",
     "열어",
+    "이전",
     "조회",
     "점검",
+    "최근",
     "찾",
+    "찾고",
     "찾기",
     "파일",
     "해",
     "확인",
 }
+PATH_TOKEN_PATTERN = re.compile(r"([~/][^\s\"']+|[A-Za-z]:\\[^\s\"']+)")
 
 
 def contains_path_hint(text: str) -> bool:
     return any(token in text for token in ["/", "\\", "~", ".md", ".txt", ":\\"])
+
+
+def extract_path_hint(text: str) -> Optional[str]:
+    quoted_matches = re.findall(r'["\']([^"\']+)["\']', text)
+    for value in quoted_matches:
+        if contains_path_hint(value):
+            return value
+
+    match = PATH_TOKEN_PATTERN.search(text)
+    if match is not None:
+        return match.group(1)
+    return None
 
 
 def normalize_guidance_token(token: str) -> str:
@@ -88,6 +115,7 @@ def normalize_guidance_token(token: str) -> str:
         "도",
         "만",
         "요",
+        "줘",
     ]
     for suffix in suffixes:
         if normalized.endswith(suffix) and len(normalized) > len(suffix) + 1:
@@ -101,11 +129,48 @@ def meaningful_guidance_terms(question: str) -> list[str]:
     return [token for token in normalized_tokens if token not in AMBIGUOUS_ASK_STOPWORDS]
 
 
-def detect_guidance_goal(lowered: str) -> str:
+def extract_source_type(lowered: str) -> Optional[str]:
+    if any(keyword in lowered for keyword in OBSIDIAN_KEYWORDS):
+        return "obsidian"
+    if any(keyword in lowered for keyword in LOCAL_KEYWORDS):
+        return "local"
+    return None
+
+
+def extract_file_type_hint(lowered: str) -> Optional[str]:
+    if any(keyword in lowered for keyword in ["markdown", ".md", "md "]):
+        return "md"
+    if any(keyword in lowered for keyword in ["text", ".txt", "txt "]):
+        return "txt"
+    return None
+
+
+def extract_recent_tool_command(state_dir: Path) -> Optional[str]:
+    try:
+        memory = load_shell_memory(state_dir=resolve_state_dir(state_dir))
+    except ValueError:
+        return None
+
+    if memory is None:
+        return None
+
+    for event in reversed(memory.events):
+        if event.kind == "tool":
+            command = event.metadata.get("command")
+            if isinstance(command, str) and command:
+                return command
+    return None
+
+
+def detect_guidance_goal(lowered: str, source_type: Optional[str], path_hint: Optional[str]) -> str:
     if any(keyword in lowered for keyword in DIAGNOSE_KEYWORDS):
         return "diagnose"
-    if any(keyword in lowered for keyword in SHOW_KEYWORDS):
-        return "show"
+    if (
+        source_type is not None or path_hint is not None
+    ) and any(keyword in lowered for keyword in SETUP_KEYWORDS + ADD_SOURCE_KEYWORDS):
+        return "add_source"
+    if any(keyword in lowered for keyword in INSPECT_KEYWORDS):
+        return "inspect"
     if any(keyword in lowered for keyword in SEARCH_KEYWORDS):
         return "search"
     if any(keyword in lowered for keyword in SETUP_KEYWORDS):
@@ -116,32 +181,49 @@ def detect_guidance_goal(lowered: str) -> str:
 def interpret_user_intent(question: str) -> UserIntent:
     lowered = question.lower()
     meaningful_terms = meaningful_guidance_terms(question)
-    goal = detect_guidance_goal(lowered)
-    mentions_source_kind = any(keyword in lowered for keyword in SOURCE_KIND_KEYWORDS)
-    path_hint = contains_path_hint(question)
+    path_hint = extract_path_hint(question)
+    source_type = extract_source_type(lowered)
+    file_type = extract_file_type_hint(lowered)
+    goal = detect_guidance_goal(lowered, source_type, path_hint)
     missing_fields: list[str] = []
 
-    if (
-        goal in {"search", "setup"}
-        and not mentions_source_kind
-        and not path_hint
-        and not meaningful_terms
-    ):
+    if goal == "add_source":
+        if source_type is None:
+            missing_fields.append("source_type")
+        if path_hint is None:
+            missing_fields.append("source_path")
+    elif goal in {"search", "setup"} and not source_type and not path_hint and not meaningful_terms:
         missing_fields.append("source_or_path")
-    if goal == "show" and not path_hint:
+    elif goal == "inspect" and not path_hint and not meaningful_terms:
         missing_fields.append("document_target")
 
-    confidence = 0.9 if goal != "unknown" else 0.4
+    confidence = 0.92 if goal != "unknown" else 0.4
     return UserIntent(
         goal=goal,
         entities={
-            "mentions_source_kind": mentions_source_kind,
+            "source_type": source_type,
             "path_hint": path_hint,
+            "file_type": file_type,
             "meaningful_terms": meaningful_terms,
+            "wants_recent_context": any(keyword in lowered for keyword in RECENT_KEYWORDS),
         },
         missing_fields=missing_fields,
         confidence=confidence,
     )
+
+
+def format_search_command(
+    query_terms: list[str],
+    enabled_sources: list,
+    file_type: Optional[str],
+) -> str:
+    query = " ".join(query_terms[:6]) if query_terms else "<query>"
+    command = f'rfs search "{query}"'
+    if len(enabled_sources) == 1:
+        command = f"{command} --source-id {enabled_sources[0].id}"
+    if file_type is not None:
+        command = f"{command} --file-type {file_type}"
+    return command
 
 
 def plan_guidance_response(
@@ -150,13 +232,36 @@ def plan_guidance_response(
     state_dir: Path,
 ) -> Optional[GuidanceResponse]:
     intent = interpret_user_intent(question)
-    lowered = question.lower()
     enabled_sources = [source for source in app_config.sources if source.enabled]
+    resolved_state_dir = resolve_state_dir(state_dir)
+    recent_command = extract_recent_tool_command(resolved_state_dir)
+
+    index_store = None
+    index_invalid = False
+    shell_memory_invalid = False
+    try:
+        index_store = load_index(state_dir=resolved_state_dir)
+    except ValueError:
+        index_invalid = True
 
     try:
-        index_store = load_index(state_dir=resolve_state_dir(state_dir))
+        load_shell_memory(state_dir=resolved_state_dir)
     except ValueError:
-        index_store = None
+        shell_memory_invalid = True
+
+    if index_invalid or shell_memory_invalid:
+        problems: list[str] = []
+        if index_invalid:
+            problems.append("index 상태")
+        if shell_memory_invalid:
+            problems.append("shell memory 상태")
+        return GuidanceResponse(
+            summary=(
+                f"{', '.join(problems)}를 먼저 점검하는 편이 안전합니다."
+            ),
+            recommended_command="rfs doctor --verbose",
+            next_step="rfs doctor --verbose",
+        )
 
     if not enabled_sources and intent.goal in {"search", "setup"}:
         if "source_or_path" in intent.missing_fields:
@@ -168,8 +273,30 @@ def plan_guidance_response(
                 ),
             )
 
+    if intent.goal == "add_source":
+        source_type = intent.entities["source_type"]
+        path_hint = intent.entities["path_hint"]
+        if source_type is None and path_hint is not None:
+            return GuidanceResponse(
+                summary="",
+                follow_up_question="그 경로를 local로 볼까요, Obsidian vault로 볼까요?",
+            )
+        if source_type is not None and path_hint is None:
+            label = "Obsidian vault" if source_type == "obsidian" else "local 폴더"
+            return GuidanceResponse(
+                summary="",
+                follow_up_question=f"{label} 경로를 한 줄로 알려주세요.",
+            )
+        if source_type is not None and path_hint is not None:
+            return GuidanceResponse(
+                summary="경로와 source 종류가 보이므로 바로 등록할 수 있습니다.",
+                recommended_command=f'rfs index add "{path_hint}" --source {source_type}',
+                next_step=f'rfs index add "{path_hint}" --source {source_type}',
+            )
+
     if len(enabled_sources) > 1 and index_store is None and intent.goal == "search":
         source_ids = [source.id for source in enabled_sources]
+        lowered = question.lower()
         if not any(source_id.lower() in lowered for source_id in source_ids):
             return GuidanceResponse(
                 summary="",
@@ -179,45 +306,68 @@ def plan_guidance_response(
                 ),
             )
 
-    if index_store is not None and intent.goal == "show":
-        has_target_hint = intent.entities["path_hint"] or any(
-            document.document_id in question for document in index_store.documents[:20]
+    if enabled_sources and index_store is None and intent.goal in {"search", "inspect"}:
+        return GuidanceResponse(
+            summary="등록된 source는 있지만 인덱스가 아직 없어서, 먼저 인덱스를 만들어야 합니다.",
+            recommended_command="rfs index run",
+            next_step="rfs index run",
         )
-        if not has_target_hint:
+
+    if intent.goal == "diagnose":
+        summary = "현재 상태를 점검하려면 진단 명령부터 실행하는 편이 가장 안전합니다."
+        if recent_command is not None:
+            summary = (
+                f"최근 실행 명령은 `{recent_command}`였습니다. "
+                "전체 상태를 점검하려면 진단 명령부터 보는 편이 좋습니다."
+            )
+        return GuidanceResponse(
+            summary=summary,
+            recommended_command="rfs doctor --verbose",
+            next_step="rfs doctor --verbose",
+        )
+
+    if index_store is not None and intent.goal == "search":
+        query_terms = intent.entities["meaningful_terms"]
+        if query_terms:
             return GuidanceResponse(
-                summary="",
-                follow_up_question=(
-                    "어떤 문서를 열어볼까요? 경로, 문서 ID, 또는 검색어를 한 줄로 알려주세요."
+                summary="이미 인덱스가 있으므로 바로 검색해도 됩니다.",
+                recommended_command=format_search_command(
+                    query_terms,
+                    enabled_sources,
+                    intent.entities["file_type"],
+                ),
+                next_step=format_search_command(
+                    query_terms,
+                    enabled_sources,
+                    intent.entities["file_type"],
                 ),
             )
 
-    suggestion = plan_command_suggestion(intent, enabled_sources, index_store)
-    if suggestion is None:
-        return None
-
-    return GuidanceResponse(
-        summary=suggestion.reason,
-        recommended_command=suggestion.command,
-        next_step=suggestion.command,
-    )
-
-
-def plan_command_suggestion(
-    intent: UserIntent,
-    enabled_sources: list,
-    index_store,
-) -> Optional[CommandSuggestion]:
-    if intent.goal == "diagnose":
-        return CommandSuggestion(
-            command="rfs doctor --verbose",
-            reason="현재 상태를 점검하려면 진단 명령부터 실행하는 편이 가장 안전합니다.",
-        )
-
-    if enabled_sources and index_store is None and intent.goal in {"search", "show"}:
-        return CommandSuggestion(
-            command="rfs index run",
-            reason="등록된 source는 있지만 인덱스가 아직 없어서, 먼저 인덱스를 만들어야 합니다.",
-            missing_state=["index"],
+    if index_store is not None and intent.goal == "inspect":
+        path_hint = intent.entities["path_hint"]
+        query_terms = intent.entities["meaningful_terms"]
+        if path_hint is not None:
+            return GuidanceResponse(
+                summary="대상 경로가 보이므로 바로 열어볼 수 있습니다.",
+                recommended_command=f'rfs show "{path_hint}"',
+                next_step=f'rfs show "{path_hint}"',
+            )
+        if query_terms:
+            search_command = format_search_command(
+                query_terms,
+                enabled_sources,
+                intent.entities["file_type"],
+            )
+            return GuidanceResponse(
+                summary="먼저 검색으로 후보를 좁힌 다음 `show`로 여는 편이 안전합니다.",
+                recommended_command=search_command,
+                next_step=search_command,
+            )
+        return GuidanceResponse(
+            summary="",
+            follow_up_question=(
+                "어떤 문서를 열어볼까요? 경로, 문서 ID, 또는 검색어를 한 줄로 알려주세요."
+            ),
         )
 
     return None

@@ -115,6 +115,7 @@ The current codebase includes:
 - documented agent contract plus source-aware guidance for `rfs ask`
 - deterministic short follow-up questions for ambiguous `rfs ask` requests
 - extracted internal guidance models and planner helpers behind `rfs ask`
+- deeper deterministic suggestions for source registration, search, inspection, and diagnosis
 - workspace-state grounding for natural-language guidance inside `rfs shell`
 - matching deterministic follow-up behavior inside `rfs shell`
 - interactive shell mode with saved session memory and internal tool execution

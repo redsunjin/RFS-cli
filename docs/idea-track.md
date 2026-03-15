@@ -83,6 +83,6 @@ Initial responsibilities:
 
 ## Recommended next slice
 
-1. expand intent categories such as setup, add-source, search, inspect, and diagnose
-2. deepen command suggestion grounding with config, index, shell-memory, and doctor-visible state
-3. align progressive help rendering across bare `rfs`, `--help`, `ask`, and `shell`
+1. align progressive help rendering across bare `rfs`, `--help`, `ask`, and `shell`
+2. distinguish read-only suggestions from state-changing suggestions before execution automation
+3. review whether any machine-readable guidance payload should stay internal or become contract

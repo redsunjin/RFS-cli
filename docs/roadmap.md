@@ -204,6 +204,8 @@ Current slice status:
 - first three experimental modules are defined as intent interpreter, suggestion planner, and guidance renderer
 - internal `UserIntent`, `CommandSuggestion`, and `GuidanceResponse` models are implemented
 - the first extracted guidance helper module now powers deterministic follow-up and suggestion decisions behind `ask`
+- intent categories now distinguish add-source, search, inspect, and diagnose more explicitly
+- deterministic suggestions now use path hints, source-kind hints, index validity, and doctor-visible state more deeply
 
 ## Sequencing rationale
 
