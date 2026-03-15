@@ -107,6 +107,7 @@ Responsibilities:
 
 - format one recommended command and a short explanation
 - align wording across startup, `ask`, `shell`, and recovery messages
+- surface whether a recommendation is read-only or state-changing when that distinction is known
 - preserve Korean-first, compact, operational responses
 
 ### Near-term extraction target inside the current package
@@ -268,6 +269,7 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 4. If a critical field is missing, ask one short follow-up question
 5. If local state makes the next step obvious, return a deterministic command suggestion
 6. Otherwise render one recommended command plus a short explanation and optional fallback
+7. Prefer one "start here" recommendation before dumping broader help text
 
 ### Init flow
 

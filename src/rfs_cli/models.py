@@ -12,6 +12,7 @@ DriveCacheMode = Literal["disabled", "metadata-only"]
 DriveCorpus = Literal["user", "domain", "drive", "allDrives"]
 GuidanceGoal = Literal["search", "setup", "add_source", "inspect", "diagnose", "unknown"]
 GuidanceMode = Literal["follow_up", "recommend"]
+GuidanceActionType = Literal["read-only", "state-changing"]
 
 
 class SourceConfig(BaseModel):
@@ -200,6 +201,7 @@ class CommandSuggestion(BaseModel):
     command: str
     reason: str
     mode: GuidanceMode = "recommend"
+    action_type: GuidanceActionType = "read-only"
     missing_state: List[str] = Field(default_factory=list)
 
 
@@ -207,5 +209,6 @@ class GuidanceResponse(BaseModel):
     summary: str
     recommended_command: Optional[str] = None
     next_step: Optional[str] = None
+    action_type: Optional[GuidanceActionType] = None
     alternatives: List[str] = Field(default_factory=list)
     follow_up_question: Optional[str] = None

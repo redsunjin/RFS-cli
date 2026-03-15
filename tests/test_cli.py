@@ -137,8 +137,18 @@ def test_root_without_args_shows_banner_and_help_when_non_interactive(monkeypatc
     assert result.exit_code == 0
     assert " ____  _____    _    ______   __   _____ ___  ____    ____  _____    _" in result.stdout
     assert WAVE_LINE in result.stdout
+    assert "Start here:" in result.stdout
+    assert "권장 시작:" in result.stdout
     assert "Run `rfs` in an interactive terminal" in result.stdout
     assert "Usage:" in result.stdout
+
+
+def test_help_includes_start_here_examples() -> None:
+    result = runner.invoke(app, ["--help"])
+
+    assert result.exit_code == 0
+    assert "Start here:" in result.stdout
+    assert 'rfs ask "옵시디언 볼트를 추가하려면?"' in result.stdout
 
 
 def test_render_banner_uses_ansi_when_forced(monkeypatch) -> None:
@@ -1072,6 +1082,7 @@ def test_ask_json_uses_configured_llm(tmp_path: Path, monkeypatch) -> None:
     assert "rfs search" in payload["data"]["answer"]
     assert payload["data"]["follow_up_required"] is False
     assert payload["data"]["follow_up_question"] is None
+    assert payload["data"]["action_type"] is None
     assert captured["history"][0]["role"] == "system"
     assert "Configured sources: none." in captured["history"][0]["content"]
     assert "- index_status: missing" in captured["history"][0]["content"]
@@ -1146,6 +1157,7 @@ def test_ask_returns_follow_up_when_no_sources_are_configured(tmp_path: Path, mo
     assert payload["data"]["follow_up_required"] is True
     assert "어떤 경로를 먼저 연결할까요?" in payload["data"]["follow_up_question"]
     assert payload["data"]["answer"] == payload["data"]["follow_up_question"]
+    assert payload["data"]["action_type"] is None
 
 
 def test_ask_returns_follow_up_when_show_target_is_missing(tmp_path: Path, monkeypatch) -> None:
@@ -1169,6 +1181,7 @@ def test_ask_returns_follow_up_when_show_target_is_missing(tmp_path: Path, monke
     assert_command_payload(payload, "ask", True)
     assert payload["data"]["follow_up_required"] is True
     assert "어떤 문서를 열어볼까요?" in payload["data"]["follow_up_question"]
+    assert payload["data"]["action_type"] is None
 
 
 def test_interpret_user_intent_classifies_search_goal() -> None:
@@ -1240,6 +1253,8 @@ def test_ask_returns_deterministic_index_run_suggestion(tmp_path: Path, monkeypa
     assert_command_payload(payload, "ask", True)
     assert payload["data"]["follow_up_required"] is False
     assert "rfs index run" in payload["data"]["answer"]
+    assert "상태 변경" in payload["data"]["answer"]
+    assert payload["data"]["action_type"] == "state-changing"
 
 
 def test_ask_returns_grounded_search_suggestion_when_index_exists(
@@ -1269,6 +1284,8 @@ def test_ask_returns_grounded_search_suggestion_when_index_exists(
     assert payload["data"]["follow_up_required"] is False
     assert 'rfs search "roadmap note"' in payload["data"]["answer"]
     assert "--source-id vault" in payload["data"]["answer"]
+    assert "읽기 전용" in payload["data"]["answer"]
+    assert payload["data"]["action_type"] == "read-only"
 
 
 def test_ask_recommends_doctor_when_index_state_is_invalid(tmp_path: Path, monkeypatch) -> None:
@@ -1291,6 +1308,7 @@ def test_ask_recommends_doctor_when_index_state_is_invalid(tmp_path: Path, monke
     payload = json.loads(result.stdout)
     assert_command_payload(payload, "ask", True)
     assert "rfs doctor --verbose" in payload["data"]["answer"]
+    assert payload["data"]["action_type"] == "read-only"
 
 
 def test_shell_returns_deterministic_doctor_suggestion(tmp_path: Path, monkeypatch) -> None:
@@ -1310,6 +1328,7 @@ def test_shell_returns_deterministic_doctor_suggestion(tmp_path: Path, monkeypat
 
     assert result.exit_code == 0
     assert "doctor --verbose" in result.stdout
+    assert "읽기 전용" in result.stdout
 
 
 def test_shell_returns_grounded_show_search_path_when_index_exists(
@@ -1337,6 +1356,7 @@ def test_shell_returns_grounded_show_search_path_when_index_exists(
     assert result.exit_code == 0
     assert 'search "roadmap note"' in result.stdout
     assert "--source-id vault" in result.stdout
+    assert "읽기 전용" in result.stdout
 
 
 def test_shell_runs_internal_command_and_saves_memory(tmp_path: Path) -> None:
@@ -1481,6 +1501,21 @@ def test_shell_memory_commands_work(tmp_path: Path) -> None:
     assert result.exit_code == 0
     assert "No saved shell memory yet." in result.stdout
     assert "Shell memory cleared." in result.stdout
+
+
+def test_shell_help_uses_progressive_sections(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+
+    result = runner.invoke(
+        app,
+        ["shell", "--state-dir", str(state_dir)],
+        input="/help\n/exit\n",
+    )
+
+    assert result.exit_code == 0
+    assert "Start here:" in result.stdout
+    assert "Suggestion boundary:" in result.stdout
 
 
 def test_shell_runs_external_command_and_records_it(tmp_path: Path) -> None:

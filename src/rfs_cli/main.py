@@ -78,7 +78,15 @@ from rfs_cli.services import (
     project_stats,
 )
 
-app = typer.Typer(help="Personal knowledge, developer utility, and AI-tool CLI.")
+APP_HELP_TEXT = """Personal knowledge, developer utility, and AI-tool CLI.
+
+Start here:
+- `rfs`
+- `rfs doctor --verbose`
+- `rfs ask "옵시디언 볼트를 추가하려면?"`
+"""
+
+app = typer.Typer(help=APP_HELP_TEXT)
 index_app = typer.Typer(help="Index-related commands.")
 dev_app = typer.Typer(help="Developer utility commands.")
 agent_app = typer.Typer(help="AI-safe commands.")
@@ -526,6 +534,65 @@ def frontmatter_lines(frontmatter: dict[str, Any], prefix: str = "") -> list[str
         lines.append(f"{full_key}: {stringify_metadata_value(value)}")
 
     return lines
+
+
+def build_start_here_steps(state_dir: Path) -> list[str]:
+    resolved_state_dir = resolve_state_dir(state_dir)
+    try:
+        app_config = load_config(state_dir=resolved_state_dir)
+    except ValueError:
+        return [
+            "권장 시작: `rfs doctor --verbose`",
+            "설정 파일이 손상됐을 수 있으니 `.rfs/config.json` 상태를 먼저 확인하세요.",
+        ]
+
+    try:
+        index_store = load_index(state_dir=resolved_state_dir)
+    except ValueError:
+        return [
+            "권장 시작: `rfs doctor --verbose`",
+            "인덱스 상태가 올바르지 않아 진단부터 보는 편이 안전합니다.",
+        ]
+
+    if app_config.llm is None or not app_config.llm.enabled:
+        return [
+            "권장 시작: `rfs`",
+            "수동 온보딩이 필요하면 `rfs init`을 실행하세요.",
+        ]
+
+    enabled_sources = [source for source in app_config.sources if source.enabled]
+    if not enabled_sources:
+        return [
+            '권장 시작: `rfs ask "옵시디언 볼트를 추가하려면?"`',
+            "직접 등록하려면 `rfs index add <path> --source local|obsidian`를 실행하세요.",
+        ]
+
+    if index_store is None:
+        return [
+            "권장 시작: `rfs index run`",
+            "source는 이미 등록돼 있으니 인덱스를 먼저 만들면 됩니다.",
+        ]
+
+    return [
+        '권장 시작: `rfs search "roadmap"`',
+        "대화형으로 계속 진행하려면 `rfs`를 인터랙티브 터미널에서 실행하세요.",
+    ]
+
+
+def render_progressive_help(state_dir: Path) -> str:
+    lines = ["Start here:"]
+    for line in build_start_here_steps(state_dir):
+        lines.append(f"- {line}")
+    lines.extend(
+        [
+            "",
+            "Common tasks:",
+            '- 노트 검색: `rfs ask "roadmap note를 찾고 싶어"`',
+            "- 상태 점검: `rfs doctor --verbose`",
+            "- shell 시작: `rfs`",
+        ]
+    )
+    return "\n".join(lines)
 
 
 def emit(payload: CommandPayload, output: OutputMode) -> None:
@@ -1155,6 +1222,8 @@ def root(
 
     typer.echo(render_banner())
     typer.echo("")
+    typer.echo(render_progressive_help(state_dir))
+    typer.echo("")
     typer.echo("Run `rfs` in an interactive terminal to start onboarding or the agent shell.")
     typer.echo("Use `rfs init` when you want to configure the required LLM flow manually.")
     typer.echo("")
@@ -1217,6 +1286,7 @@ def ask(
                 "answer": answer,
                 "follow_up_required": guidance_response.follow_up_question is not None,
                 "follow_up_question": guidance_response.follow_up_question,
+                "action_type": guidance_response.action_type,
             },
         )
         emit(payload, output)
@@ -1241,6 +1311,7 @@ def ask(
             "answer": answer,
             "follow_up_required": False,
             "follow_up_question": None,
+            "action_type": None,
         },
     )
     emit(payload, output)
@@ -1297,19 +1368,22 @@ def run_shell_session(
         if user_input == "/help":
             help_text = "\n".join(
                 [
-                    "Shell commands:",
+                    "Start here:",
+                    "- 상태 점검: doctor --verbose",
+                    "- 검색 시작: search roadmap",
+                    "- 자연어 질문: roadmap note를 찾고 싶어",
+                    "",
+                    "Common shell commands:",
                     "- /help: show shell help",
                     "- /memory: show recent memory items",
                     "- /clear: clear saved shell memory",
                     "- /run <command>: run an rfs command inside the shell",
                     "- !<command>: run an external CLI command and store the result",
                     "- /exit: leave the shell",
-                    "You can also type commands directly, for example:",
-                    "  doctor --verbose",
-                    "  index sources",
-                    "  search roadmap",
-                    "  dev project-stats --path .",
-                    "Or ask a question in natural language if an LLM is configured.",
+                    "",
+                    "Suggestion boundary:",
+                    "- 읽기 전용 추천은 바로 확인해도 됩니다.",
+                    "- 상태 변경 추천은 실행 전에 경로와 옵션을 다시 확인하세요.",
                 ]
             )
             typer.echo(help_text)

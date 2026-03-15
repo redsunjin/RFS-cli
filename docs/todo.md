@@ -107,8 +107,8 @@ When scope changes, update these files in order:
 ## Current recommended next three tasks
 
 - [ ] Run a real Google Drive smoke pass when client secrets or token state are available
-- [ ] Add progressive help rendering for bare `rfs`, `--help`, `ask`, and `shell`
-- [ ] Distinguish read-only suggestions from state-changing suggestions before execution automation
+- [ ] Review whether any machine-readable guidance payload should stay internal or become contract
+- [ ] Add contract review before exposing any new machine-readable guidance shape
 
 ## Current work groups
 
@@ -122,9 +122,9 @@ See `docs/work-groups.md` for batch contents, blockers, and review order.
 
 ## Idea branch recommended next three tasks
 
-- [ ] Add progressive help rendering for bare `rfs`, `--help`, `ask`, and `shell`
-- [ ] Distinguish read-only suggestions from state-changing suggestions before execution automation
+- [ ] Review whether any machine-readable guidance payload should stay internal or become contract
 - [ ] Add contract review before exposing any machine-readable guidance payload
+- [ ] Decide whether startup guidance should stay local-text-only or become a reusable internal response model
 
 ## Idea branch: Assistive UX experiments
 

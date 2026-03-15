@@ -138,12 +138,14 @@ Current slice status:
 - qa_claw adapter boundary: complete
 - Intent categories now distinguish add-source, search, inspect, and diagnose more explicitly
 - Guidance suggestions now use path hints, source-kind hints, index validity, and doctor-visible state more deeply
+- Startup and shell help now lead with a smaller "start here" section
+- Deterministic guidance now marks read-only versus state-changing recommendations
 
 ## Recommended next three tasks
 
 1. Run a real Google Drive smoke pass when client secrets or token state are available.
-2. Add progressive help rendering for bare `rfs`, `--help`, `ask`, and `shell`.
-3. Distinguish read-only suggestions from state-changing suggestions before execution automation.
+2. Review whether any machine-readable guidance payload should stay internal or become contract.
+3. Add contract review before exposing any new machine-readable guidance shape.
 
 ## Current work-group execution order
 

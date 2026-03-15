@@ -206,6 +206,8 @@ Current slice status:
 - the first extracted guidance helper module now powers deterministic follow-up and suggestion decisions behind `ask`
 - intent categories now distinguish add-source, search, inspect, and diagnose more explicitly
 - deterministic suggestions now use path hints, source-kind hints, index validity, and doctor-visible state more deeply
+- startup and shell help now prioritize a small "start here" section before broader help
+- deterministic guidance now labels read-only versus state-changing recommendations
 
 ## Sequencing rationale
 

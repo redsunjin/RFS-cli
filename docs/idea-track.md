@@ -83,6 +83,6 @@ Initial responsibilities:
 
 ## Recommended next slice
 
-1. align progressive help rendering across bare `rfs`, `--help`, `ask`, and `shell`
-2. distinguish read-only suggestions from state-changing suggestions before execution automation
-3. review whether any machine-readable guidance payload should stay internal or become contract
+1. review whether any machine-readable guidance payload should stay internal or become contract
+2. decide whether startup guidance should stay local-text-only or become a reusable internal response model
+3. add explicit review rules before any guidance payload becomes part of the public JSON contract

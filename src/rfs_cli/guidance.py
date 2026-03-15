@@ -261,6 +261,7 @@ def plan_guidance_response(
             ),
             recommended_command="rfs doctor --verbose",
             next_step="rfs doctor --verbose",
+            action_type="read-only",
         )
 
     if not enabled_sources and intent.goal in {"search", "setup"}:
@@ -292,6 +293,7 @@ def plan_guidance_response(
                 summary="경로와 source 종류가 보이므로 바로 등록할 수 있습니다.",
                 recommended_command=f'rfs index add "{path_hint}" --source {source_type}',
                 next_step=f'rfs index add "{path_hint}" --source {source_type}',
+                action_type="state-changing",
             )
 
     if len(enabled_sources) > 1 and index_store is None and intent.goal == "search":
@@ -311,6 +313,7 @@ def plan_guidance_response(
             summary="등록된 source는 있지만 인덱스가 아직 없어서, 먼저 인덱스를 만들어야 합니다.",
             recommended_command="rfs index run",
             next_step="rfs index run",
+            action_type="state-changing",
         )
 
     if intent.goal == "diagnose":
@@ -324,6 +327,7 @@ def plan_guidance_response(
             summary=summary,
             recommended_command="rfs doctor --verbose",
             next_step="rfs doctor --verbose",
+            action_type="read-only",
         )
 
     if index_store is not None and intent.goal == "search":
@@ -341,6 +345,7 @@ def plan_guidance_response(
                     enabled_sources,
                     intent.entities["file_type"],
                 ),
+                action_type="read-only",
             )
 
     if index_store is not None and intent.goal == "inspect":
@@ -351,6 +356,7 @@ def plan_guidance_response(
                 summary="대상 경로가 보이므로 바로 열어볼 수 있습니다.",
                 recommended_command=f'rfs show "{path_hint}"',
                 next_step=f'rfs show "{path_hint}"',
+                action_type="read-only",
             )
         if query_terms:
             search_command = format_search_command(
@@ -362,6 +368,7 @@ def plan_guidance_response(
                 summary="먼저 검색으로 후보를 좁힌 다음 `show`로 여는 편이 안전합니다.",
                 recommended_command=search_command,
                 next_step=search_command,
+                action_type="read-only",
             )
         return GuidanceResponse(
             summary="",
@@ -384,6 +391,16 @@ def render_guidance_response(response: GuidanceResponse, shell_mode: bool = Fals
     if shell_mode and command.startswith("rfs "):
         command = command[4:]
 
+    action_label = ""
+    if response.action_type == "read-only":
+        action_label = "읽기 전용"
+    elif response.action_type == "state-changing":
+        action_label = "상태 변경"
+
     if response.summary:
+        if action_label:
+            return f"{response.summary}\n권장 명령 ({action_label}): `{command}`"
         return f"{response.summary}\n권장 명령: `{command}`"
+    if action_label:
+        return f"권장 명령 ({action_label}): `{command}`"
     return f"권장 명령: `{command}`"

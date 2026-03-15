@@ -116,6 +116,8 @@ The current codebase includes:
 - deterministic short follow-up questions for ambiguous `rfs ask` requests
 - extracted internal guidance models and planner helpers behind `rfs ask`
 - deeper deterministic suggestions for source registration, search, inspection, and diagnosis
+- progressive "start here" help in bare `rfs` and shell help output
+- read-only versus state-changing labels in deterministic guidance
 - workspace-state grounding for natural-language guidance inside `rfs shell`
 - matching deterministic follow-up behavior inside `rfs shell`
 - interactive shell mode with saved session memory and internal tool execution
