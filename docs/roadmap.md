@@ -208,6 +208,8 @@ Current slice status:
 - deterministic suggestions now use path hints, source-kind hints, index validity, and doctor-visible state more deeply
 - startup and shell help now prioritize a small "start here" section before broader help
 - deterministic guidance now labels read-only versus state-changing recommendations
+- machine-readable guidance contract review is documented before any broader payload expansion
+- startup and shell help now share reusable internal help-block models without becoming public API
 
 ## Sequencing rationale
 

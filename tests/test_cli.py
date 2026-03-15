@@ -11,7 +11,7 @@ from rfs_cli.config import load_config, load_drive_cache, load_shell_memory, sav
 from rfs_cli.drive import fetch_drive_file_metadata
 from rfs_cli.guidance import interpret_user_intent, plan_guidance_response
 from rfs_cli.llm import extract_message_content, history_to_messages
-from rfs_cli.main import app, render_banner
+from rfs_cli.main import app, build_progressive_help_blocks, render_banner
 from rfs_cli.models import DriveConfig, DriveFileRecord, LLMConfig
 
 runner = CliRunner()
@@ -149,6 +149,17 @@ def test_help_includes_start_here_examples() -> None:
     assert result.exit_code == 0
     assert "Start here:" in result.stdout
     assert 'rfs ask "옵시디언 볼트를 추가하려면?"' in result.stdout
+
+
+def test_progressive_help_blocks_use_internal_model(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+
+    blocks = build_progressive_help_blocks(state_dir)
+
+    assert blocks[0].title == "Start here"
+    assert blocks[0].items[0].command == 'rfs ask "옵시디언 볼트를 추가하려면?"'
+    assert blocks[1].title == "Common tasks"
 
 
 def test_render_banner_uses_ansi_when_forced(monkeypatch) -> None:

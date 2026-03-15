@@ -102,6 +102,7 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - Plain-language requests for source registration, search, inspection, and diagnosis can map to deterministic next commands when path hints and local state are sufficient
 - The CLI should show one obvious starting path before full help output whenever possible
 - The CLI should distinguish read-only guidance from state-changing guidance in user-facing recommendations
+- Only reviewed `ask` guidance fields should count as public machine-readable contract; startup and shell help stay human-facing
 - A user can install, verify, and recover the CLI from the documented flow without hidden steps
 - A user can run one diagnostic command and see the health of config, index, shell memory, and LLM runtime
 - New feature work follows documented scope, design, and roadmap updates
@@ -110,6 +111,7 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 
 - Local-first before remote-first
 - Reliable contracts before broad feature count
+- Stable public guidance contracts before broader machine-readable guidance expansion
 - Reusable core services before one-off commands
 - Documentation before expansion
 - Tool-using agent behavior over generic wrapper behavior

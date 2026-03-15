@@ -212,3 +212,14 @@ class GuidanceResponse(BaseModel):
     action_type: Optional[GuidanceActionType] = None
     alternatives: List[str] = Field(default_factory=list)
     follow_up_question: Optional[str] = None
+
+
+class GuidanceHelpItem(BaseModel):
+    title: str
+    command: Optional[str] = None
+    note: Optional[str] = None
+
+
+class GuidanceHelpBlock(BaseModel):
+    title: str
+    items: List[GuidanceHelpItem] = Field(default_factory=list)

@@ -48,6 +48,7 @@ Local companion projects such as NestClaw and qa_claw are also deferred until af
 - See one obvious starting path before a full help dump in startup and shell help surfaces
 - Recover from missing setup, missing index state, or empty results through short guidance
 - Use startup, help, and shell flows that progressively reveal syntax only when needed
+- Keep startup and shell help human-facing; only `ask --format json` guidance fields should be treated as public machine-readable contract
 
 ### Agent behavior
 
@@ -326,6 +327,7 @@ Examples:
 - Keep guidance grounded in current config, index, shell, and doctor-visible state
 - Distinguish between read-only suggestions and state-changing commands
 - Keep existing JSON contracts stable unless an AI tooling review explicitly approves a new guidance payload
+- Treat internal intent, suggestion, and help-block models as implementation detail unless explicitly promoted through contract review
 
 ## Idea-branch experimental modules
 

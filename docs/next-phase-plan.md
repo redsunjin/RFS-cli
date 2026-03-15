@@ -140,12 +140,14 @@ Current slice status:
 - Guidance suggestions now use path hints, source-kind hints, index validity, and doctor-visible state more deeply
 - Startup and shell help now lead with a smaller "start here" section
 - Deterministic guidance now marks read-only versus state-changing recommendations
+- Guidance contract review is now documented before any broader machine-readable payload expansion
+- Startup and shell help now reuse internal help-block models instead of ad-hoc local strings
 
 ## Recommended next three tasks
 
 1. Run a real Google Drive smoke pass when client secrets or token state are available.
-2. Review whether any machine-readable guidance payload should stay internal or become contract.
-3. Add contract review before exposing any new machine-readable guidance shape.
+2. Record the real Google Drive smoke result in QA docs once credentials are available.
+3. Keep any future machine-readable guidance expansion behind explicit contract review.
 
 ## Current work-group execution order
 

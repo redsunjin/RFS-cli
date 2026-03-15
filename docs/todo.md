@@ -107,8 +107,8 @@ When scope changes, update these files in order:
 ## Current recommended next three tasks
 
 - [ ] Run a real Google Drive smoke pass when client secrets or token state are available
-- [ ] Review whether any machine-readable guidance payload should stay internal or become contract
-- [ ] Add contract review before exposing any new machine-readable guidance shape
+- [ ] Record a real Google Drive smoke result in the QA report once credentials are available
+- [ ] Keep new machine-readable guidance fields behind explicit contract review
 
 ## Current work groups
 
@@ -122,19 +122,19 @@ See `docs/work-groups.md` for batch contents, blockers, and review order.
 
 ## Idea branch recommended next three tasks
 
-- [ ] Review whether any machine-readable guidance payload should stay internal or become contract
-- [ ] Add contract review before exposing any machine-readable guidance payload
-- [ ] Decide whether startup guidance should stay local-text-only or become a reusable internal response model
+- [ ] Validate the guidance contract decisions against a future real automation use case before adding fields
+- [ ] Keep startup and shell help on internal help-block models instead of exporting them as JSON
+- [ ] Record any future guidance-payload expansion in a dedicated contract review note first
 
 ## Idea branch: Assistive UX experiments
 
-- [ ] Create internal guidance modules instead of adding a new top-level command surface
+- [x] Create internal guidance modules instead of adding a new top-level command surface
 - [ ] Define intent categories such as setup, add-source, search, inspect, and diagnose
 - [ ] Ground command suggestions in config, index, shell-memory, and doctor-visible state
-- [ ] Add progressive help rendering for bare `rfs`, `--help`, `ask`, and `shell`
+- [x] Add progressive help rendering for bare `rfs`, `--help`, `ask`, and `shell`
 - [ ] Explain empty states and missing setup in plain Korean with one recommended next step
 - [ ] Distinguish read-only suggestions from state-changing suggestions before execution automation
-- [ ] Add contract review before exposing any machine-readable guidance payload
+- [x] Add contract review before exposing any machine-readable guidance payload
 
 ## Idea branch recommended next three tasks
 
@@ -144,13 +144,13 @@ See `docs/work-groups.md` for batch contents, blockers, and review order.
 
 ## Idea branch: Assistive UX experiments
 
-- [ ] Create internal guidance modules instead of adding a new top-level command surface
+- [x] Create internal guidance modules instead of adding a new top-level command surface
 - [ ] Define intent categories such as setup, add-source, search, inspect, and diagnose
 - [ ] Ground command suggestions in config, index, shell-memory, and doctor-visible state
-- [ ] Add progressive help rendering for bare `rfs`, `--help`, `ask`, and `shell`
+- [x] Add progressive help rendering for bare `rfs`, `--help`, `ask`, and `shell`
 - [ ] Explain empty states and missing setup in plain Korean with one recommended next step
 - [ ] Distinguish read-only suggestions from state-changing suggestions before execution automation
-- [ ] Add contract review before exposing any machine-readable guidance payload
+- [x] Add contract review before exposing any machine-readable guidance payload
 
 ## Post-MVP gamification track
 

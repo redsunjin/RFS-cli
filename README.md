@@ -62,6 +62,7 @@ That agent now assumes a configured LLM as part of normal onboarding, and its ru
 - [Easy CLI principles](./docs/easy-cli-principles.md)
 - [Research export format](./docs/research-export-format.md)
 - [NotebookLM-adjacent workflows](./docs/notebooklm-adjacent-workflows.md)
+- [Guidance contract review](./docs/guidance-contract-review.md)
 - [LLM onboarding guide](./docs/llm-onboarding.md)
 - [Agent profile](./docs/agent-profile.md)
 - [Agent contract](./docs/agent-contract.md)
@@ -118,6 +119,8 @@ The current codebase includes:
 - deeper deterministic suggestions for source registration, search, inspection, and diagnosis
 - progressive "start here" help in bare `rfs` and shell help output
 - read-only versus state-changing labels in deterministic guidance
+- documented public-versus-internal guidance contract boundaries
+- reusable internal help-block models behind startup and shell help rendering
 - workspace-state grounding for natural-language guidance inside `rfs shell`
 - matching deterministic follow-up behavior inside `rfs shell`
 - interactive shell mode with saved session memory and internal tool execution

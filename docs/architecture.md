@@ -219,6 +219,17 @@ src/rfs_cli/
 - `next_step`
 - `alternatives`
 
+### GuidanceHelpBlock
+
+- `title`
+- `items`
+
+### GuidanceHelpItem
+
+- `title`
+- `command`
+- `note`
+
 ### ResearchExportManifest
 
 - `schema_version`
@@ -346,6 +357,7 @@ Every command should expose:
 - JSON mode with a versioned schema field
 
 Human-facing guidance copy may evolve more quickly than command payloads, but any new machine-readable guidance shape must be versioned and reviewed before it becomes a public contract.
+The current public machine-readable guidance contract is intentionally limited to the `ask` payload fields already exposed through `CommandPayload`. Startup help blocks, shell help blocks, and internal intent-planning models remain internal rendering detail.
 
 Example response shape:
 

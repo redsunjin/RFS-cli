@@ -58,6 +58,8 @@ from rfs_cli.models import (
     DriveConfig,
     DriveFileRecord,
     ErrorPayload,
+    GuidanceHelpBlock,
+    GuidanceHelpItem,
     IndexDocument,
     LLMConfig,
     ShellEvent,
@@ -536,63 +538,156 @@ def frontmatter_lines(frontmatter: dict[str, Any], prefix: str = "") -> list[str
     return lines
 
 
-def build_start_here_steps(state_dir: Path) -> list[str]:
+def format_help_item(item: GuidanceHelpItem) -> str:
+    if item.command is not None:
+        line = f"- {item.title}: `{item.command}`"
+    else:
+        line = f"- {item.title}"
+    if item.note is not None:
+        line = f"{line} ({item.note})"
+    return line
+
+
+def render_help_blocks(blocks: list[GuidanceHelpBlock]) -> str:
+    lines: list[str] = []
+    for index, block in enumerate(blocks):
+        if index:
+            lines.append("")
+        lines.append(f"{block.title}:")
+        lines.extend(format_help_item(item) for item in block.items)
+    return "\n".join(lines)
+
+
+def build_start_here_block(state_dir: Path, shell_mode: bool = False) -> GuidanceHelpBlock:
     resolved_state_dir = resolve_state_dir(state_dir)
+    command_prefix = "" if shell_mode else "rfs "
+
     try:
         app_config = load_config(state_dir=resolved_state_dir)
     except ValueError:
-        return [
-            "권장 시작: `rfs doctor --verbose`",
-            "설정 파일이 손상됐을 수 있으니 `.rfs/config.json` 상태를 먼저 확인하세요.",
-        ]
+        return GuidanceHelpBlock(
+            title="Start here",
+            items=[
+                GuidanceHelpItem(title="권장 시작", command=f"{command_prefix}doctor --verbose"),
+                GuidanceHelpItem(
+                    title=(
+                        "설정 파일이 손상됐을 수 있으니 "
+                        "`.rfs/config.json` 상태를 먼저 확인하세요."
+                    )
+                ),
+            ],
+        )
 
     try:
         index_store = load_index(state_dir=resolved_state_dir)
     except ValueError:
-        return [
-            "권장 시작: `rfs doctor --verbose`",
-            "인덱스 상태가 올바르지 않아 진단부터 보는 편이 안전합니다.",
-        ]
+        return GuidanceHelpBlock(
+            title="Start here",
+            items=[
+                GuidanceHelpItem(title="권장 시작", command=f"{command_prefix}doctor --verbose"),
+                GuidanceHelpItem(
+                    title="인덱스 상태가 올바르지 않아 진단부터 보는 편이 안전합니다."
+                ),
+            ],
+        )
 
     if app_config.llm is None or not app_config.llm.enabled:
-        return [
-            "권장 시작: `rfs`",
-            "수동 온보딩이 필요하면 `rfs init`을 실행하세요.",
-        ]
+        return GuidanceHelpBlock(
+            title="Start here",
+            items=[
+                GuidanceHelpItem(title="권장 시작", command="rfs"),
+                GuidanceHelpItem(title="수동 온보딩이 필요하면 `rfs init`을 실행하세요."),
+            ],
+        )
 
     enabled_sources = [source for source in app_config.sources if source.enabled]
     if not enabled_sources:
-        return [
-            '권장 시작: `rfs ask "옵시디언 볼트를 추가하려면?"`',
-            "직접 등록하려면 `rfs index add <path> --source local|obsidian`를 실행하세요.",
-        ]
+        return GuidanceHelpBlock(
+            title="Start here",
+            items=[
+                GuidanceHelpItem(
+                    title="권장 시작",
+                    command=f'{command_prefix}ask "옵시디언 볼트를 추가하려면?"',
+                ),
+                GuidanceHelpItem(
+                    title="직접 등록하려면 "
+                    f"`{command_prefix}index add <path> --source local|obsidian`를 실행하세요."
+                ),
+            ],
+        )
 
     if index_store is None:
-        return [
-            "권장 시작: `rfs index run`",
-            "source는 이미 등록돼 있으니 인덱스를 먼저 만들면 됩니다.",
-        ]
+        return GuidanceHelpBlock(
+            title="Start here",
+            items=[
+                GuidanceHelpItem(title="권장 시작", command=f"{command_prefix}index run"),
+                GuidanceHelpItem(title="source는 이미 등록돼 있으니 인덱스를 먼저 만들면 됩니다."),
+            ],
+        )
 
+    next_note = (
+        "대화형으로 계속 진행하려면 `rfs`를 인터랙티브 터미널에서 실행하세요."
+        if not shell_mode
+        else "이미 shell 안에 있으니 바로 자연어 질문이나 `search roadmap`를 실행하면 됩니다."
+    )
+    return GuidanceHelpBlock(
+        title="Start here",
+        items=[
+            GuidanceHelpItem(title="권장 시작", command=f'{command_prefix}search "roadmap"'),
+            GuidanceHelpItem(title=next_note),
+        ],
+    )
+
+
+def build_progressive_help_blocks(state_dir: Path) -> list[GuidanceHelpBlock]:
     return [
-        '권장 시작: `rfs search "roadmap"`',
-        "대화형으로 계속 진행하려면 `rfs`를 인터랙티브 터미널에서 실행하세요.",
+        build_start_here_block(state_dir),
+        GuidanceHelpBlock(
+            title="Common tasks",
+            items=[
+                GuidanceHelpItem(
+                    title="노트 검색",
+                    command='rfs ask "roadmap note를 찾고 싶어"',
+                ),
+                GuidanceHelpItem(title="상태 점검", command="rfs doctor --verbose"),
+                GuidanceHelpItem(title="shell 시작", command="rfs"),
+            ],
+        ),
+    ]
+
+
+def build_shell_help_blocks(state_dir: Path) -> list[GuidanceHelpBlock]:
+    return [
+        build_start_here_block(state_dir, shell_mode=True),
+        GuidanceHelpBlock(
+            title="Common shell commands",
+            items=[
+                GuidanceHelpItem(title="/help", note="show shell help"),
+                GuidanceHelpItem(title="/memory", note="show recent memory items"),
+                GuidanceHelpItem(title="/clear", note="clear saved shell memory"),
+                GuidanceHelpItem(
+                    title="/run <command>",
+                    note="run an rfs command inside the shell",
+                ),
+                GuidanceHelpItem(
+                    title="!<command>",
+                    note="run an external CLI command and store the result",
+                ),
+                GuidanceHelpItem(title="/exit", note="leave the shell"),
+            ],
+        ),
+        GuidanceHelpBlock(
+            title="Suggestion boundary",
+            items=[
+                GuidanceHelpItem(title="읽기 전용 추천은 바로 확인해도 됩니다."),
+                GuidanceHelpItem(title="상태 변경 추천은 실행 전에 경로와 옵션을 다시 확인하세요."),
+            ],
+        ),
     ]
 
 
 def render_progressive_help(state_dir: Path) -> str:
-    lines = ["Start here:"]
-    for line in build_start_here_steps(state_dir):
-        lines.append(f"- {line}")
-    lines.extend(
-        [
-            "",
-            "Common tasks:",
-            '- 노트 검색: `rfs ask "roadmap note를 찾고 싶어"`',
-            "- 상태 점검: `rfs doctor --verbose`",
-            "- shell 시작: `rfs`",
-        ]
-    )
-    return "\n".join(lines)
+    return render_help_blocks(build_progressive_help_blocks(state_dir))
 
 
 def emit(payload: CommandPayload, output: OutputMode) -> None:
@@ -1366,26 +1461,7 @@ def run_shell_session(
             break
 
         if user_input == "/help":
-            help_text = "\n".join(
-                [
-                    "Start here:",
-                    "- 상태 점검: doctor --verbose",
-                    "- 검색 시작: search roadmap",
-                    "- 자연어 질문: roadmap note를 찾고 싶어",
-                    "",
-                    "Common shell commands:",
-                    "- /help: show shell help",
-                    "- /memory: show recent memory items",
-                    "- /clear: clear saved shell memory",
-                    "- /run <command>: run an rfs command inside the shell",
-                    "- !<command>: run an external CLI command and store the result",
-                    "- /exit: leave the shell",
-                    "",
-                    "Suggestion boundary:",
-                    "- 읽기 전용 추천은 바로 확인해도 됩니다.",
-                    "- 상태 변경 추천은 실행 전에 경로와 옵션을 다시 확인하세요.",
-                ]
-            )
+            help_text = render_help_blocks(build_shell_help_blocks(resolved_state_dir))
             typer.echo(help_text)
             append_shell_event(memory, "assistant", help_text)
             save_shell_memory(memory, state_dir=resolved_state_dir)

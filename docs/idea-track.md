@@ -81,8 +81,14 @@ Initial responsibilities:
 - changed behavior has automated coverage
 - any new JSON or machine-readable payload has explicit schema review
 
+## Current status
+
+- machine-readable guidance contract review is now documented
+- startup and shell help now share reusable internal help-block models
+- the public machine-readable guidance contract remains limited to `ask --format json`
+
 ## Recommended next slice
 
-1. review whether any machine-readable guidance payload should stay internal or become contract
-2. decide whether startup guidance should stay local-text-only or become a reusable internal response model
-3. add explicit review rules before any guidance payload becomes part of the public JSON contract
+1. validate the guidance contract boundaries against a future real automation use case
+2. keep new guidance fields behind explicit contract review instead of growing ad hoc payloads
+3. continue improving human-facing help text without exposing startup or shell help as public API
