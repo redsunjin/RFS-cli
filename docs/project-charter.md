@@ -132,4 +132,4 @@ Treat NotebookLM as an adjacent workflow, not the core system of record. Design 
 ### External tool providers
 
 Treat local companion projects such as NestClaw and qa_claw as post-MVP external tool provider candidates.
-NestClaw should be approached as an API or CLI-backed service adapter, while qa_claw should be approached first as a script-runner adapter.
+NestClaw should be approached as an API or CLI-backed service adapter, while qa_claw should be approached first as a script-runner adapter. Both should sit behind one shared provider contract with explicit capability, confirmation, and result-normalization boundaries.

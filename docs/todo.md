@@ -91,9 +91,9 @@ When scope changes, update these files in order:
 
 ## Post-MVP external tool providers
 
-- [ ] Define a tool-provider contract for local companion projects
-- [ ] Design a NestClaw adapter boundary for API or CLI invocation
-- [ ] Design a qa_claw adapter boundary for script execution
+- [x] Define a tool-provider contract for local companion projects
+- [x] Design a NestClaw adapter boundary for API or CLI invocation
+- [x] Design a qa_claw adapter boundary for script execution
 
 ## Phase 6: Release readiness
 
@@ -115,7 +115,7 @@ When scope changes, update these files in order:
 - [ ] `WG-01` Google Drive runtime validation
 - [x] `WG-02` Research export polish
 - [x] `WG-03` Assistive UX batch A
-- [ ] `WG-04` External tool provider design
+- [x] `WG-04` External tool provider design
 - [ ] `WG-05` Harbor and game planning
 
 See `docs/work-groups.md` for batch contents, blockers, and review order.

@@ -139,7 +139,7 @@ Exit definition:
 
 Status:
 
-- ready after current Stage 4 polish
+- complete
 
 Goal:
 
@@ -193,12 +193,11 @@ Exit definition:
 ## Recommended execution order
 
 1. WG-01 when credentials or token state are available
-2. WG-04 next
-3. WG-05 only as optional planning work
+2. WG-05 only as optional planning work
 
 ## Current batchable-now list
 
-- WG-04: External tool provider design
+- none outside blocked or optional tracks
 
 ## Current blocked list
 
@@ -206,10 +205,10 @@ Exit definition:
 
 ## Current deferred list
 
-- WG-04: External tool provider design
 - WG-05: Harbor and game planning
 
 ## Current completed list
 
 - WG-02: Research export polish
 - WG-03: Assistive UX batch A
+- WG-04: External tool provider design

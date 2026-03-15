@@ -124,6 +124,12 @@ Candidate milestones:
 - qa_claw adapter design for script-driven workflow execution
 - tool-provider registration model aligned with the existing local-first agent shell
 
+Current baseline:
+
+- shared external tool-provider contract is documented
+- NestClaw adapter boundary is documented
+- qa_claw adapter boundary is documented
+
 ## Phase 6: Release readiness
 
 Goal:

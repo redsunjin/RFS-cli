@@ -133,6 +133,9 @@ Current slice status:
 - Research export bundle naming review: complete
 - Internal `UserIntent`, `CommandSuggestion`, and `GuidanceResponse` models: complete
 - First extracted guidance planner behind `rfs ask`: complete
+- Shared external tool-provider contract: complete
+- NestClaw adapter boundary: complete
+- qa_claw adapter boundary: complete
 
 ## Recommended next three tasks
 
@@ -147,4 +150,4 @@ Use `docs/work-groups.md` as the batch-planning layer above individual TODO item
 Current order:
 
 1. `WG-01` Google Drive runtime validation when credentials or token state are available
-2. `WG-04` External tool provider design
+2. `WG-05` Harbor and game planning only if optional planning time is available

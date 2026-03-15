@@ -55,6 +55,9 @@ That agent now assumes a configured LLM as part of normal onboarding, and its ru
 - [Smoke checklist](./docs/smoke-checklist.md)
 - [QA report](./docs/qa-report.md)
 - [Work groups](./docs/work-groups.md)
+- [Tool provider contract](./docs/tool-provider-contract.md)
+- [NestClaw adapter boundary](./docs/nestclaw-adapter-boundary.md)
+- [qa_claw adapter boundary](./docs/qa-claw-adapter-boundary.md)
 - [Idea track](./docs/idea-track.md)
 - [Easy CLI principles](./docs/easy-cli-principles.md)
 - [Research export format](./docs/research-export-format.md)
@@ -119,6 +122,7 @@ The current codebase includes:
 - a Google Drive auth/config baseline with local token storage, cache-backed metadata retrieval, and live metadata-only `drive search`
 - a first `research export` command that writes curated local bundles with a manifest and document files
 - query-based default research bundle naming under `exports/research/`
+- documented post-MVP external tool-provider boundaries for NestClaw and qa_claw
 - required onboarding through `rfs init` and a packaged LLM guide
 - default interactive startup through `rfs` itself
 

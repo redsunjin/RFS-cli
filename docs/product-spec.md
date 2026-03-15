@@ -210,8 +210,21 @@ Examples:
 
 ### Post-MVP external tool providers
 
-- NestClaw: API or CLI-backed orchestration tool provider
-- qa_claw: script-backed workflow and verification tool provider
+Shared requirements:
+
+- use one provider contract for registration, invocation mode, and confirmation policy
+- keep provider capabilities explicit and separate read-only from state-changing actions
+- normalize provider results before surfacing them through the CLI agent
+
+NestClaw:
+
+- API or CLI-backed orchestration tool provider
+- focus first on `create`, `run`, `status`, `events`, and approval-oriented reads
+
+qa_claw:
+
+- script-backed workflow and verification tool provider
+- focus first on worktree bootstrap, verification, and sprint-runbook execution helpers
 
 ### Post-MVP optional harbor layer
 

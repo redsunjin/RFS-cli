@@ -377,9 +377,22 @@ Example response shape:
 
 ### External tool provider adapters
 
+- keep one shared provider contract for registration, capability declaration, and result normalization
 - Treat NestClaw as a future provider behind an API or CLI adapter boundary
 - Treat qa_claw as a future provider behind a script-runner adapter boundary
 - Keep both outside the core MVP command surface until the current CLI agent baseline is complete
+
+### ExternalToolProviderContract
+
+- `provider_id`
+- `display_name`
+- `provider_kind`
+- `root_path`
+- `invocation_mode`
+- `capabilities`
+- `confirmation_policy`
+- `timeout_seconds`
+- `result_format`
 
 ### Optional gamification layer
 
