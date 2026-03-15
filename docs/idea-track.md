@@ -1,0 +1,88 @@
+# Idea Track
+
+## Date
+
+2026-03-15
+
+## Branch intent
+
+This branch is the experimental product-shaping track for `rfs-cli`.
+
+The goal is not to replace the stable CLI baseline on `main`, but to explore how `rfs` can become easier for non-developer users through AI-assisted help, command suggestion, and modular guidance behavior.
+
+## Direction statement
+
+`rfs-cli` should become a local-first knowledge and workspace assistant that lets a user describe a task in plain language, then receive a safe and concrete next step instead of a generic help dump.
+
+Related reference:
+
+- `docs/easy-cli-principles.md`
+
+## Constraints
+
+- keep the documented top-level command surface stable unless a change is clearly justified
+- prefer internal module seams over new top-level commands during experimentation
+- keep human guidance grounded in current local state, configured sources, and implemented commands
+- do not let the AI layer drift into general-purpose chat
+- require AI tooling review before any machine-readable guidance payload becomes public contract
+
+## First experimental modules
+
+### 1. Intent interpreter
+
+Purpose:
+
+Turn plain-language requests into a small, explicit task model.
+
+Initial responsibilities:
+
+- detect the user's likely goal such as setup, add-source, search, inspect, or diagnose
+- extract obvious entities such as source name, path, file type, or query text
+- identify the single most important missing detail
+- return one short follow-up question when a request is not actionable yet
+
+### 2. Suggestion planner
+
+Purpose:
+
+Map the interpreted task plus runtime state to the best supported command path.
+
+Initial responsibilities:
+
+- use current config, index, and shell state as grounding inputs
+- rank candidate commands and decide whether to suggest, defer, or redirect
+- distinguish read-only help from state-changing actions
+- detect when onboarding, indexing, or doctor-style recovery should be suggested first
+
+### 3. Guidance renderer
+
+Purpose:
+
+Explain the next step in plain language without hiding the real command.
+
+Initial responsibilities:
+
+- lead with one recommended command
+- explain why that command fits the user's task
+- provide one fallback or alternative when needed
+- keep wording short and Korean-first by default
+
+## Entry points for the first slice
+
+- bare `rfs` startup
+- `rfs ask`
+- natural-language requests inside `rfs shell`
+- selected error and empty-state messages
+
+## Merge criteria back to stable line
+
+- docs and runtime behavior agree
+- the guidance stays bounded to implemented commands
+- changed behavior has automated coverage
+- any new JSON or machine-readable payload has explicit schema review
+
+## Recommended next slice
+
+1. define `UserIntent`, `CommandSuggestion`, and `GuidanceResponse` internal models
+2. extract the first intent and suggestion helpers behind `rfs ask`
+3. add tests for plain-language command suggestion and short follow-up behavior
