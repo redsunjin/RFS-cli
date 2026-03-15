@@ -216,7 +216,6 @@ src/rfs_cli/
 - `recommended_command`
 - `next_step`
 - `alternatives`
-
 ### ResearchExportManifest
 
 - `schema_version`
@@ -226,7 +225,6 @@ src/rfs_cli/
 - `filters`
 - `item_count`
 - `documents`
-
 ## Command flow
 
 ### Index flow
