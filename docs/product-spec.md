@@ -305,6 +305,7 @@ Examples:
 - Turn a user goal into one recommended command plus a short explanation
 - Ask for only the single most important missing detail before proceeding
 - Explain empty states and setup blockers in plain language instead of only showing raw syntax
+- Return deterministic command suggestions for obvious missing-state cases such as missing index or diagnostics
 - Keep guidance grounded in current config, index, shell, and doctor-visible state
 - Distinguish between read-only suggestions and state-changing commands
 - Keep existing JSON contracts stable unless an AI tooling review explicitly approves a new guidance payload
@@ -327,6 +328,7 @@ Responsibilities:
 
 - map an interpreted task plus runtime state to supported commands
 - decide whether to suggest onboarding, indexing, search, inspection, or diagnostics first
+- return deterministic suggestions before falling back to broader LLM wording when the state is clear
 - rank one primary recommendation and one fallback
 
 ### Guidance renderer

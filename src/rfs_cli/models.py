@@ -10,6 +10,8 @@ LLMProvider = Literal["ollama", "lmstudio", "openai-compatible"]
 DriveAuthFlow = Literal["oauth-installed-app"]
 DriveCacheMode = Literal["disabled", "metadata-only"]
 DriveCorpus = Literal["user", "domain", "drive", "allDrives"]
+GuidanceGoal = Literal["search", "setup", "show", "diagnose", "unknown"]
+GuidanceMode = Literal["follow_up", "recommend"]
 
 
 class SourceConfig(BaseModel):
@@ -185,3 +187,25 @@ class ResearchExportManifest(BaseModel):
     filters: Dict[str, Any] = Field(default_factory=dict)
     item_count: int
     documents: List[ResearchExportDocument] = Field(default_factory=list)
+
+
+class UserIntent(BaseModel):
+    goal: GuidanceGoal = "unknown"
+    entities: Dict[str, Any] = Field(default_factory=dict)
+    missing_fields: List[str] = Field(default_factory=list)
+    confidence: float = 0.0
+
+
+class CommandSuggestion(BaseModel):
+    command: str
+    reason: str
+    mode: GuidanceMode = "recommend"
+    missing_state: List[str] = Field(default_factory=list)
+
+
+class GuidanceResponse(BaseModel):
+    summary: str
+    recommended_command: Optional[str] = None
+    next_step: Optional[str] = None
+    alternatives: List[str] = Field(default_factory=list)
+    follow_up_question: Optional[str] = None

@@ -80,7 +80,7 @@ The current implementation exposes one-shot guided help through `rfs ask`, an in
 
 ## Assistive UX module split for the idea branch
 
-The current implementation still concentrates much of the conversational and shell guidance flow inside `main.py`. The next modularization step should extract assistive UX logic without changing the documented top-level command surface.
+The current implementation now has a first extracted assistive UX module in `guidance.py`. The next modularization step should continue pulling guidance logic out of `main.py` without changing the documented top-level command surface.
 
 ### Intent interpreter
 
@@ -96,6 +96,7 @@ Responsibilities:
 
 - combine interpreted intent with runtime state such as config, index, and shell session
 - choose the best supported command path
+- return deterministic suggestions when the next step is obvious from local state
 - decide whether the response should suggest, redirect, or stop for clarification
 
 ### Guidance renderer
@@ -110,9 +111,7 @@ Responsibilities:
 
 ```text
 src/rfs_cli/
-  guidance_intent.py
-  guidance_suggestions.py
-  guidance_renderer.py
+  guidance.py
 ```
 
 ## Data model
@@ -196,26 +195,27 @@ src/rfs_cli/
 - `updated_at`
 - `events`
 
-### Experimental UserIntent
+### UserIntent
 
 - `goal`
 - `entities`
 - `missing_fields`
 - `confidence`
 
-### Experimental CommandSuggestion
+### CommandSuggestion
 
 - `command`
 - `reason`
 - `mode`
 - `missing_state`
 
-### Experimental GuidanceResponse
+### GuidanceResponse
 
 - `summary`
 - `recommended_command`
 - `next_step`
 - `alternatives`
+
 ### ResearchExportManifest
 
 - `schema_version`
@@ -264,7 +264,8 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 2. Interpret the user's task into a small internal intent model
 3. Rank the supported command paths that match both the intent and current state
 4. If a critical field is missing, ask one short follow-up question
-5. Otherwise render one recommended command plus a short explanation and optional fallback
+5. If local state makes the next step obvious, return a deterministic command suggestion
+6. Otherwise render one recommended command plus a short explanation and optional fallback
 
 ### Init flow
 

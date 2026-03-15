@@ -107,14 +107,14 @@ When scope changes, update these files in order:
 ## Current recommended next three tasks
 
 - [ ] Run a real Google Drive smoke pass when client secrets or token state are available
-- [ ] Define `UserIntent`, `CommandSuggestion`, and `GuidanceResponse` internal models
-- [ ] Extract an intent interpreter and suggestion planner behind `rfs ask`
+- [ ] Define intent categories such as setup, add-source, search, inspect, and diagnose more explicitly
+- [ ] Ground command suggestions in config, index, shell-memory, and doctor-visible state more deeply
 
 ## Current work groups
 
 - [ ] `WG-01` Google Drive runtime validation
 - [x] `WG-02` Research export polish
-- [ ] `WG-03` Assistive UX batch A
+- [x] `WG-03` Assistive UX batch A
 - [ ] `WG-04` External tool provider design
 - [ ] `WG-05` Harbor and game planning
 
@@ -122,9 +122,9 @@ See `docs/work-groups.md` for batch contents, blockers, and review order.
 
 ## Idea branch recommended next three tasks
 
-- [ ] Define `UserIntent`, `CommandSuggestion`, and `GuidanceResponse` internal models
-- [ ] Extract an intent interpreter and suggestion planner behind `rfs ask`
-- [ ] Add tests for plain-language command suggestion and short follow-up behavior
+- [ ] Define intent categories such as setup, add-source, search, inspect, and diagnose more explicitly
+- [ ] Ground command suggestions in config, index, shell-memory, and doctor-visible state more deeply
+- [ ] Add progressive help rendering for bare `rfs`, `--help`, `ask`, and `shell`
 
 ## Idea branch: Assistive UX experiments
 

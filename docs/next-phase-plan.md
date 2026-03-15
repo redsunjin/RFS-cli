@@ -131,12 +131,14 @@ Current slice status:
 - First `rfs research export` command: complete
 - NotebookLM-adjacent workflow examples: complete
 - Research export bundle naming review: complete
+- Internal `UserIntent`, `CommandSuggestion`, and `GuidanceResponse` models: complete
+- First extracted guidance planner behind `rfs ask`: complete
 
 ## Recommended next three tasks
 
 1. Run a real Google Drive smoke pass when client secrets or token state are available.
-2. Define `UserIntent`, `CommandSuggestion`, and `GuidanceResponse` internal models.
-3. Extract an intent interpreter and suggestion planner behind `rfs ask`.
+2. Define intent categories such as setup, add-source, search, inspect, and diagnose more explicitly.
+3. Ground command suggestions in config, index, shell-memory, and doctor-visible state more deeply.
 
 ## Current work-group execution order
 
@@ -145,4 +147,4 @@ Use `docs/work-groups.md` as the batch-planning layer above individual TODO item
 Current order:
 
 1. `WG-01` Google Drive runtime validation when credentials or token state are available
-2. `WG-03` Assistive UX batch A
+2. `WG-04` External tool provider design

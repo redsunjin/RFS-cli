@@ -9,6 +9,7 @@ from typer.testing import CliRunner
 from rfs_cli import __version__
 from rfs_cli.config import load_config, load_drive_cache, load_shell_memory, save_config
 from rfs_cli.drive import fetch_drive_file_metadata
+from rfs_cli.guidance import interpret_user_intent, plan_guidance_response
 from rfs_cli.llm import extract_message_content, history_to_messages
 from rfs_cli.main import app, render_banner
 from rfs_cli.models import DriveConfig, DriveFileRecord, LLMConfig
@@ -1161,6 +1162,70 @@ def test_ask_returns_follow_up_when_show_target_is_missing(tmp_path: Path, monke
     assert_command_payload(payload, "ask", True)
     assert payload["data"]["follow_up_required"] is True
     assert "어떤 문서를 열어볼까요?" in payload["data"]["follow_up_question"]
+
+
+def test_interpret_user_intent_classifies_search_goal() -> None:
+    intent = interpret_user_intent("roadmap note를 검색하려면?")
+
+    assert intent.goal == "search"
+    assert intent.confidence > 0.5
+    assert "roadmap" in intent.entities["meaningful_terms"]
+
+
+def test_plan_guidance_response_recommends_index_run_when_sources_exist_without_index(
+    tmp_path: Path,
+) -> None:
+    state_dir = tmp_path / ".rfs"
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    build_index_with_source(state_dir, fixture_root, "obsidian", source_id="vault")
+
+    app_config = load_config(state_dir=state_dir)
+    response = plan_guidance_response("검색하려면 어떻게 해?", app_config, state_dir)
+
+    assert response is not None
+    assert response.follow_up_question is None
+    assert response.recommended_command == "rfs index run"
+
+
+def test_ask_returns_deterministic_index_run_suggestion(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    build_index_with_source(state_dir, fixture_root, "obsidian", source_id="vault")
+
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError("LLM should not be called for deterministic command suggestion.")
+
+    monkeypatch.setattr("rfs_cli.main.ask_llm", fail_if_called)
+
+    result = runner.invoke(
+        app,
+        ["ask", "검색하려면 어떻게 해?", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "ask", True)
+    assert payload["data"]["follow_up_required"] is False
+    assert "rfs index run" in payload["data"]["answer"]
+
+
+def test_shell_returns_deterministic_doctor_suggestion(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError("LLM should not be called for deterministic shell suggestion.")
+
+    monkeypatch.setattr("rfs_cli.main.ask_llm", fail_if_called)
+
+    result = runner.invoke(
+        app,
+        ["shell", "--state-dir", str(state_dir)],
+        input="상태를 점검하려면?\n/exit\n",
+    )
+
+    assert result.exit_code == 0
+    assert "doctor --verbose" in result.stdout
 
 
 def test_shell_runs_internal_command_and_saves_memory(tmp_path: Path) -> None:

@@ -83,6 +83,6 @@ Initial responsibilities:
 
 ## Recommended next slice
 
-1. define `UserIntent`, `CommandSuggestion`, and `GuidanceResponse` internal models
-2. extract the first intent and suggestion helpers behind `rfs ask`
-3. add tests for plain-language command suggestion and short follow-up behavior
+1. expand intent categories such as setup, add-source, search, inspect, and diagnose
+2. deepen command suggestion grounding with config, index, shell-memory, and doctor-visible state
+3. align progressive help rendering across bare `rfs`, `--help`, `ask`, and `shell`

@@ -196,7 +196,8 @@ Current slice status:
 
 - branch direction for non-expert-friendly AI assistance is now documented
 - first three experimental modules are defined as intent interpreter, suggestion planner, and guidance renderer
-- the next implementation slice is to extract internal models and helpers behind existing commands
+- internal `UserIntent`, `CommandSuggestion`, and `GuidanceResponse` models are implemented
+- the first extracted guidance helper module now powers deterministic follow-up and suggestion decisions behind `ask`
 
 ## Sequencing rationale
 
