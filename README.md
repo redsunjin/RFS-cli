@@ -64,6 +64,7 @@ That agent now assumes a configured LLM as part of normal onboarding, and its ru
 - [NotebookLM-adjacent workflows](./docs/notebooklm-adjacent-workflows.md)
 - [Guidance contract review](./docs/guidance-contract-review.md)
 - [Harbor concept](./docs/harbor-concept.md)
+- [Session handoff 2026-03-17](./docs/session-handoff-2026-03-17.md)
 - [LLM onboarding guide](./docs/llm-onboarding.md)
 - [Agent profile](./docs/agent-profile.md)
 - [Agent contract](./docs/agent-contract.md)
