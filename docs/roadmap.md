@@ -217,6 +217,7 @@ Current slice status:
 - startup and shell help now share reusable internal help-block models without becoming public API
 - recovery-first copy for direct command empty states is now implemented for key blocked flows
 - the current `ask` payload is now validated against a human-in-the-loop automation use case without widening the contract
+- guidance now supports deterministic source-listing and recent-internal-command recall
 
 ## Sequencing rationale
 

@@ -30,6 +30,20 @@ Observed checks:
 - key blocked flows now point to one next safe command instead of only raw error text
 - JSON error shape stayed stable while text-mode recovery copy improved
 
+### Assistive UX batch B validation
+
+Commands executed successfully:
+
+- `uv run pytest -q`
+- `uv run ruff check .`
+- `uv build`
+
+Observed checks:
+
+- guidance can now list configured sources deterministically
+- guidance can now recall the most recent internal command from shell memory
+- recent-command recall stays bounded to internal commands rather than arbitrary external commands
+
 ### Real LM Studio runtime validation
 
 Commands executed successfully:

@@ -100,6 +100,7 @@ Responsibilities:
 - choose the best supported command path
 - return deterministic suggestions when the next step is obvious from local state
 - decide whether the response should suggest, redirect, or stop for clarification
+- surface source inventory and recent internal-command reuse only through explicit, bounded categories
 
 ### Guidance renderer
 

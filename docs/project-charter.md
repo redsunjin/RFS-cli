@@ -100,6 +100,7 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - A non-expert user can reach the first successful index and search flow from guided help without reading the full command tree first
 - Obvious missing-state cases such as "sources exist but no index" can return a deterministic next command without needing open-ended LLM reasoning first
 - Plain-language requests for source registration, search, inspection, and diagnosis can map to deterministic next commands when path hints and local state are sufficient
+- Plain-language requests can safely expose configured source inventory and the most recent internal command when those are the real next-step anchors
 - The CLI should show one obvious starting path before full help output whenever possible
 - The CLI should distinguish read-only guidance from state-changing guidance in user-facing recommendations
 - Only reviewed `ask` guidance fields should count as public machine-readable contract; startup and shell help stay human-facing

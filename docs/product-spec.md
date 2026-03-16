@@ -45,6 +45,7 @@ Local companion projects such as NestClaw and qa_claw are also deferred until af
 - Describe a task in plain language and get one recommended next step
 - Receive command suggestions without understanding the full command tree first
 - Use the same task-first flow for source registration, search, inspection, and diagnosis
+- Allow task-first guidance to list connected sources and recall the most recent internal command when that is the safest next step
 - See one obvious starting path before a full help dump in startup and shell help surfaces
 - Recover from missing setup, missing index state, or empty results through short guidance
 - Use startup, help, and shell flows that progressively reveal syntax only when needed
@@ -325,6 +326,7 @@ Examples:
 - Explain empty states and setup blockers in plain language instead of only showing raw syntax
 - Return deterministic command suggestions for obvious missing-state cases such as missing index or diagnostics
 - Use path hints, source-kind hints, shell-memory context, and doctor-visible state where they make the next step obvious
+- Support deterministic guidance for connected-source listing and recent-command recall when shell-memory context is available
 - Label deterministic recommendations as read-only or state-changing in user-facing guidance
 - Keep guidance grounded in current config, index, shell, and doctor-visible state
 - Distinguish between read-only suggestions and state-changing commands

@@ -1242,6 +1242,18 @@ def test_interpret_user_intent_classifies_add_source_goal() -> None:
     assert intent.entities["path_hint"] == "~/vault"
 
 
+def test_interpret_user_intent_classifies_list_sources_goal() -> None:
+    intent = interpret_user_intent("등록된 source 목록 보여줘")
+
+    assert intent.goal == "list_sources"
+
+
+def test_interpret_user_intent_classifies_repeat_recent_goal() -> None:
+    intent = interpret_user_intent("방금 한 거 다시 하고 싶어")
+
+    assert intent.goal == "repeat_recent"
+
+
 def test_plan_guidance_response_recommends_index_run_when_sources_exist_without_index(
     tmp_path: Path,
 ) -> None:
@@ -1299,6 +1311,31 @@ def test_ask_returns_deterministic_index_run_suggestion(tmp_path: Path, monkeypa
     assert payload["data"]["action_type"] == "state-changing"
 
 
+def test_ask_returns_index_sources_suggestion_when_sources_exist(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    state_dir = tmp_path / ".rfs"
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    build_index_with_source(state_dir, fixture_root, "obsidian", source_id="vault")
+
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError("LLM should not be called for deterministic source-list guidance.")
+
+    monkeypatch.setattr("rfs_cli.main.ask_llm", fail_if_called)
+
+    result = runner.invoke(
+        app,
+        ["ask", "등록된 source 목록 보여줘", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "ask", True)
+    assert "rfs index sources" in payload["data"]["answer"]
+    assert payload["data"]["action_type"] == "read-only"
+
+
 def test_ask_returns_grounded_search_suggestion_when_index_exists(
     tmp_path: Path,
     monkeypatch,
@@ -1327,6 +1364,36 @@ def test_ask_returns_grounded_search_suggestion_when_index_exists(
     assert 'rfs search "roadmap note"' in payload["data"]["answer"]
     assert "--source-id vault" in payload["data"]["answer"]
     assert "읽기 전용" in payload["data"]["answer"]
+    assert payload["data"]["action_type"] == "read-only"
+
+
+def test_ask_returns_recent_command_suggestion_from_shell_memory(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+    shell_result = runner.invoke(
+        app,
+        ["shell", "--state-dir", str(state_dir)],
+        input="version\n/exit\n",
+    )
+    assert shell_result.exit_code == 0
+
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError("LLM should not be called for recent-command guidance.")
+
+    monkeypatch.setattr("rfs_cli.main.ask_llm", fail_if_called)
+
+    result = runner.invoke(
+        app,
+        ["ask", "방금 한 거 다시 하고 싶어", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "ask", True)
+    assert "rfs version" in payload["data"]["answer"]
     assert payload["data"]["action_type"] == "read-only"
 
 

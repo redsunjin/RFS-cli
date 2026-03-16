@@ -126,6 +126,7 @@ The current codebase includes:
 - validated the `ask` contract against a human-in-the-loop automation use case
 - reusable internal help-block models behind startup and shell help rendering
 - recovery-first Korean empty-state copy for key blocked commands
+- deterministic source-listing and recent internal-command recall in guidance flows
 - workspace-state grounding for natural-language guidance inside `rfs shell`
 - matching deterministic follow-up behavior inside `rfs shell`
 - interactive shell mode with saved session memory and internal tool execution

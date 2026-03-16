@@ -26,6 +26,7 @@
 - documented external tool-provider boundaries
 - documented optional harbor/game concept track
 - recovery-first Korean empty-state copy for key blocked flows
+- deterministic source-listing and recent internal-command recall
 
 ## Completed stage summary
 
@@ -58,6 +59,7 @@
 - guidance contract review completed
 - harbor/game planning docs completed
 - recovery-first UX copy completed
+- assistive UX batch B completed
 
 ## Current blocker
 
@@ -96,6 +98,9 @@ Keep `WG-01` blocked and only take optional documentation or design work if ther
 
 ## Recent handoff commits
 
+- `263d3f6` `Deepen grounded guidance categories`
+- `cecacb9` `Validate guidance contract for automation use`
+- `a299e96` `Improve recovery-first command guidance`
 - `111b796` `Add session handoff for next thread`
 - `2c5cca5` `Document harbor planning track`
 - `097922c` `Review guidance contract boundaries`

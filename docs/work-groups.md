@@ -220,6 +220,36 @@ Exit definition:
 - one next step is visible in each key blocked flow
 - JSON contract behavior stays unchanged
 
+### WG-07: Assistive UX batch B
+
+Status:
+
+- complete
+
+Goal:
+
+- deepen grounded guidance with explicit source-listing and recent-command recall
+
+Batchable tasks:
+
+- add deterministic source-listing guidance
+- add deterministic recent internal-command recall from shell memory
+- keep the recent-command path bounded to internal commands only
+- add regression tests for the new intent categories
+
+Primary agents:
+
+- Product and roadmap agent
+- CLI architect agent
+- AI tooling agent
+- QA and release agent
+
+Exit definition:
+
+- `ask` and `shell` can expose connected sources deterministically
+- recent-command recall is grounded in shell memory without exposing arbitrary external commands
+- tests cover the new guidance paths
+
 ## Recommended execution order
 
 1. WG-01 when credentials or token state are available
@@ -239,3 +269,4 @@ Exit definition:
 - WG-04: External tool provider design
 - WG-05: Harbor and game planning
 - WG-06: Recovery-first UX copy
+- WG-07: Assistive UX batch B

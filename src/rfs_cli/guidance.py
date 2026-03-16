@@ -12,6 +12,8 @@ SETUP_KEYWORDS = ["index", "connect", "setup", "start", "설정", "연결", "시
 ADD_SOURCE_KEYWORDS = ["add", "register", "등록", "추가", "연결"]
 INSPECT_KEYWORDS = ["show", "open", "inspect", "문서", "파일", "노트", "보여", "열어"]
 DIAGNOSE_KEYWORDS = ["doctor", "status", "diagnose", "check", "진단", "상태", "점검", "확인"]
+LIST_SOURCE_KEYWORDS = ["source", "sources", "목록", "리스트", "등록된", "연결된"]
+REPEAT_RECENT_KEYWORDS = ["recent", "last", "again", "방금", "최근", "다시", "이전", "아까"]
 SOURCE_KIND_KEYWORDS = ["obsidian", "local", "vault", "볼트", "폴더", "folder", "directory"]
 OBSIDIAN_KEYWORDS = ["obsidian", "vault", "볼트"]
 LOCAL_KEYWORDS = ["local", "folder", "directory", "폴더"]
@@ -156,13 +158,78 @@ def extract_recent_tool_command(state_dir: Path) -> Optional[str]:
 
     for event in reversed(memory.events):
         if event.kind == "tool":
+            if event.metadata.get("tool_type") == "external":
+                continue
             command = event.metadata.get("command")
             if isinstance(command, str) and command:
                 return command
     return None
 
 
+def format_recent_command(command: str) -> str:
+    normalized = command.strip()
+    if normalized.startswith("rfs "):
+        return normalized
+    first_token = normalized.split(" ", 1)[0]
+    if first_token in {
+        "version",
+        "doctor",
+        "init",
+        "ask",
+        "search",
+        "show",
+        "index",
+        "dev",
+        "agent",
+        "drive",
+        "llm",
+        "research",
+    }:
+        return f"rfs {normalized}"
+    return normalized
+
+
+def classify_command_action_type(command: str) -> str:
+    normalized = command.removeprefix("rfs ").strip()
+    if normalized.startswith("index add"):
+        return "state-changing"
+    if normalized.startswith("index run"):
+        return "state-changing"
+    if normalized.startswith("init"):
+        return "state-changing"
+    if normalized.startswith("llm setup"):
+        return "state-changing"
+    if normalized.startswith("drive auth"):
+        return "state-changing"
+    if normalized.startswith("research export"):
+        return "state-changing"
+    return "read-only"
+
+
+def is_source_listing_request(lowered: str) -> bool:
+    has_source_keyword = any(keyword in lowered for keyword in LIST_SOURCE_KEYWORDS)
+    has_listing_intent = any(
+        keyword in lowered for keyword in ["list", "show", "what", "뭐", "무엇", "보여", "알려"]
+    )
+    return has_source_keyword and has_listing_intent
+
+
+def is_recent_repeat_request(lowered: str) -> bool:
+    has_recent_keyword = any(keyword in lowered for keyword in REPEAT_RECENT_KEYWORDS)
+    has_repeat_intent = any(
+        keyword in lowered for keyword in ["repeat", "rerun", "retry", "다시", "재실행", "다시해"]
+    )
+    has_recall_intent = any(
+        keyword in lowered for keyword in ["뭐", "무엇", "what", "recent", "last", "방금", "최근"]
+    )
+    return has_recent_keyword and (has_repeat_intent or has_recall_intent)
+
+
 def detect_guidance_goal(lowered: str, source_type: Optional[str], path_hint: Optional[str]) -> str:
+    if is_recent_repeat_request(lowered):
+        return "repeat_recent"
+    if is_source_listing_request(lowered):
+        return "list_sources"
     if any(keyword in lowered for keyword in DIAGNOSE_KEYWORDS):
         return "diagnose"
     if (
@@ -261,6 +328,41 @@ def plan_guidance_response(
             ),
             recommended_command="rfs doctor --verbose",
             next_step="rfs doctor --verbose",
+            action_type="read-only",
+        )
+
+    if intent.goal == "repeat_recent":
+        if recent_command is None:
+            return GuidanceResponse(
+                summary="",
+                follow_up_question=(
+                    "최근 실행 기록이 아직 없습니다. "
+                    "대신 어떤 작업을 다시 하고 싶은지 한 줄로 알려주세요."
+                ),
+            )
+        formatted_command = format_recent_command(recent_command)
+        return GuidanceResponse(
+            summary=(
+                f"가장 최근에 실행한 내부 명령은 `{recent_command}`였습니다. "
+                "같은 흐름을 다시 보려면 아래 명령을 쓰면 됩니다."
+            ),
+            recommended_command=formatted_command,
+            next_step=formatted_command,
+            action_type=classify_command_action_type(formatted_command),
+        )
+
+    if intent.goal == "list_sources":
+        if enabled_sources:
+            return GuidanceResponse(
+                summary="현재 연결된 source 목록을 바로 확인할 수 있습니다.",
+                recommended_command="rfs index sources",
+                next_step="rfs index sources",
+                action_type="read-only",
+            )
+        return GuidanceResponse(
+            summary="아직 등록된 source가 없으므로 먼저 하나를 연결해야 합니다.",
+            recommended_command='rfs ask "옵시디언 볼트를 추가하려면?"',
+            next_step='rfs ask "옵시디언 볼트를 추가하려면?"',
             action_type="read-only",
         )
 

@@ -88,6 +88,7 @@ Initial responsibilities:
 - the public machine-readable guidance contract remains limited to `ask --format json`
 - key direct-command empty states now use recovery-first Korean copy with one next step
 - the current contract is now validated against a human-in-the-loop automation use case
+- guidance can now list connected sources and recall the most recent internal command deterministically
 
 ## Recommended next slice
 
