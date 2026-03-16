@@ -108,7 +108,7 @@ When scope changes, update these files in order:
 
 - [ ] Run a real Google Drive smoke pass when client secrets or token state are available
 - [ ] Record a real Google Drive smoke result in the QA report once credentials are available
-- [ ] Keep any future guidance-payload expansion behind a dedicated contract review note
+- [ ] Keep any future guidance-payload expansion behind a dedicated contract review note written from the shared template
 
 ## Current work groups
 
@@ -119,6 +119,7 @@ When scope changes, update these files in order:
 - [x] `WG-05` Harbor and game planning
 - [x] `WG-06` Recovery-first UX copy
 - [x] `WG-07` Assistive UX batch B
+- [x] `WG-08` Assistive UX batch C
 
 See `docs/work-groups.md` for batch contents, blockers, and review order.
 
@@ -126,7 +127,7 @@ See `docs/work-groups.md` for batch contents, blockers, and review order.
 
 - [ ] Record any future guidance-payload expansion in a dedicated contract review note first
 - [ ] Reopen the contract only if an unattended-execution use case is actually approved
-- [ ] Continue human-facing help polish without exposing startup or shell help as public API
+- [x] Continue human-facing help polish without exposing startup or shell help as public API
 
 ## Idea branch: Assistive UX experiments
 
@@ -137,6 +138,8 @@ See `docs/work-groups.md` for batch contents, blockers, and review order.
 - [x] Explain empty states and missing setup in plain Korean with one recommended next step
 - [x] Distinguish read-only suggestions from state-changing suggestions before execution automation
 - [x] Add contract review before exposing any machine-readable guidance payload
+- [x] Keep grounded startup and shell help examples aligned with implemented source-listing and recent-command recall
+- [x] Add a shared template for future guidance contract review notes
 
 ## Idea branch recommended next three tasks
 

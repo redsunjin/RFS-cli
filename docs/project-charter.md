@@ -106,6 +106,8 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - Only reviewed `ask` guidance fields should count as public machine-readable contract; startup and shell help stay human-facing
 - Direct command empty states and setup blockers should explain the next safe command in short Korean-first copy
 - Human-in-the-loop automation may rely on `ask` guidance fields, but unattended execution should not widen the contract by default
+- Human-facing help should keep reflecting the currently supported grounded guidance patterns without becoming a new machine-readable surface
+- Any future machine-readable guidance expansion should start from a dedicated contract note written from the shared template before implementation
 - A user can install, verify, and recover the CLI from the documented flow without hidden steps
 - A user can run one diagnostic command and see the health of config, index, shell memory, and LLM runtime
 - New feature work follows documented scope, design, and roadmap updates
@@ -115,6 +117,7 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - Local-first before remote-first
 - Reliable contracts before broad feature count
 - Stable public guidance contracts before broader machine-readable guidance expansion
+- Review-note-first governance before adding any new public guidance field
 - Reusable core services before one-off commands
 - Documentation before expansion
 - Tool-using agent behavior over generic wrapper behavior

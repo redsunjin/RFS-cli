@@ -89,9 +89,11 @@ Initial responsibilities:
 - key direct-command empty states now use recovery-first Korean copy with one next step
 - the current contract is now validated against a human-in-the-loop automation use case
 - guidance can now list connected sources and recall the most recent internal command deterministically
+- startup and shell help now show grounded examples for those guidance patterns
+- a shared review-note template now exists for any future machine-readable guidance expansion
 
 ## Recommended next slice
 
-1. keep new guidance fields behind explicit contract review instead of growing ad hoc payloads
+1. keep new guidance fields behind explicit contract review notes created from the shared template
 2. continue improving human-facing help text without exposing startup or shell help as public API
 3. reopen contract expansion only if unattended execution becomes an approved requirement

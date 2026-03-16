@@ -27,6 +27,8 @@
 - documented optional harbor/game concept track
 - recovery-first Korean empty-state copy for key blocked flows
 - deterministic source-listing and recent internal-command recall
+- grounded startup and shell help examples for those guidance patterns
+- a shared template for future guidance contract review notes
 
 ## Completed stage summary
 
@@ -60,6 +62,7 @@
 - harbor/game planning docs completed
 - recovery-first UX copy completed
 - assistive UX batch B completed
+- assistive UX batch C completed
 
 ## Current blocker
 
@@ -98,9 +101,9 @@ Keep `WG-01` blocked and only take optional documentation or design work if ther
 
 ## Recent handoff commits
 
-- `263d3f6` `Deepen grounded guidance categories`
-- `cecacb9` `Validate guidance contract for automation use`
+- `7e640ac` `Deepen grounded guidance categories`
 - `a299e96` `Improve recovery-first command guidance`
+- `cecacb9` `Validate guidance contract for automation use`
 - `111b796` `Add session handoff for next thread`
 - `2c5cca5` `Document harbor planning track`
 - `097922c` `Review guidance contract boundaries`
@@ -117,6 +120,7 @@ Keep `WG-01` blocked and only take optional documentation or design work if ther
 - `docs/qa-report.md`
 - `docs/todo.md`
 - `docs/guidance-contract-review.md`
+- `docs/guidance-contract-note-template.md`
 - `docs/harbor-concept.md`
 - `docs/session-handoff-2026-03-17.md`
 

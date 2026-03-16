@@ -250,6 +250,36 @@ Exit definition:
 - recent-command recall is grounded in shell memory without exposing arbitrary external commands
 - tests cover the new guidance paths
 
+### WG-08: Assistive UX batch C
+
+Status:
+
+- complete
+
+Goal:
+
+- polish human-facing help while formalizing the review-note path for future guidance contract changes
+
+Batchable tasks:
+
+- keep startup and shell help aligned with grounded examples such as source listing and recent internal-command recall
+- improve human-facing help wording without widening the public JSON contract
+- add a shared template for future guidance contract review notes
+- update planning docs so future payload expansion starts from that template
+
+Primary agents:
+
+- Product and roadmap agent
+- CLI architect agent
+- AI tooling agent
+- QA and release agent
+
+Exit definition:
+
+- startup and shell help reflect the grounded guidance patterns that already exist
+- public guidance contract boundaries stay unchanged
+- future contract-expansion proposals start from a shared review-note template
+
 ## Recommended execution order
 
 1. WG-01 when credentials or token state are available

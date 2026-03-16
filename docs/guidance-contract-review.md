@@ -41,9 +41,14 @@ The following are intentionally internal and may change faster:
 Before any new machine-readable guidance shape is exposed:
 
 1. update product and architecture documents
-2. document why the field belongs in public contract instead of internal guidance
-3. add contract tests
-4. record the review outcome in planning docs
+2. open a new note from `docs/guidance-contract-note-template.md`
+3. document why the field belongs in public contract instead of internal guidance
+4. add contract tests
+5. record the review outcome in planning docs
+
+## Template
+
+Use `docs/guidance-contract-note-template.md` as the starting point for any future contract-expansion proposal.
 
 ## Current conclusion
 

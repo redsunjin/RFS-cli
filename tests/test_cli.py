@@ -11,7 +11,7 @@ from rfs_cli.config import load_config, load_drive_cache, load_shell_memory, sav
 from rfs_cli.drive import fetch_drive_file_metadata
 from rfs_cli.guidance import interpret_user_intent, plan_guidance_response
 from rfs_cli.llm import extract_message_content, history_to_messages
-from rfs_cli.main import app, build_progressive_help_blocks, render_banner
+from rfs_cli.main import app, build_progressive_help_blocks, build_shell_help_blocks, render_banner
 from rfs_cli.models import DriveConfig, DriveFileRecord, LLMConfig
 
 runner = CliRunner()
@@ -139,7 +139,10 @@ def test_root_without_args_shows_banner_and_help_when_non_interactive(monkeypatc
     assert WAVE_LINE in result.stdout
     assert "Start here:" in result.stdout
     assert "권장 시작:" in result.stdout
-    assert "Run `rfs` in an interactive terminal" in result.stdout
+    assert (
+        "인터랙티브 터미널에서 `rfs`를 실행하면 온보딩이나 agent shell로 바로 들어갑니다."
+        in result.stdout
+    )
     assert "Usage:" in result.stdout
 
 
@@ -159,7 +162,19 @@ def test_progressive_help_blocks_use_internal_model(tmp_path: Path) -> None:
 
     assert blocks[0].title == "Start here"
     assert blocks[0].items[0].command == 'rfs ask "옵시디언 볼트를 추가하려면?"'
-    assert blocks[1].title == "Common tasks"
+    assert blocks[1].title == "자주 하는 작업"
+    assert blocks[1].items[1].command == 'rfs ask "지금 연결된 source를 보여줘"'
+
+
+def test_shell_help_blocks_include_grounded_examples(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+
+    blocks = build_shell_help_blocks(state_dir)
+
+    assert blocks[1].title == "바로 물어볼 수 있는 예시"
+    assert blocks[1].items[0].command == "지금 연결된 source를 보여줘"
+    assert blocks[1].items[1].command == "방금 했던 명령 다시 보여줘"
 
 
 def test_render_banner_uses_ansi_when_forced(monkeypatch) -> None:
@@ -1479,7 +1494,7 @@ def test_shell_runs_internal_command_and_saves_memory(tmp_path: Path) -> None:
     )
 
     assert result.exit_code == 0
-    assert "Interactive shell for rfs-cli" in result.stdout
+    assert "rfs-cli 대화형 shell" in result.stdout
     assert "0.1.0" in result.stdout
     assert "Command exited with code 0." in result.stdout
 
@@ -1624,7 +1639,8 @@ def test_shell_help_uses_progressive_sections(tmp_path: Path) -> None:
 
     assert result.exit_code == 0
     assert "Start here:" in result.stdout
-    assert "Suggestion boundary:" in result.stdout
+    assert "바로 물어볼 수 있는 예시:" in result.stdout
+    assert "실행 전 확인:" in result.stdout
 
 
 def test_shell_runs_external_command_and_records_it(tmp_path: Path) -> None:

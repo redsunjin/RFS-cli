@@ -77,6 +77,7 @@ The current index stores relative paths, file types, tags, aliases, and source-s
 The frontmatter parser supports a lightweight nested subset for practical note metadata such as lists, booleans, numbers, and simple nested maps.
 The same workspace config now also stores required LLM provider settings for conversational command guidance.
 The current implementation exposes one-shot guided help through `rfs ask`, an interactive `rfs shell` loop that saves shell memory under the workspace state directory, an `rfs init` onboarding path, and a default `rfs` startup flow that chooses onboarding or shell automatically in interactive terminals.
+Startup and shell help now also show grounded human-facing examples for source listing and recent internal-command recall while keeping those surfaces outside the public machine-readable contract.
 
 ## Assistive UX module split for the idea branch
 
@@ -111,6 +112,8 @@ Responsibilities:
 - surface whether a recommendation is read-only or state-changing when that distinction is known
 - preserve Korean-first, compact, operational responses
 - keep direct command empty-state copy aligned with the same recovery-first tone without changing JSON contracts
+- keep startup and shell examples in sync with the grounded categories currently supported by the planner
+- require a dedicated review note before any new machine-readable guidance field is promoted into public contract
 
 ### Near-term extraction target inside the current package
 
@@ -231,6 +234,12 @@ src/rfs_cli/
 - `title`
 - `command`
 - `note`
+
+## Guidance contract governance
+
+- the public machine-readable guidance boundary remains `rfs ask --format json`
+- startup help and shell help remain human-facing render surfaces
+- any proposal to widen the machine-readable guidance payload should start from `docs/guidance-contract-note-template.md`
 
 ### ResearchExportManifest
 

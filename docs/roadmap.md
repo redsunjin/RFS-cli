@@ -218,6 +218,8 @@ Current slice status:
 - recovery-first copy for direct command empty states is now implemented for key blocked flows
 - the current `ask` payload is now validated against a human-in-the-loop automation use case without widening the contract
 - guidance now supports deterministic source-listing and recent-internal-command recall
+- startup and shell help now include grounded examples for source listing and recent internal-command recall
+- future machine-readable guidance expansion now starts from a shared contract-note template
 
 ## Sequencing rationale
 

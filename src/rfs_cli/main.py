@@ -643,11 +643,15 @@ def build_progressive_help_blocks(state_dir: Path) -> list[GuidanceHelpBlock]:
     return [
         build_start_here_block(state_dir),
         GuidanceHelpBlock(
-            title="Common tasks",
+            title="자주 하는 작업",
             items=[
                 GuidanceHelpItem(
                     title="노트 검색",
                     command='rfs ask "roadmap note를 찾고 싶어"',
+                ),
+                GuidanceHelpItem(
+                    title="등록된 source 보기",
+                    command='rfs ask "지금 연결된 source를 보여줘"',
                 ),
                 GuidanceHelpItem(title="상태 점검", command="rfs doctor --verbose"),
                 GuidanceHelpItem(title="shell 시작", command="rfs"),
@@ -660,24 +664,41 @@ def build_shell_help_blocks(state_dir: Path) -> list[GuidanceHelpBlock]:
     return [
         build_start_here_block(state_dir, shell_mode=True),
         GuidanceHelpBlock(
-            title="Common shell commands",
+            title="바로 물어볼 수 있는 예시",
             items=[
-                GuidanceHelpItem(title="/help", note="show shell help"),
-                GuidanceHelpItem(title="/memory", note="show recent memory items"),
-                GuidanceHelpItem(title="/clear", note="clear saved shell memory"),
                 GuidanceHelpItem(
-                    title="/run <command>",
-                    note="run an rfs command inside the shell",
+                    title="등록된 source 보기",
+                    command="지금 연결된 source를 보여줘",
                 ),
                 GuidanceHelpItem(
-                    title="!<command>",
-                    note="run an external CLI command and store the result",
+                    title="최근 내부 명령 다시 보기",
+                    command="방금 했던 명령 다시 보여줘",
                 ),
-                GuidanceHelpItem(title="/exit", note="leave the shell"),
+                GuidanceHelpItem(
+                    title="roadmap 검색 시작",
+                    command="roadmap note를 찾고 싶어",
+                ),
             ],
         ),
         GuidanceHelpBlock(
-            title="Suggestion boundary",
+            title="shell에서 자주 쓰는 명령",
+            items=[
+                GuidanceHelpItem(title="/help", note="도움말 다시 보기"),
+                GuidanceHelpItem(title="/memory", note="최근 메모리 항목 보기"),
+                GuidanceHelpItem(title="/clear", note="저장된 shell 메모리 지우기"),
+                GuidanceHelpItem(
+                    title="/run <command>",
+                    note="shell 안에서 rfs 명령 실행",
+                ),
+                GuidanceHelpItem(
+                    title="!<command>",
+                    note="외부 CLI 명령 실행 후 결과 저장",
+                ),
+                GuidanceHelpItem(title="/exit", note="shell 종료"),
+            ],
+        ),
+        GuidanceHelpBlock(
+            title="실행 전 확인",
             items=[
                 GuidanceHelpItem(title="읽기 전용 추천은 바로 확인해도 됩니다."),
                 GuidanceHelpItem(title="상태 변경 추천은 실행 전에 경로와 옵션을 다시 확인하세요."),
@@ -1360,8 +1381,8 @@ def root(
     typer.echo("")
     typer.echo(render_progressive_help(state_dir))
     typer.echo("")
-    typer.echo("Run `rfs` in an interactive terminal to start onboarding or the agent shell.")
-    typer.echo("Use `rfs init` when you want to configure the required LLM flow manually.")
+    typer.echo("인터랙티브 터미널에서 `rfs`를 실행하면 온보딩이나 agent shell로 바로 들어갑니다.")
+    typer.echo("LLM 설정을 수동으로 다시 잡고 싶다면 `rfs init`을 실행하세요.")
     typer.echo("")
     typer.echo(ctx.get_help())
     raise typer.Exit()
@@ -1475,9 +1496,9 @@ def run_shell_session(
     if show_banner:
         typer.echo(render_banner())
         typer.echo("")
-    typer.echo("Interactive shell for rfs-cli")
-    typer.echo("Type a supported command without `rfs`, ask a question, or use /help.")
-    typer.echo(f"Memory: {resolve_shell_memory_path(state_dir=resolved_state_dir)}")
+    typer.echo("rfs-cli 대화형 shell")
+    typer.echo("지원되는 명령은 `rfs` 없이 입력하고, 자연어 질문이나 `/help`도 사용할 수 있습니다.")
+    typer.echo(f"메모리: {resolve_shell_memory_path(state_dir=resolved_state_dir)}")
 
     while True:
         try:

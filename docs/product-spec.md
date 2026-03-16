@@ -50,6 +50,7 @@ Local companion projects such as NestClaw and qa_claw are also deferred until af
 - Recover from missing setup, missing index state, or empty results through short guidance
 - Use startup, help, and shell flows that progressively reveal syntax only when needed
 - Keep startup and shell help human-facing; only `ask --format json` guidance fields should be treated as public machine-readable contract
+- Show grounded help examples for source listing and recent internal-command recall without widening the public JSON contract
 
 ### Agent behavior
 
@@ -74,6 +75,7 @@ Local companion projects such as NestClaw and qa_claw are also deferred until af
 - As a user, I want onboarding to configure the required LLM first so the agent works from the start.
 - As a non-developer user, I want to describe what I need in plain language and receive the right command to run.
 - As a new user, I want the CLI to explain the next safe step after an error, empty state, or missing setup instead of only printing syntax.
+- As a maintainer, I want any proposed guidance payload expansion to start with a dedicated contract note so public automation fields do not grow casually.
 
 ## Command model
 
@@ -130,6 +132,7 @@ Responsibilities:
 - support controlled external CLI execution when explicitly requested
 - ground natural-language shell guidance in current source and index state
 - use the same short follow-up behavior as `rfs ask` when a shell request is underspecified
+- keep shell help grounded in supported examples such as source listing and recent internal-command recall
 
 Examples:
 
@@ -334,6 +337,7 @@ Examples:
 - Treat internal intent, suggestion, and help-block models as implementation detail unless explicitly promoted through contract review
 - Make direct command empty states and setup blockers use short Korean-first recovery copy with one next step where practical
 - Treat the current `ask` payload as sufficient for human-in-the-loop automation until a reviewed unattended-execution use case exists
+- Keep startup and shell help examples aligned with currently supported deterministic guidance such as source listing and recent-command recall
 
 ## Idea-branch experimental modules
 

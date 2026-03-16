@@ -147,12 +147,14 @@ Current slice status:
 - Recovery-first direct-command copy is now implemented for key blocked flows while JSON contracts remain stable
 - The current `ask` contract is now validated against a human-in-the-loop automation scenario
 - Guidance now supports deterministic source-listing and recent internal-command recall
+- Startup and shell help now show grounded examples for source listing and recent internal-command recall
+- Future machine-readable guidance expansion now starts from a shared contract-note template
 
 ## Recommended next three tasks
 
 1. Run a real Google Drive smoke pass when client secrets or token state are available.
 2. Record the real Google Drive smoke result in QA docs once credentials are available.
-3. Keep any future guidance-payload expansion behind a dedicated contract review note.
+3. Keep any future guidance-payload expansion behind a dedicated contract review note written from the shared template.
 
 ## Current work-group execution order
 
