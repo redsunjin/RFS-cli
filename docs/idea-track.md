@@ -87,9 +87,10 @@ Initial responsibilities:
 - startup and shell help now share reusable internal help-block models
 - the public machine-readable guidance contract remains limited to `ask --format json`
 - key direct-command empty states now use recovery-first Korean copy with one next step
+- the current contract is now validated against a human-in-the-loop automation use case
 
 ## Recommended next slice
 
-1. validate the guidance contract boundaries against a future real automation use case
-2. keep new guidance fields behind explicit contract review instead of growing ad hoc payloads
-3. continue improving human-facing help text without exposing startup or shell help as public API
+1. keep new guidance fields behind explicit contract review instead of growing ad hoc payloads
+2. continue improving human-facing help text without exposing startup or shell help as public API
+3. reopen contract expansion only if unattended execution becomes an approved requirement

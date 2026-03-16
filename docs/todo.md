@@ -108,7 +108,7 @@ When scope changes, update these files in order:
 
 - [ ] Run a real Google Drive smoke pass when client secrets or token state are available
 - [ ] Record a real Google Drive smoke result in the QA report once credentials are available
-- [ ] Validate the guidance contract decisions against a future real automation use case before adding fields
+- [ ] Continue assistive UX cleanup for remaining intent-category and grounding gaps
 
 ## Current work groups
 
@@ -123,9 +123,9 @@ See `docs/work-groups.md` for batch contents, blockers, and review order.
 
 ## Idea branch recommended next three tasks
 
-- [ ] Validate the guidance contract decisions against a future real automation use case before adding fields
 - [ ] Keep startup and shell help on internal help-block models instead of exporting them as JSON
 - [ ] Record any future guidance-payload expansion in a dedicated contract review note first
+- [ ] Reopen the contract only if an unattended-execution use case is actually approved
 
 ## Idea branch: Assistive UX experiments
 

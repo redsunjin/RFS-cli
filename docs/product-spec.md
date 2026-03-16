@@ -331,6 +331,7 @@ Examples:
 - Keep existing JSON contracts stable unless an AI tooling review explicitly approves a new guidance payload
 - Treat internal intent, suggestion, and help-block models as implementation detail unless explicitly promoted through contract review
 - Make direct command empty states and setup blockers use short Korean-first recovery copy with one next step where practical
+- Treat the current `ask` payload as sufficient for human-in-the-loop automation until a reviewed unattended-execution use case exists
 
 ## Idea-branch experimental modules
 

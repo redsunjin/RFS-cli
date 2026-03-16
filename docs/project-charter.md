@@ -104,6 +104,7 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - The CLI should distinguish read-only guidance from state-changing guidance in user-facing recommendations
 - Only reviewed `ask` guidance fields should count as public machine-readable contract; startup and shell help stay human-facing
 - Direct command empty states and setup blockers should explain the next safe command in short Korean-first copy
+- Human-in-the-loop automation may rely on `ask` guidance fields, but unattended execution should not widen the contract by default
 - A user can install, verify, and recover the CLI from the documented flow without hidden steps
 - A user can run one diagnostic command and see the health of config, index, shell memory, and LLM runtime
 - New feature work follows documented scope, design, and roadmap updates

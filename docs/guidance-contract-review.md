@@ -49,3 +49,8 @@ Before any new machine-readable guidance shape is exposed:
 
 Keep guidance payload expansion conservative.
 Prefer evolving human-facing help text and internal guidance models first, and expose new machine-readable fields only when a clear automation use case exists.
+
+## Validated automation boundary
+
+The current contract has now been validated against a human-in-the-loop automation scenario.
+That review confirms that the existing `ask` payload is sufficient for showing one next step, pausing on follow-up questions, and separating read-only from state-changing guidance without exposing more internal planning detail.

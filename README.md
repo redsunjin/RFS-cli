@@ -63,6 +63,7 @@ That agent now assumes a configured LLM as part of normal onboarding, and its ru
 - [Research export format](./docs/research-export-format.md)
 - [NotebookLM-adjacent workflows](./docs/notebooklm-adjacent-workflows.md)
 - [Guidance contract review](./docs/guidance-contract-review.md)
+- [Guidance automation use case](./docs/guidance-automation-use-case.md)
 - [Harbor concept](./docs/harbor-concept.md)
 - [Session handoff 2026-03-17](./docs/session-handoff-2026-03-17.md)
 - [LLM onboarding guide](./docs/llm-onboarding.md)
@@ -122,6 +123,7 @@ The current codebase includes:
 - progressive "start here" help in bare `rfs` and shell help output
 - read-only versus state-changing labels in deterministic guidance
 - documented public-versus-internal guidance contract boundaries
+- validated the `ask` contract against a human-in-the-loop automation use case
 - reusable internal help-block models behind startup and shell help rendering
 - recovery-first Korean empty-state copy for key blocked commands
 - workspace-state grounding for natural-language guidance inside `rfs shell`
