@@ -190,6 +190,36 @@ Exit definition:
 - the concept is documented as optional and post-MVP
 - no core product scope is pulled into the game layer
 
+### WG-06: Recovery-first UX copy
+
+Status:
+
+- complete
+
+Goal:
+
+- make direct command empty states and setup blockers easier to recover from
+
+Batchable tasks:
+
+- keep JSON error codes and payload shape stable
+- improve text-mode copy for `missing_llm`, `missing_index`, `missing_source`, `not_found`, and `missing_drive_config`
+- make `llm status` and `drive status` empty states point to one next command
+- add regression tests for human-facing recovery text
+
+Primary agents:
+
+- Product and roadmap agent
+- CLI architect agent
+- AI tooling agent
+- QA and release agent
+
+Exit definition:
+
+- text-mode empty states use short Korean-first recovery copy
+- one next step is visible in each key blocked flow
+- JSON contract behavior stays unchanged
+
 ## Recommended execution order
 
 1. WG-01 when credentials or token state are available
@@ -208,3 +238,4 @@ Exit definition:
 - WG-03: Assistive UX batch A
 - WG-04: External tool provider design
 - WG-05: Harbor and game planning
+- WG-06: Recovery-first UX copy

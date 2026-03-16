@@ -109,6 +109,7 @@ Responsibilities:
 - align wording across startup, `ask`, `shell`, and recovery messages
 - surface whether a recommendation is read-only or state-changing when that distinction is known
 - preserve Korean-first, compact, operational responses
+- keep direct command empty-state copy aligned with the same recovery-first tone without changing JSON contracts
 
 ### Near-term extraction target inside the current package
 

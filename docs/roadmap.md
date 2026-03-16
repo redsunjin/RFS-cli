@@ -215,6 +215,7 @@ Current slice status:
 - deterministic guidance now labels read-only versus state-changing recommendations
 - machine-readable guidance contract review is documented before any broader payload expansion
 - startup and shell help now share reusable internal help-block models without becoming public API
+- recovery-first copy for direct command empty states is now implemented for key blocked flows
 
 ## Sequencing rationale
 

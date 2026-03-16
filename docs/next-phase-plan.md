@@ -143,12 +143,14 @@ Current slice status:
 - Guidance contract review is now documented before any broader machine-readable payload expansion
 - Startup and shell help now reuse internal help-block models instead of ad-hoc local strings
 - Harbor and game planning is now documented as a completed optional concept track
+- The next unblocked follow-on batch is recovery-first direct-command copy for empty states and setup blockers
+- Recovery-first direct-command copy is now implemented for key blocked flows while JSON contracts remain stable
 
 ## Recommended next three tasks
 
 1. Run a real Google Drive smoke pass when client secrets or token state are available.
 2. Record the real Google Drive smoke result in QA docs once credentials are available.
-3. Keep any future machine-readable guidance expansion behind explicit contract review.
+3. Validate the guidance contract decisions against a future real automation use case before adding fields.
 
 ## Current work-group execution order
 

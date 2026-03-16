@@ -25,6 +25,7 @@
 - research export bundles for local indexed content
 - documented external tool-provider boundaries
 - documented optional harbor/game concept track
+- recovery-first Korean empty-state copy for key blocked flows
 
 ## Completed stage summary
 
@@ -56,6 +57,7 @@
 - external tool-provider design completed
 - guidance contract review completed
 - harbor/game planning docs completed
+- recovery-first UX copy completed
 
 ## Current blocker
 
@@ -94,6 +96,7 @@ Keep `WG-01` blocked and only take optional documentation or design work if ther
 
 ## Recent handoff commits
 
+- `111b796` `Add session handoff for next thread`
 - `2c5cca5` `Document harbor planning track`
 - `097922c` `Review guidance contract boundaries`
 - `f75acba` `Add progressive help and guidance action labels`
@@ -110,6 +113,7 @@ Keep `WG-01` blocked and only take optional documentation or design work if ther
 - `docs/todo.md`
 - `docs/guidance-contract-review.md`
 - `docs/harbor-concept.md`
+- `docs/session-handoff-2026-03-17.md`
 
 ## New-thread recommendation
 

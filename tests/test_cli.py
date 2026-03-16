@@ -345,6 +345,16 @@ def test_llm_status_json_reports_configured_state(tmp_path: Path, monkeypatch) -
     assert payload["data"]["reachable"] is True
 
 
+def test_llm_status_text_guides_next_step_when_not_configured(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+
+    result = runner.invoke(app, ["llm", "status", "--state-dir", str(state_dir)])
+
+    assert result.exit_code == 0
+    assert "LLM이 아직 설정되지 않았습니다." in result.stdout
+    assert "다음 단계: `rfs` 또는 `rfs llm setup`" in result.stdout
+
+
 def test_drive_auth_persists_drive_config(tmp_path: Path) -> None:
     state_dir = tmp_path / ".rfs"
 
@@ -532,6 +542,16 @@ def test_drive_status_reports_env_presence(tmp_path: Path, monkeypatch) -> None:
     assert payload["data"]["cache_file_exists"] is False
     assert payload["data"]["cache_entry_count"] == 0
     assert "drive search` are implemented" in payload["data"]["note"]
+
+
+def test_drive_status_text_guides_next_step_when_not_configured(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+
+    result = runner.invoke(app, ["drive", "status", "--state-dir", str(state_dir)])
+
+    assert result.exit_code == 0
+    assert "Google Drive가 아직 설정되지 않았습니다." in result.stdout
+    assert "다음 단계: `rfs drive auth`" in result.stdout
 
 
 def test_drive_status_reports_state_file_auth(tmp_path: Path) -> None:
@@ -762,6 +782,17 @@ def test_drive_search_requires_drive_config(tmp_path: Path) -> None:
     payload = json.loads(result.stdout)
     assert_command_payload(payload, "drive_search", False)
     assert payload["error"]["code"] == "missing_drive_config"
+
+
+def test_drive_search_missing_config_text_guides_next_step(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+
+    result = runner.invoke(app, ["drive", "search", "proposal", "--state-dir", str(state_dir)])
+
+    assert result.exit_code == 1
+    assert "[missing_drive_config]" in result.stdout
+    assert "Google Drive가 아직 설정되지 않았습니다." in result.stdout
+    assert "다음 단계: `rfs drive auth`" in result.stdout
 
 
 def test_drive_search_returns_structured_auth_error(tmp_path: Path, monkeypatch) -> None:
@@ -2067,6 +2098,18 @@ def test_search_missing_index_returns_structured_error(tmp_path: Path) -> None:
     assert payload["error"]["code"] == "missing_index"
 
 
+def test_search_missing_index_text_guides_next_step(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+
+    result = runner.invoke(app, ["search", "agent", "--state-dir", str(state_dir)])
+
+    assert result.exit_code == 1
+    assert "[missing_index]" in result.stdout
+    assert "인덱스가 아직 없습니다." in result.stdout
+    assert "다음 단계: `rfs index run`" in result.stdout
+
+
 def test_search_requires_llm_configuration(tmp_path: Path) -> None:
     state_dir = tmp_path / ".rfs"
     result = runner.invoke(
@@ -2078,6 +2121,18 @@ def test_search_requires_llm_configuration(tmp_path: Path) -> None:
     payload = json.loads(result.stdout)
     assert_command_payload(payload, "search", False)
     assert payload["error"]["code"] == "missing_llm"
+
+
+def test_index_run_missing_source_text_guides_next_step(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+
+    result = runner.invoke(app, ["index", "run", "--state-dir", str(state_dir)])
+
+    assert result.exit_code == 1
+    assert "[missing_source]" in result.stdout
+    assert "등록된 source가 없습니다." in result.stdout
+    assert "다음 단계: `rfs index add <path> --source local|obsidian`" in result.stdout
 
 
 def test_show_invalid_index_returns_structured_error(tmp_path: Path) -> None:
@@ -2095,6 +2150,20 @@ def test_show_invalid_index_returns_structured_error(tmp_path: Path) -> None:
     payload = json.loads(result.stdout)
     assert_command_payload(payload, "show", False)
     assert payload["error"]["code"] == "invalid_index"
+
+
+def test_show_not_found_text_guides_next_step(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    build_index_with_source(state_dir, fixture_root, "obsidian", source_id="vault")
+    rebuild_index(state_dir)
+
+    result = runner.invoke(app, ["show", "missing-doc", "--state-dir", str(state_dir)])
+
+    assert result.exit_code == 1
+    assert "[not_found]" in result.stdout
+    assert "대상을 바로 찾지 못했습니다." in result.stdout
+    assert '다음 단계: `rfs search "missing-doc"`' in result.stdout
 
 
 def test_dev_git_summary_non_repo_returns_structured_error(tmp_path: Path) -> None:

@@ -690,6 +690,42 @@ def render_progressive_help(state_dir: Path) -> str:
     return render_help_blocks(build_progressive_help_blocks(state_dir))
 
 
+def extract_first_quoted_value(text: str) -> Optional[str]:
+    parts = text.split('"')
+    if len(parts) >= 3 and parts[1]:
+        return parts[1]
+    return None
+
+
+def format_recovery_text(command: str, error: ErrorPayload) -> Optional[str]:
+    if error.code == "missing_llm":
+        return (
+            "LLM 설정이 아직 없습니다.\n"
+            "다음 단계: `rfs` 또는 `rfs init`으로 온보딩을 완료하세요."
+        )
+    if error.code == "missing_index":
+        return "인덱스가 아직 없습니다.\n다음 단계: `rfs index run`"
+    if error.code == "missing_source":
+        return (
+            "등록된 source가 없습니다.\n"
+            "다음 단계: `rfs index add <path> --source local|obsidian`"
+        )
+    if error.code == "missing_drive_config":
+        return "Google Drive가 아직 설정되지 않았습니다.\n다음 단계: `rfs drive auth`"
+    if error.code in {"invalid_config", "invalid_index"}:
+        return (
+            "상태 파일을 바로 쓰기 전에 점검이 필요합니다.\n"
+            "다음 단계: `rfs doctor --verbose`"
+        )
+    if error.code == "not_found" and command == "show":
+        target = extract_first_quoted_value(error.message) or "<query>"
+        return (
+            "대상을 바로 찾지 못했습니다.\n"
+            f'다음 단계: `rfs search "{target}"`'
+        )
+    return None
+
+
 def emit(payload: CommandPayload, output: OutputMode) -> None:
     if output == OutputMode.json:
         typer.echo(payload.model_dump_json(indent=2))
@@ -827,7 +863,8 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
 
         if command == "llm_status":
             if not data["configured"]:
-                typer.echo("LLM is not configured. Run `rfs llm setup` first.")
+                typer.echo("LLM이 아직 설정되지 않았습니다.")
+                typer.echo("다음 단계: `rfs` 또는 `rfs llm setup`")
                 return
             typer.echo(f'Provider: {data["provider"]}')
             typer.echo(f'Base URL: {data["base_url"]}')
@@ -869,8 +906,8 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
 
         if command == "drive_status":
             if not data["configured"]:
-                typer.echo("Google Drive is not configured. Run `rfs drive auth` first.")
-                typer.echo(data["note"])
+                typer.echo("Google Drive가 아직 설정되지 않았습니다.")
+                typer.echo("다음 단계: `rfs drive auth`")
                 return
             typer.echo(f'Auth flow: {data["flow"]}')
             typer.echo(
@@ -933,6 +970,10 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
         return
 
     error = payload.error or ErrorPayload(code="unknown_error", message="Unknown error.")
+    recovery_text = format_recovery_text(payload.command, error)
+    if recovery_text is not None:
+        typer.echo(f"[{error.code}] {recovery_text}")
+        return
     typer.echo(f"[{error.code}] {error.message}")
 
 

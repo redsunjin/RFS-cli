@@ -123,6 +123,7 @@ The current codebase includes:
 - read-only versus state-changing labels in deterministic guidance
 - documented public-versus-internal guidance contract boundaries
 - reusable internal help-block models behind startup and shell help rendering
+- recovery-first Korean empty-state copy for key blocked commands
 - workspace-state grounding for natural-language guidance inside `rfs shell`
 - matching deterministic follow-up behavior inside `rfs shell`
 - interactive shell mode with saved session memory and internal tool execution

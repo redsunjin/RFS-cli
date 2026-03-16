@@ -17,6 +17,19 @@
 - `uv run pytest`: pass
 - `uv run ruff check .`: pass
 
+### Recovery-first text validation
+
+Commands executed successfully:
+
+- `uv run rfs llm status --state-dir /tmp/.../.rfs`
+- `uv run rfs search agent --state-dir /tmp/.../.rfs`
+
+Observed checks:
+
+- human-facing empty-state copy now uses short Korean-first recovery text
+- key blocked flows now point to one next safe command instead of only raw error text
+- JSON error shape stayed stable while text-mode recovery copy improved
+
 ### Real LM Studio runtime validation
 
 Commands executed successfully:

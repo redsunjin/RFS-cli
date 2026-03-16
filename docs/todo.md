@@ -108,7 +108,7 @@ When scope changes, update these files in order:
 
 - [ ] Run a real Google Drive smoke pass when client secrets or token state are available
 - [ ] Record a real Google Drive smoke result in the QA report once credentials are available
-- [ ] Keep new machine-readable guidance fields behind explicit contract review
+- [ ] Validate the guidance contract decisions against a future real automation use case before adding fields
 
 ## Current work groups
 
@@ -117,6 +117,7 @@ When scope changes, update these files in order:
 - [x] `WG-03` Assistive UX batch A
 - [x] `WG-04` External tool provider design
 - [x] `WG-05` Harbor and game planning
+- [x] `WG-06` Recovery-first UX copy
 
 See `docs/work-groups.md` for batch contents, blockers, and review order.
 
@@ -132,8 +133,8 @@ See `docs/work-groups.md` for batch contents, blockers, and review order.
 - [ ] Define intent categories such as setup, add-source, search, inspect, and diagnose
 - [ ] Ground command suggestions in config, index, shell-memory, and doctor-visible state
 - [x] Add progressive help rendering for bare `rfs`, `--help`, `ask`, and `shell`
-- [ ] Explain empty states and missing setup in plain Korean with one recommended next step
-- [ ] Distinguish read-only suggestions from state-changing suggestions before execution automation
+- [x] Explain empty states and missing setup in plain Korean with one recommended next step
+- [x] Distinguish read-only suggestions from state-changing suggestions before execution automation
 - [x] Add contract review before exposing any machine-readable guidance payload
 
 ## Idea branch recommended next three tasks
@@ -148,8 +149,8 @@ See `docs/work-groups.md` for batch contents, blockers, and review order.
 - [ ] Define intent categories such as setup, add-source, search, inspect, and diagnose
 - [ ] Ground command suggestions in config, index, shell-memory, and doctor-visible state
 - [x] Add progressive help rendering for bare `rfs`, `--help`, `ask`, and `shell`
-- [ ] Explain empty states and missing setup in plain Korean with one recommended next step
-- [ ] Distinguish read-only suggestions from state-changing suggestions before execution automation
+- [x] Explain empty states and missing setup in plain Korean with one recommended next step
+- [x] Distinguish read-only suggestions from state-changing suggestions before execution automation
 - [x] Add contract review before exposing any machine-readable guidance payload
 
 ## Post-MVP gamification track

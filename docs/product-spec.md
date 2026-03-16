@@ -330,6 +330,7 @@ Examples:
 - Distinguish between read-only suggestions and state-changing commands
 - Keep existing JSON contracts stable unless an AI tooling review explicitly approves a new guidance payload
 - Treat internal intent, suggestion, and help-block models as implementation detail unless explicitly promoted through contract review
+- Make direct command empty states and setup blockers use short Korean-first recovery copy with one next step where practical
 
 ## Idea-branch experimental modules
 
