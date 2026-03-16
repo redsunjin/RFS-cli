@@ -116,7 +116,7 @@ When scope changes, update these files in order:
 - [x] `WG-02` Research export polish
 - [x] `WG-03` Assistive UX batch A
 - [x] `WG-04` External tool provider design
-- [ ] `WG-05` Harbor and game planning
+- [x] `WG-05` Harbor and game planning
 
 See `docs/work-groups.md` for batch contents, blockers, and review order.
 
@@ -154,9 +154,9 @@ See `docs/work-groups.md` for batch contents, blockers, and review order.
 
 ## Post-MVP gamification track
 
-- [ ] Define an optional `rfs harbor` rest-space concept
-- [ ] Design a small reward/progression model that stays outside core CLI state
-- [ ] Design one or two short TUI mini-games for optional use
+- [x] Define an optional `rfs harbor` rest-space concept
+- [x] Design a small reward/progression model that stays outside core CLI state
+- [x] Design one or two short TUI mini-games for optional use
 
 ## MVP execution backlog
 

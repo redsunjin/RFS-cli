@@ -63,6 +63,7 @@ That agent now assumes a configured LLM as part of normal onboarding, and its ru
 - [Research export format](./docs/research-export-format.md)
 - [NotebookLM-adjacent workflows](./docs/notebooklm-adjacent-workflows.md)
 - [Guidance contract review](./docs/guidance-contract-review.md)
+- [Harbor concept](./docs/harbor-concept.md)
 - [LLM onboarding guide](./docs/llm-onboarding.md)
 - [Agent profile](./docs/agent-profile.md)
 - [Agent contract](./docs/agent-contract.md)
@@ -129,6 +130,7 @@ The current codebase includes:
 - a first `research export` command that writes curated local bundles with a manifest and document files
 - query-based default research bundle naming under `exports/research/`
 - documented post-MVP external tool-provider boundaries for NestClaw and qa_claw
+- documented post-MVP harbor/game concept boundaries
 - required onboarding through `rfs init` and a packaged LLM guide
 - default interactive startup through `rfs` itself
 

@@ -414,6 +414,7 @@ Example response shape:
 
 - Keep any future `rfs harbor` or rest-space TUI behind a separate command boundary
 - Keep game state optional and isolated from required config, index, and shell state
+- Prefer one separate harbor state file such as `.rfs/harbor.json`
 - Do not let mini-game logic alter core command contracts or release-readiness checks
 
 ### Developer utility services

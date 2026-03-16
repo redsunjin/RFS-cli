@@ -168,7 +168,7 @@ Exit definition:
 
 Status:
 
-- deferred
+- complete
 
 Goal:
 
@@ -193,22 +193,18 @@ Exit definition:
 ## Recommended execution order
 
 1. WG-01 when credentials or token state are available
-2. WG-05 only as optional planning work
 
 ## Current batchable-now list
 
-- none outside blocked or optional tracks
+- none outside blocked tracks
 
 ## Current blocked list
 
 - WG-01: Google Drive runtime validation
-
-## Current deferred list
-
-- WG-05: Harbor and game planning
 
 ## Current completed list
 
 - WG-02: Research export polish
 - WG-03: Assistive UX batch A
 - WG-04: External tool provider design
+- WG-05: Harbor and game planning

@@ -2,7 +2,7 @@
 
 ## Date
 
-2026-03-14
+2026-03-17
 
 ## Current active stage
 
@@ -142,6 +142,7 @@ Current slice status:
 - Deterministic guidance now marks read-only versus state-changing recommendations
 - Guidance contract review is now documented before any broader machine-readable payload expansion
 - Startup and shell help now reuse internal help-block models instead of ad-hoc local strings
+- Harbor and game planning is now documented as a completed optional concept track
 
 ## Recommended next three tasks
 
@@ -156,4 +157,3 @@ Use `docs/work-groups.md` as the batch-planning layer above individual TODO item
 Current order:
 
 1. `WG-01` Google Drive runtime validation when credentials or token state are available
-2. `WG-05` Harbor and game planning only if optional planning time is available

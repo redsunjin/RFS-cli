@@ -234,6 +234,8 @@ qa_claw:
 - an optional `rfs harbor` or similar TUI rest space
 - short opt-in mini-games that do not block core workflows
 - progression or reward state that stays separate from core CLI correctness
+- one separate state file such as `.rfs/harbor.json`
+- no reward or harbor mechanic should gate real CLI features
 
 ### `rfs llm`
 

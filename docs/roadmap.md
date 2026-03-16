@@ -163,6 +163,11 @@ Candidate milestones:
 - define short opt-in TUI mini-games
 - keep progression and rewards isolated from core CLI state
 
+Current baseline:
+
+- the first harbor concept is now documented as a post-MVP optional layer
+- reward and progression ideas are now constrained to separate harbor-only state
+
 ## Agentification track
 
 After the current MVP hardening work, the next product-shaping track is turning `rfs-cli` into a stronger CLI-native agent.

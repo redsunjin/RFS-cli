@@ -118,6 +118,7 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - Expert-reviewed multi-agent delivery to MVP before broadening scope
 - Task-first guidance before syntax-first help
 - Experimental assistive UX modules stay decoupled from stable commands until they are validated
+- Any future harbor or mini-game layer stays fully optional and separate from required CLI state
 
 ## Integration strategy
 

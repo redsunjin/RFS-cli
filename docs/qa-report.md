@@ -126,6 +126,7 @@ Observed blocker:
 - no `GOOGLE_DRIVE_CLIENT_ID` or `GOOGLE_DRIVE_CLIENT_SECRET` env vars were present
 - no local `drive-token.json` was discovered under the workspace paths that were checked
 - because of that, the real Google Drive smoke pass could not complete in this environment
+- the same blocker was rechecked on 2026-03-17 and still applied: `.rfs/` had only `config.json` and `shell-memory.json`, with no Drive token state
 
 ## Findings
 
