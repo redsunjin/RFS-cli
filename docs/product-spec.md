@@ -192,6 +192,19 @@ Examples:
 - `rfs drive status`
 - `rfs drive search "proposal"`
 
+### `rfs research`
+
+Responsibilities:
+
+- export a bounded set of indexed documents into a local research bundle
+- preserve source metadata, relative paths, and manifest details for external handoff
+- stay read-only against the indexed sources while preparing material for NotebookLM-adjacent workflows
+
+Examples:
+
+- `rfs research export "agent systems"`
+- `rfs research export "roadmap" --source-id vault`
+
 ### Post-MVP external tool providers
 
 - NestClaw: API or CLI-backed orchestration tool provider
@@ -341,6 +354,13 @@ Responsibilities:
 - Default text output for humans
 - JSON output for automation
 - Predictable schemas per command
+
+### Research export
+
+- Export selected indexed documents into a predictable local bundle directory
+- Reuse the indexed search query and filters to choose the bundle contents
+- Write a machine-readable manifest alongside copied source files
+- Preserve enough source metadata for later external research handoff
 
 ### Configuration
 

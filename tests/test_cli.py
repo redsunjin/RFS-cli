@@ -1342,6 +1342,117 @@ def test_search_uses_indexed_content(tmp_path: Path) -> None:
     assert payload["data"]["results"][0]["relative_path"] == "project-roadmap.md"
 
 
+def test_research_export_creates_bundle_and_manifest(tmp_path: Path) -> None:
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    state_dir = tmp_path / ".rfs"
+    output_dir = tmp_path / "exports"
+
+    build_index_with_source(state_dir, fixture_root, "obsidian")
+    rebuild_index(state_dir)
+
+    result = runner.invoke(
+        app,
+        [
+            "research",
+            "export",
+            "agent systems",
+            "--output-dir",
+            str(output_dir),
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "research_export", True)
+    assert payload["data"]["query"] == "agent systems"
+    assert payload["data"]["document_count"] == 1
+    export_dir = Path(payload["data"]["export_dir"])
+    manifest_path = Path(payload["data"]["manifest_path"])
+    exported_path = Path(payload["data"]["documents"][0]["export_path"])
+    assert export_dir.exists()
+    assert manifest_path.exists()
+    assert exported_path.exists()
+    assert exported_path.read_text(encoding="utf-8").startswith("---\n")
+
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert manifest["bundle_type"] == "research_export"
+    assert manifest["query"] == "agent systems"
+    assert manifest["document_count"] == 1
+    assert manifest["documents"][0]["relative_path"] == "ideas/agent-systems.md"
+
+
+def test_research_export_supports_filters(tmp_path: Path) -> None:
+    obsidian_root = Path("tests/fixtures/obsidian").resolve()
+    local_root = Path("tests/fixtures/local").resolve()
+    state_dir = tmp_path / ".rfs"
+    output_dir = tmp_path / "exports"
+
+    build_index_with_source(state_dir, obsidian_root, "obsidian", source_id="obsidian-main")
+    build_index_with_source(state_dir, local_root, "local", source_id="local-docs")
+    rebuild_index(state_dir)
+
+    result = runner.invoke(
+        app,
+        [
+            "research",
+            "export",
+            "agent",
+            "--output-dir",
+            str(output_dir),
+            "--source-id",
+            "obsidian-main",
+            "--path-prefix",
+            "ideas",
+            "--tag",
+            "agents",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["data"]["document_count"] == 1
+    assert payload["data"]["documents"][0]["source_id"] == "obsidian-main"
+    assert payload["data"]["documents"][0]["relative_path"] == "ideas/agent-systems.md"
+
+
+def test_research_export_returns_not_found_when_query_has_no_matches(tmp_path: Path) -> None:
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    state_dir = tmp_path / ".rfs"
+    output_dir = tmp_path / "exports"
+
+    build_index_with_source(state_dir, fixture_root, "obsidian")
+    rebuild_index(state_dir)
+
+    result = runner.invoke(
+        app,
+        [
+            "research",
+            "export",
+            "missing bundle query",
+            "--output-dir",
+            str(output_dir),
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 1
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "research_export", False)
+    assert payload["error"]["code"] == "not_found"
+    assert not output_dir.exists()
+
+
 def test_show_json_resolves_document_id(tmp_path: Path) -> None:
     fixture_root = Path("tests/fixtures/obsidian").resolve()
     state_dir = tmp_path / ".rfs"

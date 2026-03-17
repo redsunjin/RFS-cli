@@ -104,6 +104,12 @@ Exit criteria:
 - Export workflow exists for selected documents
 - Research-oriented command patterns are documented
 
+Current baseline:
+
+- `rfs research export` now creates local bundles from indexed search results
+- bundle manifests preserve source metadata, relative paths, and export locations
+- the first NotebookLM-adjacent export format is documented for local handoff
+
 ## Post-MVP external tool integration track
 
 Goal:

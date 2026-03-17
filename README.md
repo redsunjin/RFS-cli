@@ -54,6 +54,7 @@ That agent now assumes a configured LLM as part of normal onboarding, and its ru
 - [Release checklist](./docs/release-checklist.md)
 - [Smoke checklist](./docs/smoke-checklist.md)
 - [QA report](./docs/qa-report.md)
+- [Research export format](./docs/research-export-format.md)
 - [Idea track](./docs/idea-track.md)
 - [Easy CLI principles](./docs/easy-cli-principles.md)
 - [LLM onboarding guide](./docs/llm-onboarding.md)
@@ -77,6 +78,7 @@ Planned command groups:
 - `rfs llm`
 - `rfs ask`
 - `rfs drive`
+- `rfs research`
 
 ## Selected stack
 
@@ -104,6 +106,7 @@ The current codebase includes:
 - file preview support
 - project statistics
 - agent-safe file listing and text search
+- research export bundles for indexed documents
 - required LLM setup and guided CLI usage with `rfs ask`
 - documented agent contract plus source-aware guidance for `rfs ask`
 - deterministic short follow-up questions for ambiguous `rfs ask` requests
@@ -130,6 +133,7 @@ uv run rfs index run
 uv run rfs search "agent memory" --format json
 uv run rfs show <document-id> --format json
 uv run rfs dev find-todo --path . --format json
+uv run rfs research export "agent systems" --format json
 ```
 
 The default workspace state directory is `.rfs/`.

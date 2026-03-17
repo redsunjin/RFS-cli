@@ -63,6 +63,7 @@ from rfs_cli.models import (
     ShellMemory,
     SourceConfig,
 )
+from rfs_cli.research import export_research_bundle
 from rfs_cli.services import (
     find_todo_markers,
     git_summary,
@@ -78,12 +79,14 @@ dev_app = typer.Typer(help="Developer utility commands.")
 agent_app = typer.Typer(help="AI-safe commands.")
 drive_app = typer.Typer(help="Google Drive commands.")
 llm_app = typer.Typer(help="LLM setup and guidance commands.")
+research_app = typer.Typer(help="Research workflow commands.")
 
 app.add_typer(index_app, name="index")
 app.add_typer(dev_app, name="dev")
 app.add_typer(agent_app, name="agent")
 app.add_typer(drive_app, name="drive")
 app.add_typer(llm_app, name="llm")
+app.add_typer(research_app, name="research")
 
 
 class OutputMode(str, Enum):
@@ -125,8 +128,20 @@ KNOWN_SHELL_COMMANDS = {
     "agent",
     "drive",
     "llm",
+    "research",
 }
-STATEFUL_COMMANDS = {"ask", "doctor", "search", "show", "index", "dev", "agent", "drive", "llm"}
+STATEFUL_COMMANDS = {
+    "ask",
+    "doctor",
+    "search",
+    "show",
+    "index",
+    "dev",
+    "agent",
+    "drive",
+    "llm",
+    "research",
+}
 
 
 def should_use_color() -> bool:
@@ -723,6 +738,13 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
                 typer.echo(f'  modified: {result["modified_time"]}')
                 if result.get("web_view_link"):
                     typer.echo(f'  link: {result["web_view_link"]}')
+            return
+
+        if command == "research_export":
+            typer.echo(f'Research export ready for "{data["query"]}"')
+            typer.echo(f'Documents: {data["document_count"]}')
+            typer.echo(f'Export dir: {data["export_dir"]}')
+            typer.echo(f'Manifest: {data["manifest_path"]}')
             return
 
         if command == "ask":
@@ -2007,6 +2029,57 @@ def drive_search(
             "planned_result_contract": build_drive_result_contract(),
             "note": DRIVE_CONTRACT_NOTE,
         },
+    )
+    emit(payload, output)
+
+
+@research_app.command("export")
+def research_export(
+    query: str = typer.Argument(..., help="Search query used to select indexed documents."),
+    output_dir: Path = typer.Option(Path("exports/research"), "--output-dir"),
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
+    source: Optional[str] = typer.Option(None, "--source"),
+    source_id: Optional[str] = typer.Option(None, "--source-id"),
+    tag: Optional[list[str]] = typer.Option(None, "--tag"),
+    path_prefix: Optional[str] = typer.Option(None, "--path-prefix"),
+    file_type: Optional[str] = typer.Option(None, "--file-type"),
+    limit: int = typer.Option(20, "--limit", min=1, max=100),
+    output: OutputMode = typer.Option(OutputMode.text, "--format"),
+) -> None:
+    load_agent_config_or_fail("research_export", state_dir, output)
+    index_store = load_index_or_fail("research_export", state_dir, output)
+    if index_store is None:
+        fail(
+            "research_export",
+            "No index found. Run `rfs index run` first.",
+            output,
+            code="missing_index",
+        )
+
+    bundle = export_research_bundle(
+        query=query,
+        index_store=index_store,
+        output_dir=output_dir,
+        state_dir=state_dir,
+        source=source,
+        source_id=source_id,
+        tag_filters=tag,
+        path_prefix=path_prefix,
+        file_type=file_type,
+        limit=limit,
+    )
+    if bundle is None:
+        fail(
+            "research_export",
+            f'No indexed documents matched "{query}".',
+            output,
+            code="not_found",
+        )
+
+    payload = CommandPayload(
+        command="research_export",
+        ok=True,
+        data=bundle,
     )
     emit(payload, output)
 

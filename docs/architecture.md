@@ -293,6 +293,16 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 7. Persist bounded cache entries under the workspace state directory
 8. Expose live metadata-only `drive search` with cache hit or miss details
 
+### Research export flow
+
+1. Load the local app config and index
+2. Run the existing indexed search behavior with the export query and filters
+3. Create a bounded bundle directory under the selected output root
+4. Copy each selected document into `documents/<source_id>/<relative_path>`
+5. Fall back to the indexed content snapshot if the original file is missing
+6. Write `manifest.json` with query, filters, timestamps, and exported document metadata
+7. Return one text or JSON payload with the bundle and manifest paths
+
 ### Planned agent-interaction flow
 
 1. Inspect the current workspace state such as configured sources and index availability

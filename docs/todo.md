@@ -85,9 +85,9 @@ When scope changes, update these files in order:
 
 ## Phase 5: Research workflow extensions
 
-- [ ] Define export format for curated document bundles
-- [ ] Implement research export command
-- [ ] Document NotebookLM-adjacent workflow examples
+- [x] Define export format for curated document bundles
+- [x] Implement research export command
+- [x] Document NotebookLM-adjacent workflow examples
 
 ## Post-MVP external tool providers
 
@@ -107,8 +107,8 @@ When scope changes, update these files in order:
 ## Current recommended next three tasks
 
 - [ ] Run a real Google Drive smoke pass when client secrets or token state are available
-- [ ] Define export format for curated document bundles
-- [ ] Implement research export command
+- [ ] Define a tool-provider contract for local companion projects
+- [ ] Design a NestClaw adapter boundary for API or CLI invocation
 
 ## Idea branch recommended next three tasks
 

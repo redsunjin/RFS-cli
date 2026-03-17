@@ -2,7 +2,7 @@
 
 ## Date
 
-2026-03-14
+2026-03-17
 
 ## Current active stage
 
@@ -125,11 +125,14 @@ Current slice status:
 - Drive local metadata cache strategy: complete
 - Live metadata-only `drive search`: complete
 - Drive adapter integration tests: complete
+- Research export bundle format: complete
+- `rfs research export` command: complete
+- NotebookLM-adjacent handoff documentation: complete
 - Real Google Drive smoke: blocked in the current environment because no Drive client-secret env vars or token file are available
 - Cache expiry and invalidation review: complete through command-level cache-hit, expiry, and page-size invalidation tests
 
 ## Recommended next three tasks
 
 1. Run a real Google Drive smoke pass when client secrets or token state are available.
-2. Define export format for curated document bundles.
-3. Implement research export command.
+2. Define a tool-provider contract for local companion projects.
+3. Design a NestClaw adapter boundary for API or CLI invocation.
