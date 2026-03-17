@@ -128,11 +128,12 @@ Current slice status:
 - Research export bundle format: complete
 - `rfs research export` command: complete
 - NotebookLM-adjacent handoff documentation: complete
+- Shared tool-provider contract: complete
 - Real Google Drive smoke: blocked in the current environment because no Drive client-secret env vars or token file are available
 - Cache expiry and invalidation review: complete through command-level cache-hit, expiry, and page-size invalidation tests
 
 ## Recommended next three tasks
 
 1. Run a real Google Drive smoke pass when client secrets or token state are available.
-2. Define a tool-provider contract for local companion projects.
-3. Design a NestClaw adapter boundary for API or CLI invocation.
+2. Design a NestClaw adapter boundary for API or CLI invocation.
+3. Design a qa_claw adapter boundary for script execution.

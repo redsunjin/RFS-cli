@@ -122,6 +122,11 @@ Candidate milestones:
 - qa_claw adapter design for script-driven workflow execution
 - tool-provider registration model aligned with the existing local-first agent shell
 
+Current baseline:
+
+- the shared tool-provider contract is documented
+- provider execution remains deferred until after the current design boundaries are reviewed
+
 ## Phase 6: Release readiness
 
 Goal:

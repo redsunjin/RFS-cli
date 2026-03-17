@@ -91,7 +91,7 @@ When scope changes, update these files in order:
 
 ## Post-MVP external tool providers
 
-- [ ] Define a tool-provider contract for local companion projects
+- [x] Define a tool-provider contract for local companion projects
 - [ ] Design a NestClaw adapter boundary for API or CLI invocation
 - [ ] Design a qa_claw adapter boundary for script execution
 
@@ -107,8 +107,8 @@ When scope changes, update these files in order:
 ## Current recommended next three tasks
 
 - [ ] Run a real Google Drive smoke pass when client secrets or token state are available
-- [ ] Define a tool-provider contract for local companion projects
 - [ ] Design a NestClaw adapter boundary for API or CLI invocation
+- [ ] Design a qa_claw adapter boundary for script execution
 
 ## Idea branch recommended next three tasks
 

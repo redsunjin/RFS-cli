@@ -209,6 +209,9 @@ Examples:
 
 - NestClaw: API or CLI-backed orchestration tool provider
 - qa_claw: script-backed workflow and verification tool provider
+- a shared tool-provider contract should exist before any runtime-facing provider command is added
+- provider capabilities must declare read-only versus state-changing behavior explicitly
+- provider execution remains opt-in and local-first rather than becoming a generic plugin marketplace
 
 ### Post-MVP optional harbor layer
 

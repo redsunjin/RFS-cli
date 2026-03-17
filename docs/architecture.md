@@ -371,6 +371,9 @@ Example response shape:
 - Treat NestClaw as a future provider behind an API or CLI adapter boundary
 - Treat qa_claw as a future provider behind a script-runner adapter boundary
 - Keep both outside the core MVP command surface until the current CLI agent baseline is complete
+- Define one shared provider descriptor before implementing provider-specific runtimes
+- Keep provider transport, capability metadata, timeout rules, and bounded output expectations explicit
+- Do not add provider config wiring or shell auto-routing until a later runtime slice is approved
 
 ### Optional gamification layer
 
