@@ -217,6 +217,8 @@ src/rfs_cli/
 - `next_step`
 - `alternatives`
 
+The current internal guidance helpers now live behind a dedicated guidance module and support the existing `ask` and `shell` entrypoints without changing their public payloads.
+
 ## Command flow
 
 ### Index flow

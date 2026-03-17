@@ -9,6 +9,11 @@ from typer.testing import CliRunner
 from rfs_cli import __version__
 from rfs_cli.config import load_config, load_drive_cache, load_shell_memory, save_config
 from rfs_cli.drive import fetch_drive_file_metadata
+from rfs_cli.guidance import (
+    interpret_user_intent,
+    plan_command_suggestion,
+    render_guidance_response,
+)
 from rfs_cli.llm import extract_message_content, history_to_messages
 from rfs_cli.main import app, render_banner
 from rfs_cli.models import DriveConfig, DriveFileRecord, LLMConfig
@@ -1110,6 +1115,50 @@ def test_ask_returns_follow_up_when_show_target_is_missing(tmp_path: Path, monke
     assert_command_payload(payload, "ask", True)
     assert payload["data"]["follow_up_required"] is True
     assert "어떤 문서를 열어볼까요?" in payload["data"]["follow_up_question"]
+
+
+def test_interpret_user_intent_extracts_search_goal_and_terms() -> None:
+    intent = interpret_user_intent("roadmap note를 검색하려면?")
+
+    assert intent.goal == "search"
+    assert "roadmap" in intent.entities["meaningful_terms"]
+    assert intent.confidence >= 0.8
+
+
+def test_plan_command_suggestion_requests_source_details_when_no_sources_exist(
+    tmp_path: Path,
+) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+    app_config = load_config(state_dir=state_dir)
+    intent = interpret_user_intent("검색을 시작하려면 어떻게 해?")
+    suggestion = plan_command_suggestion(intent, app_config, state_dir)
+    response = render_guidance_response(intent, suggestion, app_config, state_dir)
+
+    assert suggestion.mode == "follow_up"
+    assert "source_kind" in suggestion.missing_state
+    assert response is not None
+    assert response.next_step is not None
+    assert "어떤 경로를 먼저 연결할까요?" in response.next_step
+
+
+def test_plan_command_suggestion_requests_target_for_ambiguous_inspect(
+    tmp_path: Path,
+) -> None:
+    state_dir = tmp_path / ".rfs"
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    build_index_with_source(state_dir, fixture_root, "obsidian", source_id="vault")
+    rebuild_index(state_dir)
+    app_config = load_config(state_dir=state_dir)
+    intent = interpret_user_intent("문서 보여줘")
+    suggestion = plan_command_suggestion(intent, app_config, state_dir)
+    response = render_guidance_response(intent, suggestion, app_config, state_dir)
+
+    assert suggestion.mode == "follow_up"
+    assert suggestion.missing_state == ["target"]
+    assert response is not None
+    assert response.next_step is not None
+    assert "어떤 문서를 열어볼까요?" in response.next_step
 
 
 def test_shell_runs_internal_command_and_saves_memory(tmp_path: Path) -> None:

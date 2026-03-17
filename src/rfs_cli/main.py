@@ -3,7 +3,6 @@ from __future__ import annotations
 import io
 import json
 import os
-import re
 import shlex
 import subprocess
 import sys
@@ -40,6 +39,13 @@ from rfs_cli.drive import (
     load_drive_credentials,
     run_drive_installed_app_auth,
 )
+from rfs_cli.guidance import (
+    build_guidance_runtime_context,
+    build_shell_guidance_history,
+    interpret_user_intent,
+    plan_command_suggestion,
+    render_guidance_response,
+)
 from rfs_cli.indexing import build_index, build_source_id, resolve_index_document, search_index
 from rfs_cli.llm import (
     ask_llm,
@@ -53,15 +59,18 @@ from rfs_cli.llm import (
 from rfs_cli.models import (
     AppConfig,
     CommandPayload,
+    CommandSuggestion,
     DriveAuthConfig,
     DriveCacheConfig,
     DriveConfig,
     DriveFileRecord,
     ErrorPayload,
+    GuidanceResponse,
     LLMConfig,
     ShellEvent,
     ShellMemory,
     SourceConfig,
+    UserIntent,
 )
 from rfs_cli.research import export_research_bundle
 from rfs_cli.services import (
@@ -936,255 +945,6 @@ def append_shell_event(
         memory.events = memory.events[-200:]
 
 
-def format_source_summary(sources: list[SourceConfig]) -> list[str]:
-    if not sources:
-        return ["Configured sources: none."]
-
-    lines = [f"Configured sources: {len(sources)}"]
-    for source in sources[:8]:
-        status = "enabled" if source.enabled else "disabled"
-        lines.append(
-            f"- {source.id} [{source.type}] {status} root={source.root_path}"
-        )
-    if len(sources) > 8:
-        lines.append(f"- ... {len(sources) - 8} more source(s)")
-    return lines
-
-
-def build_guidance_runtime_context(app_config: AppConfig, state_dir: Path) -> list[dict[str, str]]:
-    resolved_state_dir = resolve_state_dir(state_dir)
-    lines = [
-        "Workspace guidance context:",
-        f"- state_dir: {resolved_state_dir}",
-        *format_source_summary(app_config.sources),
-    ]
-
-    try:
-        index_store = load_index(state_dir=resolved_state_dir)
-    except ValueError as exc:
-        lines.append("- index_status: invalid")
-        lines.append(f"- index_error: {exc}")
-        lines.append(
-            "- guidance_hint: recommend rebuilding the index with `rfs index run` "
-            "after checking configured sources."
-        )
-        return [{"role": "system", "content": "\n".join(lines)}]
-
-    if index_store is None:
-        lines.append("- index_status: missing")
-        if app_config.sources:
-            lines.append(
-                "- guidance_hint: sources exist, so prefer `rfs index run` before "
-                "recommending `search` or `show`."
-            )
-        else:
-            lines.append(
-                "- guidance_hint: no sources exist, so prefer `rfs index add <root> "
-                "--source local|obsidian` before `rfs index run`."
-            )
-        return [{"role": "system", "content": "\n".join(lines)}]
-
-    source_ids = sorted({document.source_id for document in index_store.documents})
-    file_types = sorted({document.file_type for document in index_store.documents})
-    lines.extend(
-        [
-            "- index_status: available",
-            f"- indexed_document_count: {len(index_store.documents)}",
-            f"- indexed_source_ids: {', '.join(source_ids) if source_ids else 'none'}",
-            f"- indexed_file_types: {', '.join(file_types[:10]) if file_types else 'none'}",
-            "- guidance_hint: prefer grounded `search`, `show`, and filter suggestions "
-            "that match the available sources and indexed content.",
-        ]
-    )
-    return [{"role": "system", "content": "\n".join(lines)}]
-
-
-def contains_path_hint(text: str) -> bool:
-    return any(token in text for token in ["/", "\\", "~", ".md", ".txt", ":\\"])
-
-
-AMBIGUOUS_ASK_STOPWORDS = {
-    "a",
-    "add",
-    "and",
-    "connect",
-    "do",
-    "find",
-    "for",
-    "get",
-    "hae",
-    "how",
-    "i",
-    "index",
-    "lookup",
-    "notes",
-    "query",
-    "search",
-    "setup",
-    "show",
-    "start",
-    "the",
-    "to",
-    "use",
-    "what",
-    "검색",
-    "문서",
-    "방법",
-    "보여",
-    "시작",
-    "어떻게",
-    "어케",
-    "열어",
-    "조회",
-    "찾",
-    "찾기",
-    "파일",
-    "해",
-}
-
-
-def normalize_guidance_token(token: str) -> str:
-    normalized = token.lower()
-    suffixes = [
-        "하려면",
-        "하려",
-        "하면",
-        "하기",
-        "하고",
-        "에서",
-        "으로",
-        "부터",
-        "까지",
-        "처럼",
-        "한줄",
-        "은",
-        "는",
-        "이",
-        "가",
-        "을",
-        "를",
-        "에",
-        "와",
-        "과",
-        "도",
-        "만",
-        "요",
-    ]
-    for suffix in suffixes:
-        if normalized.endswith(suffix) and len(normalized) > len(suffix) + 1:
-            normalized = normalized[: -len(suffix)]
-            break
-    return normalized
-
-
-def meaningful_guidance_terms(question: str) -> list[str]:
-    tokens = re.findall(r"[A-Za-z0-9가-힣_-]+", question.lower())
-    normalized_tokens = [normalize_guidance_token(token) for token in tokens]
-    return [token for token in normalized_tokens if token not in AMBIGUOUS_ASK_STOPWORDS]
-
-
-def detect_ambiguous_ask(question: str, app_config: AppConfig, state_dir: Path) -> Optional[str]:
-    lowered = question.lower()
-    enabled_sources = [source for source in app_config.sources if source.enabled]
-    meaningful_terms = meaningful_guidance_terms(question)
-
-    wants_search = any(
-        keyword in lowered for keyword in ["search", "find", "lookup", "검색", "찾", "조회"]
-    )
-    wants_setup = any(
-        keyword in lowered
-        for keyword in ["index", "add", "connect", "setup", "start", "등록", "추가", "연결", "설정"]
-    )
-    mentions_source_kind = any(
-        keyword in lowered
-        for keyword in ["obsidian", "local", "vault", "볼트", "폴더", "folder", "directory"]
-    )
-
-    try:
-        index_store = load_index(state_dir=resolve_state_dir(state_dir))
-    except ValueError:
-        index_store = None
-
-    if not enabled_sources and (wants_search or wants_setup):
-        if (
-            not mentions_source_kind
-            and not contains_path_hint(question)
-            and not meaningful_terms
-        ):
-            return (
-                "어떤 경로를 먼저 연결할까요? local 폴더인지 Obsidian vault인지와 "
-                "경로를 한 줄로 알려주세요."
-            )
-
-    if len(enabled_sources) > 1 and index_store is None and wants_search:
-        source_ids = [source.id for source in enabled_sources]
-        if not any(source_id.lower() in lowered for source_id in source_ids):
-            return (
-                "어느 source부터 인덱싱할까요? "
-                f"{', '.join(source_ids)} 중 하나를 알려주세요."
-            )
-
-    if index_store is not None and any(
-        keyword in lowered for keyword in ["show", "open", "문서", "파일", "노트", "보여", "열어"]
-    ):
-        has_target_hint = contains_path_hint(question) or any(
-            document.document_id in question for document in index_store.documents[:20]
-        )
-        if not has_target_hint:
-            return "어떤 문서를 열어볼까요? 경로, 문서 ID, 또는 검색어를 한 줄로 알려주세요."
-
-    return None
-
-
-def build_shell_guidance_history(
-    app_config: AppConfig,
-    state_dir: Path,
-    memory: ShellMemory,
-) -> list[dict[str, str]]:
-    return build_guidance_runtime_context(app_config, state_dir) + shell_history_messages(
-        memory,
-        include_latest=False,
-    )
-
-
-def shell_history_messages(
-    memory: ShellMemory,
-    limit: int = 8,
-    include_latest: bool = True,
-) -> list[dict[str, str]]:
-    messages: list[dict[str, str]] = [
-        {
-            "role": "system",
-            "content": (
-                "You are answering from inside an already active `rfs shell` session. "
-                "The user is already in the shell right now. "
-                "Do not tell the user to run `rfs shell` unless they are explicitly "
-                "asking how to start a new session."
-            ),
-        }
-    ]
-    events = memory.events if include_latest else memory.events[:-1]
-    for event in events[-limit:]:
-        if event.kind == "user":
-            messages.append({"role": "user", "content": event.content})
-            continue
-        if event.kind == "assistant":
-            messages.append({"role": "assistant", "content": event.content})
-            continue
-        if event.kind == "tool":
-            messages.append(
-                {
-                    "role": "system",
-                    "content": (
-                        "Recent tool execution:\n"
-                        f'command: {event.metadata.get("command", "unknown")}\n'
-                        f"output:\n{event.content}"
-                    ),
-                }
-            )
-    return messages
-
-
 def inject_state_dir(args: list[str], state_dir: Path) -> list[str]:
     if "--state-dir" in args or not args:
         return args
@@ -1320,9 +1080,17 @@ def ask(
     app_config = load_agent_config_or_fail("ask", state_dir, output)
 
     prompt = question or typer.prompt("What do you want to do with rfs?")
-    follow_up_question = detect_ambiguous_ask(prompt, app_config, state_dir)
+    intent: UserIntent = interpret_user_intent(prompt)
+    suggestion: CommandSuggestion = plan_command_suggestion(intent, app_config, state_dir)
+    guidance_response: Optional[GuidanceResponse] = render_guidance_response(
+        intent,
+        suggestion,
+        app_config,
+        state_dir,
+    )
 
-    if follow_up_question is not None:
+    if guidance_response is not None and guidance_response.next_step is not None:
+        follow_up_question = guidance_response.next_step
         payload = CommandPayload(
             command="ask",
             ok=True,
@@ -1503,10 +1271,17 @@ def run_shell_session(
             save_shell_memory(memory, state_dir=resolved_state_dir)
             continue
 
-        follow_up_question = detect_ambiguous_ask(user_input, app_config, resolved_state_dir)
-        if follow_up_question is not None:
-            typer.echo(follow_up_question)
-            append_shell_event(memory, "assistant", follow_up_question)
+        intent = interpret_user_intent(user_input)
+        suggestion = plan_command_suggestion(intent, app_config, resolved_state_dir)
+        guidance_response = render_guidance_response(
+            intent,
+            suggestion,
+            app_config,
+            resolved_state_dir,
+        )
+        if guidance_response is not None and guidance_response.next_step is not None:
+            typer.echo(guidance_response.next_step)
+            append_shell_event(memory, "assistant", guidance_response.next_step)
             save_shell_memory(memory, state_dir=resolved_state_dir)
             continue
 

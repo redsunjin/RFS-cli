@@ -9,6 +9,8 @@ OutputFormat = Literal["text", "json"]
 LLMProvider = Literal["ollama", "lmstudio", "openai-compatible"]
 DriveAuthFlow = Literal["oauth-installed-app"]
 DriveCacheMode = Literal["disabled", "metadata-only"]
+IntentGoal = Literal["setup", "search", "inspect", "diagnose", "unknown"]
+SuggestionMode = Literal["read", "write", "follow_up"]
 
 
 class SourceConfig(BaseModel):
@@ -97,6 +99,27 @@ class CommandPayload(BaseModel):
     ok: bool
     data: Dict[str, Any] = Field(default_factory=dict)
     error: Optional[ErrorPayload] = None
+
+
+class UserIntent(BaseModel):
+    goal: IntentGoal
+    entities: Dict[str, Any] = Field(default_factory=dict)
+    missing_fields: List[str] = Field(default_factory=list)
+    confidence: float
+
+
+class CommandSuggestion(BaseModel):
+    command: Optional[str] = None
+    reason: str
+    mode: SuggestionMode
+    missing_state: List[str] = Field(default_factory=list)
+
+
+class GuidanceResponse(BaseModel):
+    summary: str
+    recommended_command: Optional[str] = None
+    next_step: Optional[str] = None
+    alternatives: List[str] = Field(default_factory=list)
 
 
 class IndexDocument(BaseModel):
