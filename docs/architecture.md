@@ -260,6 +260,13 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 4. If a critical field is missing, ask one short follow-up question
 5. Otherwise render one recommended command plus a short explanation and optional fallback
 
+### Progressive help flow
+
+1. Start from the existing command help surface instead of a new command family
+2. Show one recommended next step before the full generated help details
+3. Keep the same commands, flags, and payload contracts underneath the reordered help copy
+4. Reserve broader recovery-copy rewrites for later slices
+
 ### Init flow
 
 1. Start `rfs init`

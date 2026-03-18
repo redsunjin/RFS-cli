@@ -270,6 +270,7 @@ Responsibilities:
 - lead with one recommended command before listing alternatives
 - explain missing setup or missing local state in plain Korean
 - reveal advanced flags and subcommands progressively instead of dumping them first
+- make bare `rfs`, `rfs --help`, `rfs ask --help`, and `rfs shell --help` each show one recommended next step before the full help listing
 
 Examples:
 

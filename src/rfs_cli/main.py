@@ -82,7 +82,27 @@ from rfs_cli.services import (
     project_stats,
 )
 
-app = typer.Typer(help="Personal knowledge, developer utility, and AI-tool CLI.")
+APP_HELP_TEXT = """Start here: run `rfs` in an interactive terminal.
+
+Recommended next step:
+  rfs
+
+Manual alternatives:
+  rfs init
+  rfs doctor --verbose --format json
+"""
+ASK_HELP_TEXT = """Ask for one concrete next step in plain language.
+
+Recommended next step:
+  rfs ask "옵시디언 볼트를 추가하려면 어떻게 해?"
+"""
+SHELL_HELP_TEXT = """Open the interactive shell for multi-turn local guidance and commands.
+
+Recommended next step:
+  rfs shell
+"""
+
+app = typer.Typer(help=APP_HELP_TEXT)
 index_app = typer.Typer(help="Index-related commands.")
 dev_app = typer.Typer(help="Developer utility commands.")
 agent_app = typer.Typer(help="AI-safe commands.")
@@ -1032,8 +1052,11 @@ def root(
 
     typer.echo(render_banner())
     typer.echo("")
-    typer.echo("Run `rfs` in an interactive terminal to start onboarding or the agent shell.")
-    typer.echo("Use `rfs init` when you want to configure the required LLM flow manually.")
+    typer.echo("Recommended next step:")
+    typer.echo("- Run `rfs` in an interactive terminal to start onboarding or the agent shell.")
+    typer.echo("Other starting points:")
+    typer.echo("- `rfs init` to configure the required LLM flow manually.")
+    typer.echo("- `rfs doctor --verbose --format json` to inspect the current workspace state.")
     typer.echo("")
     typer.echo(ctx.get_help())
     raise typer.Exit()
@@ -1070,8 +1093,7 @@ def init(
         api_key_env=api_key_env,
     )
 
-
-@app.command()
+@app.command(help=ASK_HELP_TEXT)
 def ask(
     question: Optional[str] = typer.Argument(None, help="Question about how to use the CLI."),
     state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
@@ -1303,7 +1325,7 @@ def run_shell_session(
         save_shell_memory(memory, state_dir=resolved_state_dir)
 
 
-@app.command()
+@app.command(help=SHELL_HELP_TEXT)
 def shell(
     state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
     reset_memory: bool = typer.Option(False, "--reset-memory"),

@@ -201,7 +201,8 @@ Current slice status:
 - first three experimental modules are defined as intent interpreter, suggestion planner, and guidance renderer
 - internal `UserIntent`, `CommandSuggestion`, and `GuidanceResponse` models now exist behind the current command surface
 - the first intent interpreter and suggestion-planning helpers are now extracted behind `rfs ask` and shell guidance
-- the next implementation slice is progressive help and broader recovery-copy alignment
+- progressive help now leads bare `rfs`, `rfs --help`, `rfs ask --help`, and `rfs shell --help` with one recommended next step
+- the next implementation slice is broader recovery-copy alignment
 
 ## Sequencing rationale
 

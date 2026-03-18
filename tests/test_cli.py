@@ -141,8 +141,35 @@ def test_root_without_args_shows_banner_and_help_when_non_interactive(monkeypatc
     assert result.exit_code == 0
     assert " ____  _____    _    ______   __   _____ ___  ____    ____  _____    _" in result.stdout
     assert WAVE_LINE in result.stdout
+    assert "Recommended next step:" in result.stdout
     assert "Run `rfs` in an interactive terminal" in result.stdout
     assert "Usage:" in result.stdout
+
+
+def test_root_help_leads_with_recommended_next_step() -> None:
+    result = runner.invoke(app, ["--help"])
+
+    assert result.exit_code == 0
+    assert "Start here: run `rfs` in an interactive terminal." in result.stdout
+    assert "Recommended next step:" in result.stdout
+    assert "rfs doctor --verbose --format json" in result.stdout
+
+
+def test_ask_help_includes_plain_language_example() -> None:
+    result = runner.invoke(app, ["ask", "--help"])
+
+    assert result.exit_code == 0
+    assert "Ask for one concrete next step in plain language." in result.stdout
+    assert 'rfs ask "옵시디언 볼트를 추가하려면 어떻게 해?"' in result.stdout
+
+
+def test_shell_help_includes_recommended_entrypoint() -> None:
+    result = runner.invoke(app, ["shell", "--help"])
+
+    assert result.exit_code == 0
+    assert "Open the interactive shell for multi-turn local guidance and commands." in result.stdout
+    assert "Recommended next step:" in result.stdout
+    assert "rfs shell" in result.stdout
 
 
 def test_render_banner_uses_ansi_when_forced(monkeypatch) -> None:
