@@ -261,10 +261,10 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 
 1. Inspect current runtime state such as config, index, and shell session
 2. Reuse doctor-visible diagnostics such as invalid index or shell-memory state when deciding whether repair should be attempted yet
-2. Interpret the user's task into a small internal intent model
-3. Rank the supported command paths that match both the intent and current state
-4. If a critical field is missing, ask one short follow-up question
-5. Otherwise render one recommended command plus a short explanation and optional fallback
+3. Interpret the user's task into a small internal intent model
+4. Rank the supported command paths that match both the intent and current state
+5. If a critical field is missing, ask one short follow-up question
+6. Otherwise render one recommended command plus a short explanation and optional fallback
 
 ### Progressive help flow
 
