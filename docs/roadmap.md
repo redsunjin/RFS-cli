@@ -203,7 +203,8 @@ Current slice status:
 - the first intent interpreter and suggestion-planning helpers are now extracted behind `rfs ask` and shell guidance
 - progressive help now leads bare `rfs`, `rfs --help`, `rfs ask --help`, and `rfs shell --help` with one recommended next step
 - text-mode recovery copy now aligns selected empty-state and setup blockers around one Korean next step
-- the next implementation slice is distinguishing read-only guidance from state-changing suggestions
+- text guidance now labels deterministic suggestions as read-only or state-changing without changing JSON contracts
+- the next implementation slice is grounding suggestions in shell-memory and doctor-visible state
 
 ## Sequencing rationale
 

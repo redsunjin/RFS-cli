@@ -123,7 +123,7 @@ When scope changes, update these files in order:
 - [ ] Ground command suggestions in config, index, shell-memory, and doctor-visible state
 - [x] Add progressive help rendering for bare `rfs`, `--help`, `ask`, and `shell`
 - [x] Explain empty states and missing setup in plain Korean with one recommended next step
-- [ ] Distinguish read-only suggestions from state-changing suggestions before execution automation
+- [x] Distinguish read-only suggestions from state-changing suggestions before execution automation
 - [ ] Add contract review before exposing any machine-readable guidance payload
 
 ## Post-MVP gamification track

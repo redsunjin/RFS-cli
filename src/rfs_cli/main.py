@@ -42,6 +42,7 @@ from rfs_cli.drive import (
 from rfs_cli.guidance import (
     build_guidance_runtime_context,
     build_shell_guidance_history,
+    format_guidance_response,
     interpret_user_intent,
     plan_command_suggestion,
     render_guidance_response,
@@ -1167,7 +1168,11 @@ def ask(
         state_dir,
     )
 
-    if guidance_response is not None and guidance_response.next_step is not None:
+    if (
+        guidance_response is not None
+        and suggestion.mode == "follow_up"
+        and guidance_response.next_step is not None
+    ):
         follow_up_question = guidance_response.next_step
         payload = CommandPayload(
             command="ask",
@@ -1182,6 +1187,10 @@ def ask(
             },
         )
         emit(payload, output)
+        return
+
+    if guidance_response is not None and output == OutputMode.text:
+        typer.echo(format_guidance_response(guidance_response))
         return
 
     try:
@@ -1357,9 +1366,10 @@ def run_shell_session(
             app_config,
             resolved_state_dir,
         )
-        if guidance_response is not None and guidance_response.next_step is not None:
-            typer.echo(guidance_response.next_step)
-            append_shell_event(memory, "assistant", guidance_response.next_step)
+        if guidance_response is not None:
+            guidance_text = format_guidance_response(guidance_response)
+            typer.echo(guidance_text)
+            append_shell_event(memory, "assistant", guidance_text)
             save_shell_memory(memory, state_dir=resolved_state_dir)
             continue
 

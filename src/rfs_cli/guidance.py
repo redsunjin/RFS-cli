@@ -245,7 +245,7 @@ def plan_command_suggestion(
         if not requested_source_hint and not requested_path_hint and not meaningful_terms:
             return CommandSuggestion(
                 command=None,
-                reason="Need a source kind and path before suggesting indexing.",
+                reason="인덱싱을 추천하려면 source 종류와 경로가 먼저 필요합니다.",
                 mode="follow_up",
                 missing_state=["source_kind", "path"],
             )
@@ -255,7 +255,7 @@ def plan_command_suggestion(
         if not any(source_id.lower() in lowered_question for source_id in source_ids):
             return CommandSuggestion(
                 command=None,
-                reason="Need a source selection before recommending indexing.",
+                reason="인덱싱 전에는 어느 source를 먼저 다룰지 정해야 합니다.",
                 mode="follow_up",
                 missing_state=["source_id"],
             )
@@ -267,7 +267,7 @@ def plan_command_suggestion(
         if not requested_path_hint and not has_document_id_hint:
             return CommandSuggestion(
                 command=None,
-                reason="Need a document target before recommending `show`.",
+                reason="`show`를 추천하려면 문서 대상이 먼저 필요합니다.",
                 mode="follow_up",
                 missing_state=["target"],
             )
@@ -276,20 +276,20 @@ def plan_command_suggestion(
         if index_store is None and enabled_sources:
             return CommandSuggestion(
                 command="rfs index run",
-                reason="Sources exist but the index is not ready yet.",
+                reason="source는 연결되어 있지만 인덱스가 아직 없습니다.",
                 mode="write",
                 missing_state=["index"],
             )
         if index_store is None:
             return CommandSuggestion(
                 command="rfs index add <root> --source local|obsidian",
-                reason="A source must be configured before search can work.",
+                reason="검색 전에 source를 먼저 연결해야 합니다.",
                 mode="write",
                 missing_state=["source"],
             )
         return CommandSuggestion(
             command="rfs search <query>",
-            reason="Indexed search is available for this request.",
+            reason="지금 상태에서는 인덱스 검색으로 바로 확인할 수 있습니다.",
             mode="read",
             missing_state=[],
         )
@@ -297,7 +297,7 @@ def plan_command_suggestion(
     if intent.goal == "inspect":
         return CommandSuggestion(
             command="rfs show <document-id-or-path>",
-            reason="Indexed inspection is available when a target is known.",
+            reason="대상이 정해지면 문서를 바로 열어볼 수 있습니다.",
             mode="read",
             missing_state=[],
         )
@@ -305,7 +305,7 @@ def plan_command_suggestion(
     if intent.goal == "diagnose":
         return CommandSuggestion(
             command="rfs doctor --verbose",
-            reason="Diagnostics are the safest grounded next step.",
+            reason="현재 상태를 확인하는 가장 안전한 다음 단계입니다.",
             mode="read",
             missing_state=[],
         )
@@ -314,20 +314,20 @@ def plan_command_suggestion(
         if enabled_sources:
             return CommandSuggestion(
                 command="rfs index run",
-                reason="Configured sources should be indexed next.",
+                reason="연결된 source를 먼저 인덱싱하는 것이 다음 단계입니다.",
                 mode="write",
                 missing_state=[],
             )
         return CommandSuggestion(
             command="rfs index add <root> --source local|obsidian",
-            reason="A source needs to be configured first.",
+            reason="먼저 source를 연결해야 합니다.",
             mode="write",
             missing_state=["source"],
         )
 
     return CommandSuggestion(
         command=None,
-        reason="No deterministic guidance override is required.",
+        reason="지금은 결정적인 로컬 추천 없이 일반 가이던스로 넘깁니다.",
         mode="read",
         missing_state=[],
     )
@@ -364,7 +364,39 @@ def render_guidance_response(
             alternatives=[],
         )
 
+    if suggestion.command is None:
+        return None
+
+    if suggestion.mode == "read":
+        return GuidanceResponse(
+            summary=(
+                "읽기 전용 다음 단계입니다.\n"
+                f"이유: {suggestion.reason}"
+            ),
+            recommended_command=suggestion.command,
+            next_step=suggestion.command,
+            alternatives=[],
+        )
+
+    if suggestion.mode == "write":
+        return GuidanceResponse(
+            summary=(
+                "로컬 상태를 바꾸는 다음 단계입니다.\n"
+                f"이유: {suggestion.reason}"
+            ),
+            recommended_command=suggestion.command,
+            next_step=suggestion.command,
+            alternatives=[],
+        )
+
     return None
+
+
+def format_guidance_response(response: GuidanceResponse) -> str:
+    lines = [response.summary]
+    if response.recommended_command is not None:
+        lines.append(f"추천 명령: `{response.recommended_command}`")
+    return "\n".join(lines)
 
 
 def shell_history_messages(

@@ -10,6 +10,7 @@ from rfs_cli import __version__
 from rfs_cli.config import load_config, load_drive_cache, load_shell_memory, save_config
 from rfs_cli.drive import fetch_drive_file_metadata
 from rfs_cli.guidance import (
+    format_guidance_response,
     interpret_user_intent,
     plan_command_suggestion,
     render_guidance_response,
@@ -1188,6 +1189,41 @@ def test_plan_command_suggestion_requests_target_for_ambiguous_inspect(
     assert "어떤 문서를 열어볼까요?" in response.next_step
 
 
+def test_render_guidance_response_marks_read_only_suggestion(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    build_index_with_source(state_dir, fixture_root, "obsidian", source_id="vault")
+    rebuild_index(state_dir)
+    app_config = load_config(state_dir=state_dir)
+    intent = interpret_user_intent("roadmap note를 찾으려면?")
+    suggestion = plan_command_suggestion(intent, app_config, state_dir)
+    response = render_guidance_response(intent, suggestion, app_config, state_dir)
+
+    assert suggestion.mode == "read"
+    assert response is not None
+    assert response.recommended_command == "rfs search <query>"
+    rendered = format_guidance_response(response)
+    assert "읽기 전용 다음 단계입니다." in rendered
+    assert "`rfs search <query>`" in rendered
+
+
+def test_render_guidance_response_marks_state_changing_suggestion(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    build_index_with_source(state_dir, fixture_root, "obsidian", source_id="vault")
+    app_config = load_config(state_dir=state_dir)
+    intent = interpret_user_intent("roadmap note를 찾으려면?")
+    suggestion = plan_command_suggestion(intent, app_config, state_dir)
+    response = render_guidance_response(intent, suggestion, app_config, state_dir)
+
+    assert suggestion.mode == "write"
+    assert response is not None
+    assert response.recommended_command == "rfs index run"
+    rendered = format_guidance_response(response)
+    assert "로컬 상태를 바꾸는 다음 단계입니다." in rendered
+    assert "`rfs index run`" in rendered
+
+
 def test_shell_runs_internal_command_and_saves_memory(tmp_path: Path) -> None:
     state_dir = tmp_path / ".rfs"
     save_llm_config(state_dir)
@@ -1225,12 +1261,12 @@ def test_shell_uses_llm_and_persists_conversation(tmp_path: Path, monkeypatch) -
     result = runner.invoke(
         app,
         ["shell", "--state-dir", str(state_dir)],
-        input="How do I search roadmap notes?\n/exit\n",
+        input="이 도구를 한 줄로 설명해줘\n/exit\n",
     )
 
     assert result.exit_code == 0
     assert 'Use `rfs search "roadmap"`.' in result.stdout
-    assert captured["question"] == "How do I search roadmap notes?"
+    assert captured["question"] == "이 도구를 한 줄로 설명해줘"
     assert captured["history"][0]["role"] == "system"
     assert "Workspace guidance context:" in captured["history"][0]["content"]
     assert "Configured sources: none." in captured["history"][0]["content"]
@@ -1258,7 +1294,7 @@ def test_shell_includes_source_and_index_context_for_llm(tmp_path: Path, monkeyp
     result = runner.invoke(
         app,
         ["shell", "--state-dir", str(state_dir)],
-        input="roadmap note 찾고 싶어\n/exit\n",
+        input="이 도구를 어떻게 쓰는지 설명해줘\n/exit\n",
     )
 
     assert result.exit_code == 0
@@ -1293,6 +1329,92 @@ def test_shell_returns_follow_up_without_calling_llm(tmp_path: Path, monkeypatch
         and "어떤 경로를 먼저 연결할까요?" in event.content
         for event in memory.events
     )
+
+
+def test_ask_text_returns_read_only_guidance_without_calling_llm(
+    tmp_path: Path, monkeypatch
+) -> None:
+    state_dir = tmp_path / ".rfs"
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    build_index_with_source(state_dir, fixture_root, "obsidian", source_id="vault")
+    rebuild_index(state_dir)
+
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError("LLM should not be called for deterministic text guidance.")
+
+    monkeypatch.setattr("rfs_cli.main.ask_llm", fail_if_called)
+
+    result = runner.invoke(app, ["ask", "roadmap note를 찾으려면?", "--state-dir", str(state_dir)])
+
+    assert result.exit_code == 0
+    assert "읽기 전용 다음 단계입니다." in result.stdout
+    assert "`rfs search <query>`" in result.stdout
+
+
+def test_ask_text_returns_state_changing_guidance_without_calling_llm(
+    tmp_path: Path, monkeypatch
+) -> None:
+    state_dir = tmp_path / ".rfs"
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    build_index_with_source(state_dir, fixture_root, "obsidian", source_id="vault")
+
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError("LLM should not be called for deterministic text guidance.")
+
+    monkeypatch.setattr("rfs_cli.main.ask_llm", fail_if_called)
+
+    result = runner.invoke(app, ["ask", "roadmap note를 찾으려면?", "--state-dir", str(state_dir)])
+
+    assert result.exit_code == 0
+    assert "로컬 상태를 바꾸는 다음 단계입니다." in result.stdout
+    assert "`rfs index run`" in result.stdout
+
+
+def test_shell_returns_read_only_guidance_without_calling_llm(
+    tmp_path: Path, monkeypatch
+) -> None:
+    state_dir = tmp_path / ".rfs"
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    build_index_with_source(state_dir, fixture_root, "obsidian", source_id="vault")
+    rebuild_index(state_dir)
+
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError("LLM should not be called for deterministic shell guidance.")
+
+    monkeypatch.setattr("rfs_cli.main.ask_llm", fail_if_called)
+
+    result = runner.invoke(
+        app,
+        ["shell", "--state-dir", str(state_dir)],
+        input="roadmap note를 찾으려면?\n/exit\n",
+    )
+
+    assert result.exit_code == 0
+    assert "읽기 전용 다음 단계입니다." in result.stdout
+    assert "`rfs search <query>`" in result.stdout
+
+
+def test_shell_returns_state_changing_guidance_without_calling_llm(
+    tmp_path: Path, monkeypatch
+) -> None:
+    state_dir = tmp_path / ".rfs"
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    build_index_with_source(state_dir, fixture_root, "obsidian", source_id="vault")
+
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError("LLM should not be called for deterministic shell guidance.")
+
+    monkeypatch.setattr("rfs_cli.main.ask_llm", fail_if_called)
+
+    result = runner.invoke(
+        app,
+        ["shell", "--state-dir", str(state_dir)],
+        input="roadmap note를 찾으려면?\n/exit\n",
+    )
+
+    assert result.exit_code == 0
+    assert "로컬 상태를 바꾸는 다음 단계입니다." in result.stdout
+    assert "`rfs index run`" in result.stdout
 
 
 def test_shell_survives_llm_timeout(tmp_path: Path, monkeypatch) -> None:

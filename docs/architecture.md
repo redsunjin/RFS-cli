@@ -208,6 +208,7 @@ src/rfs_cli/
 - `command`
 - `reason`
 - `mode`
+  `read`, `write`, or `follow_up`
 - `missing_state`
 
 ### Experimental GuidanceResponse
@@ -218,6 +219,7 @@ src/rfs_cli/
 - `alternatives`
 
 The current internal guidance helpers now live behind a dedicated guidance module and support the existing `ask` and `shell` entrypoints without changing their public payloads.
+The renderer now turns internal suggestion modes into human-facing labels so text guidance can clearly distinguish read-only recommendations from state-changing commands.
 
 ## Command flow
 
