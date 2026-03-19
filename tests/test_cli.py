@@ -2000,8 +2000,46 @@ def test_agent_find_text_ignores_virtualenv_directories(tmp_path: Path) -> None:
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
     assert_command_payload(payload, "agent_find_text", True)
+    assert set(payload["data"].keys()) == {"query", "root", "result_count", "results"}
     assert payload["data"]["result_count"] == 1
+    assert set(payload["data"]["results"][0].keys()) == {
+        "path",
+        "title",
+        "source_type",
+        "score",
+        "snippet",
+    }
     assert payload["data"]["results"][0]["title"] == "keep"
+
+
+def test_agent_list_files_json_contract_exact_shape(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+    root = tmp_path / "workspace"
+    root.mkdir()
+    (root / "docs").mkdir()
+    (root / "docs" / "plan.md").write_text("# Plan\n", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        ["agent", "list-files", str(root), "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "agent_list_files", True)
+    assert set(payload["data"].keys()) == {"root", "item_count", "items"}
+    assert payload["data"]["root"] == str(root.resolve())
+    assert payload["data"]["item_count"] == len(payload["data"]["items"])
+    assert payload["data"]["item_count"] >= 2
+    assert set(payload["data"]["items"][0].keys()) == {"path", "kind", "size_bytes"}
+
+
+def test_shell_rejects_json_format_flag() -> None:
+    result = runner.invoke(app, ["shell", "--format", "json"])
+
+    assert result.exit_code == 2
+    assert "No such option: --format" in result.stdout
 
 
 def test_dev_project_stats_json_contract(tmp_path: Path) -> None:
