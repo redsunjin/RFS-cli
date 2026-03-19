@@ -355,6 +355,7 @@ Every command should expose:
 - JSON mode with a versioned schema field
 
 Human-facing guidance copy may evolve more quickly than command payloads, but any new machine-readable guidance shape must be versioned and reviewed before it becomes a public contract.
+The current `ask` JSON contract intentionally stays narrow and does not expose internal suggestion mode, diagnostics snapshots, or renderer metadata before that review gate is passed.
 
 Example response shape:
 

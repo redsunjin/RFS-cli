@@ -1050,6 +1050,14 @@ def test_ask_json_uses_configured_llm(tmp_path: Path, monkeypatch) -> None:
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
     assert_command_payload(payload, "ask", True)
+    assert set(payload["data"].keys()) == {
+        "question",
+        "provider",
+        "model",
+        "answer",
+        "follow_up_required",
+        "follow_up_question",
+    }
     assert payload["data"]["provider"] == "ollama"
     assert "rfs search" in payload["data"]["answer"]
     assert payload["data"]["follow_up_required"] is False
@@ -1118,9 +1126,46 @@ def test_ask_returns_follow_up_when_no_sources_are_configured(tmp_path: Path, mo
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
     assert_command_payload(payload, "ask", True)
+    assert set(payload["data"].keys()) == {
+        "question",
+        "provider",
+        "model",
+        "answer",
+        "follow_up_required",
+        "follow_up_question",
+    }
     assert payload["data"]["follow_up_required"] is True
     assert "어떤 경로를 먼저 연결할까요?" in payload["data"]["follow_up_question"]
     assert payload["data"]["answer"] == payload["data"]["follow_up_question"]
+
+
+def test_ask_json_contract_does_not_expose_internal_guidance_fields(
+    tmp_path: Path, monkeypatch
+) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+
+    monkeypatch.setattr("rfs_cli.main.ask_llm", lambda config, question, history=None: "ok")
+
+    result = runner.invoke(
+        app,
+        ["ask", "agent memory", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "ask", True)
+    forbidden_fields = {
+        "recommended_command",
+        "mode",
+        "summary",
+        "alternatives",
+        "intent",
+        "suggestion",
+        "diagnostics",
+        "shell_memory",
+    }
+    assert forbidden_fields.isdisjoint(payload["data"].keys())
 
 
 def test_ask_returns_follow_up_when_show_target_is_missing(tmp_path: Path, monkeypatch) -> None:

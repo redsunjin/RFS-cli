@@ -205,7 +205,8 @@ Current slice status:
 - text-mode recovery copy now aligns selected empty-state and setup blockers around one Korean next step
 - text guidance now labels deterministic suggestions as read-only or state-changing without changing JSON contracts
 - deterministic suggestions now recognize invalid index and shell-memory state and prefer `rfs doctor --verbose`
-- the next implementation slice is an AI tooling contract review before any machine-readable guidance payload expands
+- a guidance-payload contract review now freezes the current `ask` JSON shape before any machine-readable expansion
+- the next implementation slice is deciding whether a reviewed v2 guidance schema should exist at all
 
 ## Sequencing rationale
 

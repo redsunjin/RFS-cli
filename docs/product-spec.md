@@ -313,6 +313,7 @@ Examples:
 - Prefer `rfs doctor --verbose` before repair commands when local state exists but is invalid
 - Distinguish between read-only suggestions and state-changing commands
 - Keep existing JSON contracts stable unless an AI tooling review explicitly approves a new guidance payload
+- Freeze the current `ask` JSON fields until a reviewed guidance schema is documented
 
 ## Idea-branch experimental modules
 
