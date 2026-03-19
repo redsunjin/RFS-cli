@@ -269,6 +269,7 @@ Responsibilities:
 - keep startup, `--help`, `ask`, and `shell` guidance aligned
 - lead with one recommended command before listing alternatives
 - explain missing setup or missing local state in plain Korean
+- keep recovery messages short and action-oriented with exactly one recommended next step
 - reveal advanced flags and subcommands progressively instead of dumping them first
 - make bare `rfs`, `rfs --help`, `rfs ask --help`, and `rfs shell --help` each show one recommended next step before the full help listing
 
@@ -306,6 +307,7 @@ Examples:
 - Turn a user goal into one recommended command plus a short explanation
 - Ask for only the single most important missing detail before proceeding
 - Explain empty states and setup blockers in plain language instead of only showing raw syntax
+- Keep text-mode recovery output Korean-first and limited to one safe next action
 - Keep guidance grounded in current config, index, shell, and doctor-visible state
 - Distinguish between read-only suggestions and state-changing commands
 - Keep existing JSON contracts stable unless an AI tooling review explicitly approves a new guidance payload

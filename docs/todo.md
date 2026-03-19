@@ -122,7 +122,7 @@ When scope changes, update these files in order:
 - [x] Define intent categories such as setup, add-source, search, inspect, and diagnose
 - [ ] Ground command suggestions in config, index, shell-memory, and doctor-visible state
 - [x] Add progressive help rendering for bare `rfs`, `--help`, `ask`, and `shell`
-- [ ] Explain empty states and missing setup in plain Korean with one recommended next step
+- [x] Explain empty states and missing setup in plain Korean with one recommended next step
 - [ ] Distinguish read-only suggestions from state-changing suggestions before execution automation
 - [ ] Add contract review before exposing any machine-readable guidance payload
 

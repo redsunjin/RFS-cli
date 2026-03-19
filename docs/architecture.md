@@ -265,7 +265,14 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 1. Start from the existing command help surface instead of a new command family
 2. Show one recommended next step before the full generated help details
 3. Keep the same commands, flags, and payload contracts underneath the reordered help copy
-4. Reserve broader recovery-copy rewrites for later slices
+
+### Recovery guidance flow
+
+1. Keep JSON error payloads unchanged for machine callers
+2. Intercept selected text-mode error codes near the renderer
+3. Rewrite the human-facing message into short Korean recovery copy
+4. Present exactly one recommended next command for the current blocker
+5. Fall back to the stable `[code] message` format for unclassified errors
 
 ### Init flow
 

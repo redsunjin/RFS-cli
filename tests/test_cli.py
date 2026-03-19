@@ -1894,6 +1894,27 @@ def test_search_requires_llm_configuration(tmp_path: Path) -> None:
     assert payload["error"]["code"] == "missing_llm"
 
 
+def test_search_missing_index_text_guides_index_run(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+
+    result = runner.invoke(app, ["search", "agent", "--state-dir", str(state_dir)])
+
+    assert result.exit_code == 1
+    assert "인덱스가 아직 없습니다." in result.stdout
+    assert "`rfs index run`" in result.stdout
+
+
+def test_search_missing_llm_text_guides_init(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+
+    result = runner.invoke(app, ["search", "agent", "--state-dir", str(state_dir)])
+
+    assert result.exit_code == 1
+    assert "LLM 설정이 아직 없습니다." in result.stdout
+    assert "`rfs init`" in result.stdout
+
+
 def test_show_invalid_index_returns_structured_error(tmp_path: Path) -> None:
     state_dir = tmp_path / ".rfs"
     state_dir.mkdir()
@@ -1909,6 +1930,60 @@ def test_show_invalid_index_returns_structured_error(tmp_path: Path) -> None:
     payload = json.loads(result.stdout)
     assert_command_payload(payload, "show", False)
     assert payload["error"]["code"] == "invalid_index"
+
+
+def test_drive_search_missing_config_text_guides_drive_auth(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+
+    result = runner.invoke(app, ["drive", "search", "proposal", "--state-dir", str(state_dir)])
+
+    assert result.exit_code == 1
+    assert "Google Drive 설정이 아직 없습니다." in result.stdout
+    assert "`rfs drive auth`" in result.stdout
+
+
+def test_index_run_missing_source_text_guides_index_add(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+
+    result = runner.invoke(app, ["index", "run", "--state-dir", str(state_dir)])
+
+    assert result.exit_code == 1
+    assert "연결된 source가 아직 없습니다." in result.stdout
+    assert "`rfs index add <경로> --source local|obsidian`" in result.stdout
+
+
+def test_show_not_found_text_guides_search(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    build_index_with_source(state_dir, fixture_root, "obsidian")
+    rebuild_index(state_dir)
+
+    result = runner.invoke(app, ["show", "missing-doc", "--state-dir", str(state_dir)])
+
+    assert result.exit_code == 1
+    assert "찾는 항목을 찾지 못했습니다." in result.stdout
+    assert '`rfs search "<검색어>"`' in result.stdout
+
+
+def test_llm_status_not_configured_text_guides_init(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+
+    result = runner.invoke(app, ["llm", "status", "--state-dir", str(state_dir)])
+
+    assert result.exit_code == 0
+    assert "LLM 설정이 아직 없습니다." in result.stdout
+    assert "`rfs init`" in result.stdout
+
+
+def test_drive_status_not_configured_text_guides_auth(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+
+    result = runner.invoke(app, ["drive", "status", "--state-dir", str(state_dir)])
+
+    assert result.exit_code == 0
+    assert "Google Drive 설정이 아직 없습니다." in result.stdout
+    assert "`rfs drive auth`" in result.stdout
 
 
 def test_dev_git_summary_non_repo_returns_structured_error(tmp_path: Path) -> None:

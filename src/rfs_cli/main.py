@@ -681,7 +681,8 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
 
         if command == "llm_status":
             if not data["configured"]:
-                typer.echo("LLM is not configured. Run `rfs llm setup` first.")
+                typer.echo("LLM 설정이 아직 없습니다.")
+                typer.echo("다음 단계: `rfs` 또는 `rfs init`으로 초기 설정을 시작하세요.")
                 return
             typer.echo(f'Provider: {data["provider"]}')
             typer.echo(f'Base URL: {data["base_url"]}')
@@ -722,7 +723,11 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
 
         if command == "drive_status":
             if not data["configured"]:
-                typer.echo("Google Drive is not configured. Run `rfs drive auth` first.")
+                typer.echo("Google Drive 설정이 아직 없습니다.")
+                typer.echo(
+                    "다음 단계: `rfs drive auth --configure-only` 또는 "
+                    "`rfs drive auth`를 실행하세요."
+                )
                 typer.echo(data["note"])
                 return
             typer.echo(f'Auth flow: {data["flow"]}')
@@ -784,7 +789,58 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
         return
 
     error = payload.error or ErrorPayload(code="unknown_error", message="Unknown error.")
+    recovery_text = build_recovery_text(payload.command, error.code, error.message)
+    if recovery_text is not None:
+        typer.echo(recovery_text)
+        return
     typer.echo(f"[{error.code}] {error.message}")
+
+
+def build_recovery_text(command: str, code: str, message: str) -> Optional[str]:
+    if code == "missing_llm":
+        return (
+            "LLM 설정이 아직 없습니다.\n"
+            "다음 단계: `rfs` 또는 `rfs init`으로 초기 설정을 시작하세요."
+        )
+
+    if code == "missing_index":
+        return (
+            "인덱스가 아직 없습니다.\n"
+            "다음 단계: `rfs index run`으로 먼저 인덱스를 만드세요."
+        )
+
+    if code == "missing_source":
+        return (
+            "연결된 source가 아직 없습니다.\n"
+            "다음 단계: `rfs index add <경로> --source local|obsidian`로 source를 추가하세요."
+        )
+
+    if code == "missing_drive_config":
+        return (
+            "Google Drive 설정이 아직 없습니다.\n"
+            "다음 단계: `rfs drive auth --configure-only` 또는 "
+            "`rfs drive auth`를 실행하세요."
+        )
+
+    if code == "not_found":
+        if command == "research_export":
+            return (
+                "내보낼 문서를 찾지 못했습니다.\n"
+                "다음 단계: 같은 검색어로 `rfs search \"<검색어>\"` 결과를 먼저 확인하세요."
+            )
+        return (
+            "찾는 항목을 찾지 못했습니다.\n"
+            "다음 단계: `rfs search \"<검색어>\"`로 먼저 후보를 확인하세요."
+        )
+
+    if code == "llm_error":
+        return (
+            "LLM 요청 중 문제가 생겼습니다.\n"
+            "다음 단계: `rfs llm status`로 연결 상태를 확인하세요.\n"
+            f"원인: {message}"
+        )
+
+    return None
 
 
 def fail(command: str, message: str, output: OutputMode, code: str = "runtime_error") -> None:
