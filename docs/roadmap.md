@@ -204,7 +204,8 @@ Current slice status:
 - progressive help now leads bare `rfs`, `rfs --help`, `rfs ask --help`, and `rfs shell --help` with one recommended next step
 - text-mode recovery copy now aligns selected empty-state and setup blockers around one Korean next step
 - text guidance now labels deterministic suggestions as read-only or state-changing without changing JSON contracts
-- the next implementation slice is grounding suggestions in shell-memory and doctor-visible state
+- deterministic suggestions now recognize invalid index and shell-memory state and prefer `rfs doctor --verbose`
+- the next implementation slice is an AI tooling contract review before any machine-readable guidance payload expands
 
 ## Sequencing rationale
 

@@ -96,6 +96,7 @@ Responsibilities:
 
 - combine interpreted intent with runtime state such as config, index, and shell session
 - choose the best supported command path
+- prefer diagnostics first when doctor-visible local state is invalid
 - decide whether the response should suggest, redirect, or stop for clarification
 
 ### Guidance renderer
@@ -220,6 +221,8 @@ src/rfs_cli/
 
 The current internal guidance helpers now live behind a dedicated guidance module and support the existing `ask` and `shell` entrypoints without changing their public payloads.
 The renderer now turns internal suggestion modes into human-facing labels so text guidance can clearly distinguish read-only recommendations from state-changing commands.
+The same diagnostics used by `rfs doctor` now also feed guidance planning so invalid local state can redirect to `rfs doctor --verbose` before repair commands are suggested.
+The planner now also distinguishes missing local state from invalid local state so it can prefer `rfs doctor --verbose` before repair-oriented suggestions.
 
 ## Command flow
 
@@ -257,6 +260,7 @@ Search ranking is heuristic and currently combines title, alias, tag, path, cont
 ### Assistive guidance flow
 
 1. Inspect current runtime state such as config, index, and shell session
+2. Reuse doctor-visible diagnostics such as invalid index or shell-memory state when deciding whether repair should be attempted yet
 2. Interpret the user's task into a small internal intent model
 3. Rank the supported command paths that match both the intent and current state
 4. If a critical field is missing, ask one short follow-up question

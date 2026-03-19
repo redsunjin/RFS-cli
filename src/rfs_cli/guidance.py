@@ -5,6 +5,12 @@ from pathlib import Path
 from typing import Optional
 
 from rfs_cli.config import load_index, resolve_state_dir
+from rfs_cli.diagnostics import (
+    build_doctor_suggestions,
+    collect_index_diagnostics,
+    collect_llm_runtime_diagnostics,
+    collect_shell_memory_diagnostics,
+)
 from rfs_cli.models import (
     AppConfig,
     CommandSuggestion,
@@ -69,11 +75,21 @@ def format_source_summary(sources: list[SourceConfig]) -> list[str]:
 
 def build_guidance_runtime_context(app_config: AppConfig, state_dir: Path) -> list[dict[str, str]]:
     resolved_state_dir = resolve_state_dir(state_dir)
+    shell_memory = collect_shell_memory_diagnostics(resolved_state_dir)
+    llm_runtime = collect_llm_runtime_diagnostics(app_config)
     lines = [
         "Workspace guidance context:",
         f"- state_dir: {resolved_state_dir}",
         *format_source_summary(app_config.sources),
     ]
+
+    if not shell_memory["exists"]:
+        lines.append("- shell_memory_status: missing")
+    elif not shell_memory["valid"]:
+        lines.append("- shell_memory_status: invalid")
+        lines.append(f'- shell_memory_error: {shell_memory.get("error") or "invalid"}')
+    else:
+        lines.append(f'- shell_memory_status: available ({shell_memory["event_count"]} event(s))')
 
     try:
         index_store = load_index(state_dir=resolved_state_dir)
@@ -81,9 +97,16 @@ def build_guidance_runtime_context(app_config: AppConfig, state_dir: Path) -> li
         lines.append("- index_status: invalid")
         lines.append(f"- index_error: {exc}")
         lines.append(
-            "- guidance_hint: recommend rebuilding the index with `rfs index run` "
+            "- guidance_hint: prefer `rfs doctor --verbose` first, then rebuild the index "
             "after checking configured sources."
         )
+        for suggestion in build_doctor_suggestions(
+            {"valid": True, "exists": True, "source_count": len(app_config.sources)},
+            collect_index_diagnostics(resolved_state_dir),
+            shell_memory,
+            llm_runtime,
+        )[:2]:
+            lines.append(f"- doctor_hint: {suggestion}")
         return [{"role": "system", "content": "\n".join(lines)}]
 
     if index_store is None:
@@ -231,6 +254,8 @@ def plan_command_suggestion(
 ) -> CommandSuggestion:
     resolved_state_dir = resolve_state_dir(state_dir)
     enabled_sources = [source for source in app_config.sources if source.enabled]
+    index_details = collect_index_diagnostics(resolved_state_dir)
+    shell_memory_details = collect_shell_memory_diagnostics(resolved_state_dir)
     lowered_question = str(intent.entities.get("question_lower", ""))
     meaningful_terms = list(intent.entities.get("meaningful_terms", []))
     requested_source_hint = intent.entities.get("requested_source_hint")
@@ -240,6 +265,26 @@ def plan_command_suggestion(
         index_store = load_index(state_dir=resolved_state_dir)
     except ValueError:
         index_store = None
+
+    if index_details.get("exists") and not index_details.get("valid"):
+        return CommandSuggestion(
+            command="rfs doctor --verbose",
+            reason="index 상태가 유효하지 않아 먼저 진단이 필요합니다.",
+            mode="read",
+            missing_state=["index_invalid"],
+        )
+
+    if (
+        intent.goal == "diagnose"
+        and shell_memory_details.get("exists")
+        and not shell_memory_details.get("valid")
+    ):
+        return CommandSuggestion(
+            command="rfs doctor --verbose",
+            reason="shell memory 상태가 유효하지 않아 먼저 진단이 필요합니다.",
+            mode="read",
+            missing_state=["shell_memory_invalid"],
+        )
 
     if not enabled_sources and intent.goal in {"search", "setup"}:
         if not requested_source_hint and not requested_path_hint and not meaningful_terms:

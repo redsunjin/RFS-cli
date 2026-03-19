@@ -10,6 +10,7 @@ from rfs_cli import __version__
 from rfs_cli.config import load_config, load_drive_cache, load_shell_memory, save_config
 from rfs_cli.drive import fetch_drive_file_metadata
 from rfs_cli.guidance import (
+    build_guidance_runtime_context,
     format_guidance_response,
     interpret_user_intent,
     plan_command_suggestion,
@@ -82,7 +83,7 @@ def test_doctor_json_reports_workspace_state(tmp_path: Path, monkeypatch) -> Non
     rebuild_index(state_dir)
 
     monkeypatch.setattr(
-        "rfs_cli.main.get_llm_status",
+        "rfs_cli.diagnostics.get_llm_status",
         lambda config: {
             "configured": True,
             "provider": config.provider,
@@ -1145,6 +1146,52 @@ def test_ask_returns_follow_up_when_show_target_is_missing(tmp_path: Path, monke
     assert "어떤 문서를 열어볼까요?" in payload["data"]["follow_up_question"]
 
 
+def test_ask_json_includes_shell_memory_and_doctor_hints_in_context(
+    tmp_path: Path, monkeypatch
+) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+    (state_dir / "shell-memory.json").write_text("{invalid", encoding="utf-8")
+    captured: dict[str, object] = {}
+
+    def fake_ask_llm(config, question, history=None):
+        captured["history"] = history or []
+        return "확인했습니다."
+
+    monkeypatch.setattr("rfs_cli.main.ask_llm", fake_ask_llm)
+
+    result = runner.invoke(
+        app,
+        ["ask", "이 도구를 설명해줘", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "ask", True)
+    context = captured["history"][0]["content"]
+    assert "- shell_memory_status: invalid" in context
+    assert "- shell_memory_error:" in context
+
+
+def test_ask_text_prefers_doctor_when_index_is_invalid(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    fixture_root = Path("tests/fixtures/obsidian").resolve()
+    build_index_with_source(state_dir, fixture_root, "obsidian", source_id="vault")
+    (state_dir / "index.json").write_text('{"documents":"broken"}', encoding="utf-8")
+
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError("LLM should not be called when doctor-visible state is invalid.")
+
+    monkeypatch.setattr("rfs_cli.main.ask_llm", fail_if_called)
+
+    result = runner.invoke(app, ["ask", "roadmap note를 찾으려면?", "--state-dir", str(state_dir)])
+
+    assert result.exit_code == 0
+    assert "읽기 전용 다음 단계입니다." in result.stdout
+    assert "index 상태가 유효하지 않아 먼저 진단이 필요합니다." in result.stdout
+    assert "`rfs doctor --verbose`" in result.stdout
+
+
 def test_interpret_user_intent_extracts_search_goal_and_terms() -> None:
     intent = interpret_user_intent("roadmap note를 검색하려면?")
 
@@ -1222,6 +1269,34 @@ def test_render_guidance_response_marks_state_changing_suggestion(tmp_path: Path
     rendered = format_guidance_response(response)
     assert "로컬 상태를 바꾸는 다음 단계입니다." in rendered
     assert "`rfs index run`" in rendered
+
+
+def test_plan_command_suggestion_prefers_doctor_for_invalid_shell_memory(
+    tmp_path: Path,
+) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+    (state_dir / "shell-memory.json").write_text("{invalid", encoding="utf-8")
+    app_config = load_config(state_dir=state_dir)
+    intent = interpret_user_intent("현재 상태를 진단해줘")
+    suggestion = plan_command_suggestion(intent, app_config, state_dir)
+
+    assert suggestion.command == "rfs doctor --verbose"
+    assert suggestion.mode == "read"
+    assert "shell memory 상태가 유효하지 않아" in suggestion.reason
+
+
+def test_guidance_runtime_context_reports_invalid_shell_memory(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+    (state_dir / "shell-memory.json").write_text("{invalid", encoding="utf-8")
+    app_config = load_config(state_dir=state_dir)
+
+    history = build_guidance_runtime_context(app_config, state_dir)
+
+    assert history[0]["role"] == "system"
+    assert "- shell_memory_status: invalid" in history[0]["content"]
+    assert "- shell_memory_error:" in history[0]["content"]
 
 
 def test_shell_runs_internal_command_and_saves_memory(tmp_path: Path) -> None:

@@ -310,6 +310,7 @@ Examples:
 - Keep text-mode recovery output Korean-first and limited to one safe next action
 - Mark human-facing command suggestions as read-only or state-changing before automation exists
 - Keep guidance grounded in current config, index, shell, and doctor-visible state
+- Prefer `rfs doctor --verbose` before repair commands when local state exists but is invalid
 - Distinguish between read-only suggestions and state-changing commands
 - Keep existing JSON contracts stable unless an AI tooling review explicitly approves a new guidance payload
 
