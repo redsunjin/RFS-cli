@@ -40,6 +40,18 @@ def assert_command_payload(payload: dict[str, object], command: str, ok: bool) -
     assert payload["ok"] is ok
     assert "data" in payload
     assert "error" in payload
+    if ok:
+        assert payload["error"] is None
+        assert isinstance(payload["data"], dict)
+        return
+
+    assert payload["data"] == {}
+    assert isinstance(payload["error"], dict)
+    assert set(payload["error"].keys()) == {"code", "message"}
+    assert isinstance(payload["error"]["code"], str)
+    assert payload["error"]["code"]
+    assert isinstance(payload["error"]["message"], str)
+    assert payload["error"]["message"]
 
 
 def build_index_with_source(
@@ -1107,6 +1119,15 @@ def test_ask_fails_without_llm_config(tmp_path: Path) -> None:
     payload = json.loads(result.stdout)
     assert_command_payload(payload, "ask", False)
     assert payload["error"]["code"] == "missing_llm"
+    forbidden_fields = {
+        "recommended_command",
+        "mode",
+        "summary",
+        "alternatives",
+        "follow_up_required",
+        "follow_up_question",
+    }
+    assert forbidden_fields.isdisjoint(payload.keys())
 
 
 def test_ask_returns_follow_up_when_no_sources_are_configured(tmp_path: Path, monkeypatch) -> None:
