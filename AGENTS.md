@@ -2,6 +2,8 @@
 
 This repository uses a documentation-first workflow. Agents should keep the project charter, spec, architecture, roadmap, and TODO plan aligned before expanding scope.
 
+The repository's formal delivery process is documented in `docs/work-harness.md`. Use that document as the default plan-review-execute-verify harness for non-trivial changes.
+
 ## Agent group
 
 Use the following specialist roles when planning or implementing work:
@@ -99,6 +101,13 @@ For non-trivial work, use this sequence:
 3. Specialist implementation agent executes the feature
 4. AI tooling agent reviews command contracts if output changes
 5. QA and release agent validates the result
+
+This operating order maps to the four harness stages in `docs/work-harness.md`:
+
+1. Plan
+2. Review
+3. Execute
+4. Verify
 
 ## MVP delivery mode
 
