@@ -1676,7 +1676,35 @@ def test_search_uses_indexed_content(tmp_path: Path) -> None:
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
     assert_command_payload(payload, "search", True)
+    assert set(payload["data"].keys()) == {
+        "query",
+        "state_dir",
+        "filters",
+        "result_count",
+        "results",
+    }
+    assert set(payload["data"]["filters"].keys()) == {
+        "source",
+        "source_id",
+        "tags",
+        "path_prefix",
+        "file_type",
+    }
     assert payload["data"]["result_count"] == 1
+    assert set(payload["data"]["results"][0].keys()) == {
+        "document_id",
+        "path",
+        "relative_path",
+        "title",
+        "source_id",
+        "source_type",
+        "file_type",
+        "score",
+        "snippet",
+        "tags",
+        "aliases",
+        "metadata",
+    }
     assert payload["data"]["results"][0]["title"] == "Project Roadmap"
     assert payload["data"]["results"][0]["relative_path"] == "project-roadmap.md"
 
@@ -1810,6 +1838,20 @@ def test_show_json_resolves_document_id(tmp_path: Path) -> None:
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
     assert_command_payload(payload, "show", True)
+    assert set(payload["data"].keys()) == {
+        "path",
+        "relative_path",
+        "size_bytes",
+        "preview",
+        "content_included",
+        "document_id",
+        "source_id",
+        "source_type",
+        "file_type",
+        "tags",
+        "aliases",
+        "metadata",
+    }
     assert payload["data"]["document_id"] == document_id
     assert "metadata" in payload["data"]
 
@@ -2088,6 +2130,14 @@ def test_dev_project_stats_json_contract(tmp_path: Path) -> None:
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
     assert_command_payload(payload, "dev_project_stats", True)
+    assert set(payload["data"].keys()) == {
+        "tool",
+        "subject_path",
+        "summary",
+        "root",
+        "total_files",
+        "top_extensions",
+    }
     assert payload["data"]["tool"] == "project-stats"
     assert payload["data"]["subject_path"] == str(tmp_path.resolve())
     assert payload["data"]["total_files"] == 1
@@ -2120,9 +2170,26 @@ def test_dev_find_todo_json_contract(tmp_path: Path) -> None:
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
     assert_command_payload(payload, "dev_find_todo", True)
+    assert set(payload["data"].keys()) == {
+        "tool",
+        "subject_path",
+        "summary",
+        "root",
+        "match_count",
+        "counts",
+        "matches",
+    }
     assert payload["data"]["tool"] == "find-todo"
     assert payload["data"]["match_count"] == 3
     assert payload["data"]["counts"] == {"TODO": 1, "FIXME": 1, "XXX": 1}
+    assert set(payload["data"]["matches"][0].keys()) == {
+        "path",
+        "relative_path",
+        "line",
+        "column",
+        "kind",
+        "text",
+    }
     assert payload["data"]["matches"][0]["relative_path"] in {"docs/plan.md", "notes.txt"}
 
 
@@ -2162,6 +2229,13 @@ def test_dev_git_summary_json_contract(tmp_path: Path) -> None:
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
     assert_command_payload(payload, "dev_git_summary", True)
+    assert set(payload["data"].keys()) == {
+        "tool",
+        "subject_path",
+        "summary",
+        "root",
+        "lines",
+    }
     assert payload["data"]["tool"] == "git-summary"
     assert payload["data"]["subject_path"] == str(tmp_path.resolve())
     assert any(line.startswith("## main") for line in payload["data"]["lines"])
