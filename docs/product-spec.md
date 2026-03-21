@@ -218,6 +218,7 @@ Examples:
 - an optional `rfs harbor` or similar TUI rest space
 - short opt-in mini-games that do not block core workflows
 - progression or reward state that stays separate from core CLI correctness
+- the initial shape is a separate post-MVP entrypoint documented in `docs/harbor-concept.md`
 
 ### `rfs llm`
 

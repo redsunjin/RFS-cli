@@ -404,6 +404,7 @@ Example response shape:
 - Keep any future `rfs harbor` or rest-space TUI behind a separate command boundary
 - Keep game state optional and isolated from required config, index, and shell state
 - Do not let mini-game logic alter core command contracts or release-readiness checks
+- Treat `rfs harbor` as an explicit opt-in entrypoint rather than a startup-mode extension
 
 ### Developer utility services
 
