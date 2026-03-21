@@ -90,3 +90,4 @@ Before any runtime implementation starts, the first harbor slice should satisfy 
 
 The first progression slice is documented in `docs/harbor-progression-model.md`.
 The first interaction slice is documented in `docs/harbor-first-interaction.md`.
+That first interaction should launch in plain text before any lightweight TUI variant is attempted.

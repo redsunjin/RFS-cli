@@ -407,6 +407,7 @@ Example response shape:
 - Treat `rfs harbor` as an explicit opt-in entrypoint rather than a startup-mode extension
 - Keep any future progression state in an optional harbor-specific persistence path rather than required workspace state
 - Prefer a short skippable rest loop before any more game-like harbor interaction
+- Prefer a plain-text first launch for the first harbor interaction before adding TUI-specific rendering
 
 ### Developer utility services
 

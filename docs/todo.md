@@ -132,6 +132,7 @@ When scope changes, update these files in order:
 - [x] Define an optional `rfs harbor` rest-space concept
 - [x] Design a small reward/progression model that stays outside core CLI state
 - [x] Design one short TUI mini-game or rest interaction for optional use
+- [x] Decide that the first `Lantern Pause` runtime launches in plain text before any lightweight TUI variant
 
 ## MVP execution backlog
 

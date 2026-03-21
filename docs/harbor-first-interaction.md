@@ -10,7 +10,18 @@ The interaction should validate the harbor concept without turning `rfs-cli` int
 
 The first interaction should be a short calming loop called `Lantern Pause`.
 
-`Lantern Pause` is a brief text-mode or TUI flow where the user slows down for a few steps, then closes the session explicitly.
+`Lantern Pause` is a brief flow where the user slows down for a few steps, then closes the session explicitly.
+
+## Launch decision
+
+The first runtime version should launch in plain text before any lightweight TUI version is attempted.
+
+Why:
+
+- it validates the pacing and copy first
+- it keeps terminal compatibility risk low
+- it makes the first implementation easier to ship and reset
+- it preserves the option to promote the same loop into TUI later without changing the concept
 
 ## Why this interaction fits first
 
@@ -70,6 +81,7 @@ This first interaction should not include:
 - the flow should work without color or advanced terminal features
 - the copy should stay short and calming
 - the interaction should still make sense if progression storage is unavailable
+- the first implementation should not require TUI-specific layout or animation support
 
 ## Acceptance criteria
 
@@ -82,6 +94,6 @@ Before implementation starts, the first interaction should satisfy all of these:
 
 ## Recommended next slices
 
-1. Decide whether `Lantern Pause` starts as plain text first or a lightweight TUI first.
-2. Define the minimal persistence and reset behavior for incomplete sessions.
+1. Define the minimal persistence and reset behavior for incomplete sessions.
+2. Decide whether progression should record abandoned sessions at all in the first runtime version.
 3. If a second interaction is ever added, make it slightly more playful while keeping the same low-pressure boundary.

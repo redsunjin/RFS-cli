@@ -221,6 +221,7 @@ Examples:
 - the initial shape is a separate post-MVP entrypoint documented in `docs/harbor-concept.md`
 - the first progression model should stay harbor-local and is documented in `docs/harbor-progression-model.md`
 - the first interaction candidate is a short `Lantern Pause` loop documented in `docs/harbor-first-interaction.md`
+- the first `Lantern Pause` runtime should start in plain text before any lightweight TUI pass
 
 ### `rfs llm`
 

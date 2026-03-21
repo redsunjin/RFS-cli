@@ -166,7 +166,8 @@ Current slice status:
 - the concept keeps harbor state optional and separate from core CLI correctness
 - the first harbor progression model is now documented as a harbor-local optional layer
 - the first interaction candidate is now a short `Lantern Pause` rest loop
-- the next gamification slice is deciding whether that first interaction should launch in plain text or lightweight TUI form
+- the first `Lantern Pause` launch decision is now plain text first, with TUI deferred
+- the next gamification slice is defining persistence and reset behavior for incomplete sessions
 
 ## Agentification track
 
