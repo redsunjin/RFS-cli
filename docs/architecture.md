@@ -406,6 +406,7 @@ Example response shape:
 - Do not let mini-game logic alter core command contracts or release-readiness checks
 - Treat `rfs harbor` as an explicit opt-in entrypoint rather than a startup-mode extension
 - Keep any future progression state in an optional harbor-specific persistence path rather than required workspace state
+- Prefer a short skippable rest loop before any more game-like harbor interaction
 
 ### Developer utility services
 

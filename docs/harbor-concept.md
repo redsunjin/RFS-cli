@@ -89,3 +89,4 @@ Before any runtime implementation starts, the first harbor slice should satisfy 
 3. Decide whether harbor should read any lightweight workspace signals such as completed-session counts without becoming a source of truth.
 
 The first progression slice is documented in `docs/harbor-progression-model.md`.
+The first interaction slice is documented in `docs/harbor-first-interaction.md`.

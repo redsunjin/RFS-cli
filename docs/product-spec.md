@@ -220,6 +220,7 @@ Examples:
 - progression or reward state that stays separate from core CLI correctness
 - the initial shape is a separate post-MVP entrypoint documented in `docs/harbor-concept.md`
 - the first progression model should stay harbor-local and is documented in `docs/harbor-progression-model.md`
+- the first interaction candidate is a short `Lantern Pause` loop documented in `docs/harbor-first-interaction.md`
 
 ### `rfs llm`
 

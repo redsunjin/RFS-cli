@@ -131,7 +131,7 @@ When scope changes, update these files in order:
 
 - [x] Define an optional `rfs harbor` rest-space concept
 - [x] Design a small reward/progression model that stays outside core CLI state
-- [ ] Design one or two short TUI mini-games for optional use
+- [x] Design one short TUI mini-game or rest interaction for optional use
 
 ## MVP execution backlog
 

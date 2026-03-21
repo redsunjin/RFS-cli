@@ -115,3 +115,5 @@ Before runtime work starts, the progression model should satisfy all of these:
 1. Design one short harbor interaction that can award points safely.
 2. Decide whether progression should expose only cosmetic unlocks in the first runtime version.
 3. Define a reset and recovery story for corrupted harbor state.
+
+The first interaction candidate is documented in `docs/harbor-first-interaction.md`.
