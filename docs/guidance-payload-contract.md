@@ -68,6 +68,19 @@ It is to keep the current `ask` JSON contract frozen until one reviewed schema c
 - read-only versus state-changing intent
 - bounded explanation text
 
+## Review outcome for the current phase
+
+The current review outcome is to avoid introducing a public guidance schema v2 in this phase.
+
+This means:
+
+- keep `rfs ask --format json` on the current narrow field set
+- keep `rfs shell` as a text-only guidance surface
+- keep deterministic guidance internals private even when they become richer in text mode
+- treat any future machine-readable guidance expansion as a separate post-review proposal, not an incremental add-on to the current payload
+
+This decision keeps the public contract stable while the human-facing guidance loop is still being refined.
+
 ## Non-goals for this review
 
 - no new JSON fields in the current slice

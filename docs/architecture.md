@@ -356,6 +356,7 @@ Every command should expose:
 
 Human-facing guidance copy may evolve more quickly than command payloads, but any new machine-readable guidance shape must be versioned and reviewed before it becomes a public contract.
 The current `ask` JSON contract intentionally stays narrow and does not expose internal suggestion mode, diagnostics snapshots, or renderer metadata before that review gate is passed.
+For the current phase, that review gate ends in a "no v2 schema yet" decision: `ask` stays narrow and `shell` remains text-only until a separate future proposal is approved.
 
 Example response shape:
 

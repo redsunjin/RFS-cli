@@ -125,6 +125,7 @@ When scope changes, update these files in order:
 - [x] Explain empty states and missing setup in plain Korean with one recommended next step
 - [x] Distinguish read-only suggestions from state-changing suggestions before execution automation
 - [x] Add contract review before exposing any machine-readable guidance payload
+- [x] Decide against introducing a public guidance schema v2 in the current phase
 
 ## Post-MVP gamification track
 

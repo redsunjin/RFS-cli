@@ -206,7 +206,7 @@ Current slice status:
 - text guidance now labels deterministic suggestions as read-only or state-changing without changing JSON contracts
 - deterministic suggestions now recognize invalid index and shell-memory state and prefer `rfs doctor --verbose`
 - a guidance-payload contract review now freezes the current `ask` JSON shape before any machine-readable expansion
-- the next implementation slice is deciding whether a reviewed v2 guidance schema should exist at all
+- the current review outcome is to avoid a public guidance schema v2 in this phase and keep any future expansion as a separate proposal
 
 ## Sequencing rationale
 
