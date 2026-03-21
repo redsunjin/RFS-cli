@@ -87,3 +87,5 @@ Before any runtime implementation starts, the first harbor slice should satisfy 
 1. Design a minimal reward or progression model that stays outside core CLI state.
 2. Design one very short TUI mini-game or rest interaction.
 3. Decide whether harbor should read any lightweight workspace signals such as completed-session counts without becoming a source of truth.
+
+The first progression slice is documented in `docs/harbor-progression-model.md`.

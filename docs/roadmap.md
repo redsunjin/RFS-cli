@@ -164,7 +164,8 @@ Current slice status:
 
 - the first `rfs harbor` concept is now documented as a separate post-MVP rest-space entrypoint
 - the concept keeps harbor state optional and separate from core CLI correctness
-- the next gamification slice is defining a minimal reward or progression model
+- the first harbor progression model is now documented as a harbor-local optional layer
+- the next gamification slice is defining one short rest interaction or mini-game
 
 ## Agentification track
 

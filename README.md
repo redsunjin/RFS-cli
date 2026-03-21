@@ -58,6 +58,7 @@ That agent now assumes a configured LLM as part of normal onboarding, and its ru
 - [Research export format](./docs/research-export-format.md)
 - [Tool-provider contract](./docs/tool-provider-contract.md)
 - [Harbor concept](./docs/harbor-concept.md)
+- [Harbor progression model](./docs/harbor-progression-model.md)
 - [Idea track](./docs/idea-track.md)
 - [Easy CLI principles](./docs/easy-cli-principles.md)
 - [LLM onboarding guide](./docs/llm-onboarding.md)

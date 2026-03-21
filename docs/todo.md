@@ -130,7 +130,7 @@ When scope changes, update these files in order:
 ## Post-MVP gamification track
 
 - [x] Define an optional `rfs harbor` rest-space concept
-- [ ] Design a small reward/progression model that stays outside core CLI state
+- [x] Design a small reward/progression model that stays outside core CLI state
 - [ ] Design one or two short TUI mini-games for optional use
 
 ## MVP execution backlog
