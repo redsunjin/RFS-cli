@@ -81,6 +81,8 @@ Before implementation starts, the first reset policy should satisfy all of these
 
 ## Recommended next slices
 
-1. Decide whether incomplete sessions should be counted in a hidden diagnostic metric without affecting rewards.
-2. Define the minimal cosmetic unlock rule for the first completed sessions.
+1. Define the minimal cosmetic unlock rule for the first completed sessions.
+2. Decide whether the first completion reward should be purely cosmetic or include a small point bonus as well.
 3. If runtime implementation begins, keep the first persistence path optional and harbor-specific.
+
+Hidden diagnostic counting is excluded in the first version as documented in `docs/harbor-diagnostic-metrics.md`.

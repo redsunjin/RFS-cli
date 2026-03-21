@@ -168,7 +168,8 @@ Current slice status:
 - the first interaction candidate is now a short `Lantern Pause` rest loop
 - the first `Lantern Pause` launch decision is now plain text first, with TUI deferred
 - the first incomplete-session policy is now reset-only with no resume and no reward carry-over
-- the next gamification slice is deciding whether incomplete sessions should appear in any hidden diagnostic metric
+- incomplete first-version sessions now also avoid hidden diagnostic metrics
+- the next gamification slice is defining the first cosmetic unlock rule for completed sessions
 
 ## Agentification track
 

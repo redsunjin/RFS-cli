@@ -409,6 +409,7 @@ Example response shape:
 - Prefer a short skippable rest loop before any more game-like harbor interaction
 - Prefer a plain-text first launch for the first harbor interaction before adding TUI-specific rendering
 - Prefer no-resume reset behavior for incomplete first-version harbor sessions
+- Prefer no hidden diagnostic counters for normal incomplete first-version harbor sessions
 
 ### Developer utility services
 

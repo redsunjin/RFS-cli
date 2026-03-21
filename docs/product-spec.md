@@ -223,6 +223,7 @@ Examples:
 - the first interaction candidate is a short `Lantern Pause` loop documented in `docs/harbor-first-interaction.md`
 - the first `Lantern Pause` runtime should start in plain text before any lightweight TUI pass
 - incomplete first-version harbor sessions should reset cleanly with no resume and no reward carry-over
+- incomplete first-version harbor sessions should not create hidden diagnostic metrics
 
 ### `rfs llm`
 

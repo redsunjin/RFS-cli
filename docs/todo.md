@@ -134,6 +134,7 @@ When scope changes, update these files in order:
 - [x] Design one short TUI mini-game or rest interaction for optional use
 - [x] Decide that the first `Lantern Pause` runtime launches in plain text before any lightweight TUI variant
 - [x] Define reset-only handling for incomplete first-version `Lantern Pause` sessions
+- [x] Decide that incomplete first-version `Lantern Pause` sessions do not create hidden diagnostic metrics
 
 ## MVP execution backlog
 

@@ -61,6 +61,7 @@ That agent now assumes a configured LLM as part of normal onboarding, and its ru
 - [Harbor progression model](./docs/harbor-progression-model.md)
 - [Harbor first interaction](./docs/harbor-first-interaction.md)
 - [Harbor session reset policy](./docs/harbor-session-reset.md)
+- [Harbor diagnostic metrics policy](./docs/harbor-diagnostic-metrics.md)
 - [Idea track](./docs/idea-track.md)
 - [Easy CLI principles](./docs/easy-cli-principles.md)
 - [LLM onboarding guide](./docs/llm-onboarding.md)

@@ -95,8 +95,9 @@ Before implementation starts, the first interaction should satisfy all of these:
 
 ## Recommended next slices
 
-1. Decide whether incomplete sessions should be counted in any hidden diagnostic metric.
-2. Decide whether progression should record abandoned sessions at all in the first runtime version.
+1. Define the minimal cosmetic unlock rule for the first completed sessions.
+2. Decide whether the first completion reward should be purely cosmetic or include a small point bonus as well.
 3. If a second interaction is ever added, make it slightly more playful while keeping the same low-pressure boundary.
 
 The first reset policy is documented in `docs/harbor-session-reset.md`.
+Hidden diagnostic counting is excluded in the first version as documented in `docs/harbor-diagnostic-metrics.md`.
