@@ -408,6 +408,7 @@ Example response shape:
 - Keep any future progression state in an optional harbor-specific persistence path rather than required workspace state
 - Prefer a short skippable rest loop before any more game-like harbor interaction
 - Prefer a plain-text first launch for the first harbor interaction before adding TUI-specific rendering
+- Prefer no-resume reset behavior for incomplete first-version harbor sessions
 
 ### Developer utility services
 

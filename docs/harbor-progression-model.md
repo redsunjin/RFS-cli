@@ -117,3 +117,4 @@ Before runtime work starts, the progression model should satisfy all of these:
 3. Define a reset and recovery story for corrupted harbor state.
 
 The first interaction candidate is documented in `docs/harbor-first-interaction.md`.
+Incomplete sessions should restart cleanly without rewards as documented in `docs/harbor-session-reset.md`.

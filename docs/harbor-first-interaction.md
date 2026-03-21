@@ -82,6 +82,7 @@ This first interaction should not include:
 - the copy should stay short and calming
 - the interaction should still make sense if progression storage is unavailable
 - the first implementation should not require TUI-specific layout or animation support
+- incomplete sessions should restart from the beginning rather than resume automatically
 
 ## Acceptance criteria
 
@@ -94,6 +95,8 @@ Before implementation starts, the first interaction should satisfy all of these:
 
 ## Recommended next slices
 
-1. Define the minimal persistence and reset behavior for incomplete sessions.
+1. Decide whether incomplete sessions should be counted in any hidden diagnostic metric.
 2. Decide whether progression should record abandoned sessions at all in the first runtime version.
 3. If a second interaction is ever added, make it slightly more playful while keeping the same low-pressure boundary.
+
+The first reset policy is documented in `docs/harbor-session-reset.md`.

@@ -167,7 +167,8 @@ Current slice status:
 - the first harbor progression model is now documented as a harbor-local optional layer
 - the first interaction candidate is now a short `Lantern Pause` rest loop
 - the first `Lantern Pause` launch decision is now plain text first, with TUI deferred
-- the next gamification slice is defining persistence and reset behavior for incomplete sessions
+- the first incomplete-session policy is now reset-only with no resume and no reward carry-over
+- the next gamification slice is deciding whether incomplete sessions should appear in any hidden diagnostic metric
 
 ## Agentification track
 

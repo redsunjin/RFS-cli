@@ -133,6 +133,7 @@ When scope changes, update these files in order:
 - [x] Design a small reward/progression model that stays outside core CLI state
 - [x] Design one short TUI mini-game or rest interaction for optional use
 - [x] Decide that the first `Lantern Pause` runtime launches in plain text before any lightweight TUI variant
+- [x] Define reset-only handling for incomplete first-version `Lantern Pause` sessions
 
 ## MVP execution backlog
 
