@@ -191,7 +191,8 @@ Current slice status:
 - the model treats repository docs, skill assets, and Obsidian notes as separate sources of truth
 - the first minimal note templates for `Agents/`, `Skills/`, and `Sources/` are now documented
 - curated skill/reference note bundles should reuse the existing `rfs research export` format
-- the next slice is defining a read-only registry surface for agent and skill notes
+- the first read-only registry surface for agent and skill notes is now documented
+- the next slice is deciding whether the first CLI surface should live under `rfs agent` or remain behind existing retrieval flows longer
 
 ## Agentification track
 

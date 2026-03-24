@@ -234,6 +234,7 @@ Examples:
 - the first operating model is documented in `docs/agent-skill-knowledge-model.md`
 - the first minimal note templates are documented in `docs/agent-note-templates.md`
 - curated skill/reference note bundles should reuse the existing `rfs research export` document bundle format rather than introduce a new export command first
+- the first registry surface for agent and skill notes should stay read-only and note-backed
 
 ### `rfs llm`
 

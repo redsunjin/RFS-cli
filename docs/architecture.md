@@ -420,6 +420,7 @@ Example response shape:
 - Keep any future agent or skill registry local-first and read-only by default
 - Prefer lightweight Markdown note templates before introducing extracted registry schemas
 - Reuse the existing research-export bundle format for curated skill/reference note bundles before designing a specialized export surface
+- If a registry surface is added, make it an extracted read-only view over indexed notes rather than a new source of truth
 
 ### Developer utility services
 

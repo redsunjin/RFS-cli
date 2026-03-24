@@ -166,3 +166,4 @@ Before implementation starts, this model should satisfy all of these:
 
 The first note-template slice is documented in `docs/agent-note-templates.md`.
 Curated skill/reference bundles should reuse the existing `rfs research export` format as documented in `docs/research-export-format.md`.
+The first read-only registry surface is documented in `docs/agent-skill-registry-surface.md`.

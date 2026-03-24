@@ -65,6 +65,7 @@ That agent now assumes a configured LLM as part of normal onboarding, and its ru
 - [Harbor cosmetic unlock rule](./docs/harbor-cosmetic-unlocks.md)
 - [Agent skill knowledge model](./docs/agent-skill-knowledge-model.md)
 - [Agent note templates](./docs/agent-note-templates.md)
+- [Agent skill registry surface](./docs/agent-skill-registry-surface.md)
 - [Idea track](./docs/idea-track.md)
 - [Easy CLI principles](./docs/easy-cli-principles.md)
 - [LLM onboarding guide](./docs/llm-onboarding.md)
