@@ -189,7 +189,8 @@ Current slice status:
 
 - the first agent-skill-knowledge operating model is now documented
 - the model treats repository docs, skill assets, and Obsidian notes as separate sources of truth
-- the next slice is defining minimal note templates for `Agents/`, `Skills/`, and `Sources/`
+- the first minimal note templates for `Agents/`, `Skills/`, and `Sources/` are now documented
+- the next slice is deciding whether `rfs research export` should support curated skill/reference bundles directly
 
 ## Agentification track
 

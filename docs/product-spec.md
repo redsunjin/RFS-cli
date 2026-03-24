@@ -232,6 +232,7 @@ Examples:
 - Obsidian should serve as a first-class personal knowledge layer for agent notes, skills, references, and experiments
 - `rfs-cli` should help retrieve and inspect these assets before attempting broader execution automation
 - the first operating model is documented in `docs/agent-skill-knowledge-model.md`
+- the first minimal note templates are documented in `docs/agent-note-templates.md`
 
 ### `rfs llm`
 

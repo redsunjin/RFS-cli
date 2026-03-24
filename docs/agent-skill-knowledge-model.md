@@ -163,3 +163,5 @@ Before implementation starts, this model should satisfy all of these:
 1. Define a minimal note template for `Agents/`, `Skills/`, and `Sources/`.
 2. Decide whether `rfs research export` should support curated skill/reference bundles directly.
 3. Define a small read-only registry surface for agent and skill notes before any execution-oriented registry is considered.
+
+The first note-template slice is documented in `docs/agent-note-templates.md`.

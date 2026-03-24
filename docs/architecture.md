@@ -418,6 +418,7 @@ Example response shape:
 - Use repository docs for durable project behavior and Obsidian notes for curated personal research and reusable patterns
 - Prefer retrieval and inspection of note-backed skills before designing any execution-oriented registry
 - Keep any future agent or skill registry local-first and read-only by default
+- Prefer lightweight Markdown note templates before introducing extracted registry schemas
 
 ### Developer utility services
 
