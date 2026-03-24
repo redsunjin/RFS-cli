@@ -135,6 +135,7 @@ When scope changes, update these files in order:
 - [x] Decide that the first `Lantern Pause` runtime launches in plain text before any lightweight TUI variant
 - [x] Define reset-only handling for incomplete first-version `Lantern Pause` sessions
 - [x] Decide that incomplete first-version `Lantern Pause` sessions do not create hidden diagnostic metrics
+- [x] Define the first cosmetic unlock rule for completed `Lantern Pause` sessions
 
 ## MVP execution backlog
 

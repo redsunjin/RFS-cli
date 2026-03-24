@@ -93,3 +93,4 @@ The first interaction slice is documented in `docs/harbor-first-interaction.md`.
 That first interaction should launch in plain text before any lightweight TUI variant is attempted.
 Incomplete first-version sessions should reset cleanly rather than resume automatically, as documented in `docs/harbor-session-reset.md`.
 Incomplete first-version sessions should also avoid hidden diagnostic counting, as documented in `docs/harbor-diagnostic-metrics.md`.
+The first completion reward should be a small cosmetic unlock, as documented in `docs/harbor-cosmetic-unlocks.md`.

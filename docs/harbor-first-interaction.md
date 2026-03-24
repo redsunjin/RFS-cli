@@ -62,6 +62,8 @@ The emphasis is on pacing and closure, not challenge.
 - one completed session increment
 - occasional cosmetic unlock progress
 
+The first guaranteed completion reward should be the cosmetic unlock documented in `docs/harbor-cosmetic-unlocks.md`.
+
 It should not award anything tied to core CLI task volume or task success.
 
 ## Non-goals
@@ -101,3 +103,4 @@ Before implementation starts, the first interaction should satisfy all of these:
 
 The first reset policy is documented in `docs/harbor-session-reset.md`.
 Hidden diagnostic counting is excluded in the first version as documented in `docs/harbor-diagnostic-metrics.md`.
+The first cosmetic reward rule is documented in `docs/harbor-cosmetic-unlocks.md`.

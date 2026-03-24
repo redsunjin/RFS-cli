@@ -224,6 +224,7 @@ Examples:
 - the first `Lantern Pause` runtime should start in plain text before any lightweight TUI pass
 - incomplete first-version harbor sessions should reset cleanly with no resume and no reward carry-over
 - incomplete first-version harbor sessions should not create hidden diagnostic metrics
+- the first completed harbor session should unlock one small cosmetic reward inside harbor
 
 ### `rfs llm`
 

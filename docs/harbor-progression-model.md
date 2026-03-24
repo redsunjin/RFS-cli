@@ -118,3 +118,4 @@ Before runtime work starts, the progression model should satisfy all of these:
 
 The first interaction candidate is documented in `docs/harbor-first-interaction.md`.
 Incomplete sessions should restart cleanly without rewards as documented in `docs/harbor-session-reset.md`.
+The first cosmetic reward rule is documented in `docs/harbor-cosmetic-unlocks.md`.
