@@ -172,6 +172,25 @@ Current slice status:
 - the first completed-session reward is now defined as one small cosmetic unlock
 - the next gamification slice is deciding whether the first completion should also grant a small point bonus
 
+## Personal agent knowledge track
+
+Goal:
+
+Turn `rfs-cli` into a stronger personal agent environment by connecting roles, reusable skills, and curated knowledge notes.
+
+Candidate milestones:
+
+- define a shared model for agent roles, skills, and knowledge notes
+- use Obsidian as a first-class storage layer for agent and skill notes
+- improve retrieval of those notes through the existing indexing and search flow
+- add a small read-only registry surface only after retrieval patterns are validated
+
+Current slice status:
+
+- the first agent-skill-knowledge operating model is now documented
+- the model treats repository docs, skill assets, and Obsidian notes as separate sources of truth
+- the next slice is defining minimal note templates for `Agents/`, `Skills/`, and `Sources/`
+
 ## Agentification track
 
 After the current MVP hardening work, the next product-shaping track is turning `rfs-cli` into a stronger CLI-native agent.

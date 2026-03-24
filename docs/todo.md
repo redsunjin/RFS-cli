@@ -137,6 +137,13 @@ When scope changes, update these files in order:
 - [x] Decide that incomplete first-version `Lantern Pause` sessions do not create hidden diagnostic metrics
 - [x] Define the first cosmetic unlock rule for completed `Lantern Pause` sessions
 
+## Personal agent knowledge track
+
+- [x] Define an agent-skill-knowledge operating model
+- [ ] Define minimal note templates for `Agents/`, `Skills/`, and `Sources/`
+- [ ] Decide whether `rfs research export` should support curated skill/reference bundles
+- [ ] Define a read-only registry surface for agent and skill notes
+
 ## MVP execution backlog
 
 ### Workstream 1: Knowledge retrieval

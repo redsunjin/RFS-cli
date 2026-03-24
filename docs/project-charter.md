@@ -23,6 +23,7 @@ The project is primarily a learning vehicle, but it must also become a real tool
 - Provide a simple diagnostic path so broken local state can be inspected without guesswork
 - Establish a documentation-driven development process from the beginning
 - Keep assistive UX experiments modular so validated ideas can merge back into the stable CLI without destabilizing the core command surface
+- Treat reusable agent roles, skills, and curated personal knowledge as a connected local-first operating model
 
 ## Problem statement
 
@@ -51,6 +52,7 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - progressive help that starts simple and reveals exact commands only when useful
 - consistent, recognizable interaction
 - a shell mode that keeps context and tool history across turns
+- a personal agent operating layer that can later retrieve reusable skills and curated notes from local knowledge sources
 
 ## Target users
 
@@ -111,6 +113,7 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - Expert-reviewed multi-agent delivery to MVP before broadening scope
 - Task-first guidance before syntax-first help
 - Experimental assistive UX modules stay decoupled from stable commands until they are validated
+- Personal skill and knowledge capture should stay local-first, searchable, and separate from project-critical repo docs
 
 ## Integration strategy
 

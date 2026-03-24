@@ -226,6 +226,13 @@ Examples:
 - incomplete first-version harbor sessions should not create hidden diagnostic metrics
 - the first completed harbor session should unlock one small cosmetic reward inside harbor
 
+### Post-MVP agent skill knowledge layer
+
+- agent roles, reusable skills, and curated knowledge notes should be treated as separate but connected assets
+- Obsidian should serve as a first-class personal knowledge layer for agent notes, skills, references, and experiments
+- `rfs-cli` should help retrieve and inspect these assets before attempting broader execution automation
+- the first operating model is documented in `docs/agent-skill-knowledge-model.md`
+
 ### `rfs llm`
 
 Responsibilities:

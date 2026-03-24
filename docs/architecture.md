@@ -412,6 +412,13 @@ Example response shape:
 - Prefer no hidden diagnostic counters for normal incomplete first-version harbor sessions
 - Prefer cosmetic-only first completion rewards before any richer reward structure
 
+### Agent skill knowledge layer
+
+- Keep agent roles, skills, and personal notes as separate layers with different source-of-truth rules
+- Use repository docs for durable project behavior and Obsidian notes for curated personal research and reusable patterns
+- Prefer retrieval and inspection of note-backed skills before designing any execution-oriented registry
+- Keep any future agent or skill registry local-first and read-only by default
+
 ### Developer utility services
 
 - Keep `dev` commands separate from knowledge indexing internals
