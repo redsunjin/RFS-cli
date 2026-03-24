@@ -27,18 +27,14 @@ The first registry surface should help a user or local agent:
 
 It should not execute skills or mutate note state.
 
-## Proposed command direction
+## First implemented slice
 
-If this becomes a CLI surface later, the first shape should stay narrow.
-
-Examples:
+The first implemented CLI slice should stay narrow:
 
 - `rfs agent list-notes --kind role`
 - `rfs agent list-notes --kind skill`
-- `rfs agent show-note <id>`
 
-These names are provisional.
-The important part is the read-only behavior, not the exact spelling.
+`show-note` can wait for a later slice.
 
 ## Minimal record shape
 
@@ -130,6 +126,6 @@ Before implementation starts, this surface should satisfy all of these:
 
 ## Recommended next slices
 
-1. Decide whether the first CLI slice should live under `rfs agent` or stay behind `search`/`show` conventions longer.
+1. Add `rfs agent show-note <id>` as the first single-record inspection command.
 2. Define one exact JSON payload example for list and show.
-3. When implementation starts, prefer indexing-backed extraction over a separate registry store.
+3. Keep implementation indexing-backed rather than adding a separate registry store.

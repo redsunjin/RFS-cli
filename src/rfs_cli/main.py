@@ -79,6 +79,7 @@ from rfs_cli.models import (
     SourceConfig,
     UserIntent,
 )
+from rfs_cli.registry import list_note_records
 from rfs_cli.research import export_research_bundle
 from rfs_cli.services import (
     find_todo_markers,
@@ -128,6 +129,11 @@ app.add_typer(research_app, name="research")
 class OutputMode(str, Enum):
     text = "text"
     json = "json"
+
+
+class NoteKindOption(str, Enum):
+    role = "role"
+    skill = "skill"
 
 
 class DriveCacheModeOption(str, Enum):
@@ -501,6 +507,15 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
             for result in data["results"]:
                 typer.echo(f'- {result["path"]}')
                 typer.echo(f'  {result["snippet"]}')
+            return
+
+        if command == "agent_list_notes":
+            typer.echo(f'{data["item_count"]} {data["kind"]} note(s)')
+            for item in data["items"]:
+                typer.echo(f'- {item["name"]}')
+                if item.get("purpose"):
+                    typer.echo(f'  purpose: {item["purpose"]}')
+                typer.echo(f'  path: {item["path"]}')
             return
 
         if command == "version":
@@ -1551,6 +1566,28 @@ def agent_find_text(
             "root": str(root.resolve()),
             "result_count": len(results),
             "results": results,
+        },
+    )
+    emit(payload, output)
+
+
+@agent_app.command("list-notes")
+def agent_list_notes(
+    kind: NoteKindOption = typer.Option(..., "--kind"),
+    limit: int = typer.Option(50, min=1, max=200),
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
+    output: OutputMode = typer.Option(OutputMode.json, "--format"),
+) -> None:
+    load_agent_config_or_fail("agent_list_notes", state_dir, output)
+    index_store = load_index_or_fail("agent_list_notes", state_dir, output)
+    items = list_note_records(index_store, kind=kind.value, limit=limit)
+    payload = CommandPayload(
+        command="agent_list_notes",
+        ok=True,
+        data={
+            "kind": kind.value,
+            "item_count": len(items),
+            "items": items,
         },
     )
     emit(payload, output)

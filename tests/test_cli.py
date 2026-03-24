@@ -2098,6 +2098,153 @@ def test_agent_list_files_json_contract_exact_shape(tmp_path: Path) -> None:
     assert set(payload["data"]["items"][0].keys()) == {"path", "kind", "size_bytes"}
 
 
+def test_agent_list_notes_role_json_contract_exact_shape(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+    root = tmp_path / "knowledge"
+    agents_dir = root / "Agents"
+    skills_dir = root / "Skills"
+    agents_dir.mkdir(parents=True)
+    skills_dir.mkdir(parents=True)
+    (agents_dir / "product-roadmap.md").write_text(
+        "\n".join(
+            [
+                "# Product and Roadmap",
+                "",
+                "## Purpose",
+                "- Keep scope aligned",
+                "",
+                "## Responsibilities",
+                "- Prioritize slices",
+                "",
+                "## Boundaries",
+                "- Do not change runtime contracts alone",
+                "",
+                "## Related Skills",
+                "- [[Contract Hardening Review]]",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    (skills_dir / "contract-hardening-review.md").write_text(
+        "\n".join(
+            [
+                "# Contract Hardening Review",
+                "",
+                "## Purpose",
+                "- Review JSON contracts",
+                "",
+                "## Trigger",
+                "- When output changes",
+                "",
+                "## Constraints",
+                "- Keep changes small",
+                "",
+                "## Related Agents",
+                "- [[Product and Roadmap]]",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    build_index_with_source(state_dir, root, "local", source_id="knowledge")
+    rebuild_index(state_dir)
+
+    result = runner.invoke(
+        app,
+        [
+            "agent",
+            "list-notes",
+            "--kind",
+            "role",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "agent_list_notes", True)
+    assert set(payload["data"].keys()) == {"kind", "item_count", "items"}
+    assert payload["data"]["kind"] == "role"
+    assert payload["data"]["item_count"] == 1
+    assert set(payload["data"]["items"][0].keys()) == {
+        "id",
+        "name",
+        "kind",
+        "purpose",
+        "boundaries",
+        "related_skills",
+        "path",
+    }
+    assert payload["data"]["items"][0]["name"] == "Product and Roadmap"
+    assert payload["data"]["items"][0]["related_skills"] == ["Contract Hardening Review"]
+
+
+def test_agent_list_notes_skill_json_contract_exact_shape(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+    root = tmp_path / "knowledge"
+    skills_dir = root / "Skills"
+    skills_dir.mkdir(parents=True)
+    (skills_dir / "release-validation-pass.md").write_text(
+        "\n".join(
+            [
+                "# Release Validation Pass",
+                "",
+                "## Purpose",
+                "- Verify release readiness",
+                "",
+                "## Trigger",
+                "- Before a release cut",
+                "",
+                "## Constraints",
+                "- No scope expansion",
+                "",
+                "## Related Agents",
+                "- [[QA and Release]]",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    build_index_with_source(state_dir, root, "local", source_id="knowledge")
+    rebuild_index(state_dir)
+
+    result = runner.invoke(
+        app,
+        [
+            "agent",
+            "list-notes",
+            "--kind",
+            "skill",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "agent_list_notes", True)
+    assert set(payload["data"].keys()) == {"kind", "item_count", "items"}
+    assert payload["data"]["kind"] == "skill"
+    assert payload["data"]["item_count"] == 1
+    assert set(payload["data"]["items"][0].keys()) == {
+        "id",
+        "name",
+        "kind",
+        "purpose",
+        "trigger",
+        "constraints",
+        "related_agents",
+        "path",
+    }
+    assert payload["data"]["items"][0]["name"] == "Release Validation Pass"
+    assert payload["data"]["items"][0]["related_agents"] == ["QA and Release"]
+
+
 def test_shell_rejects_json_format_flag() -> None:
     result = runner.invoke(app, ["shell", "--format", "json"])
 

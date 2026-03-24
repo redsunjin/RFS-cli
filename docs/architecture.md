@@ -421,6 +421,7 @@ Example response shape:
 - Prefer lightweight Markdown note templates before introducing extracted registry schemas
 - Reuse the existing research-export bundle format for curated skill/reference note bundles before designing a specialized export surface
 - If a registry surface is added, make it an extracted read-only view over indexed notes rather than a new source of truth
+- The first implemented registry slice is `rfs agent list-notes --kind role|skill`
 
 ### Developer utility services
 

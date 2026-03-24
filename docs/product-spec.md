@@ -303,11 +303,13 @@ Responsibilities:
 - expose AI-safe utility commands
 - guarantee bounded, structured output
 - normalize errors and exit codes
+- expose read-only note-backed discovery for agent and skill assets
 
 Examples:
 
 - `rfs agent list-files ./docs --format json`
 - `rfs agent find-text "TODO" ./src --format json`
+- `rfs agent list-notes --kind role --format json`
 
 ## Functional requirements
 

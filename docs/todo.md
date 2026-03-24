@@ -143,6 +143,8 @@ When scope changes, update these files in order:
 - [x] Define minimal note templates for `Agents/`, `Skills/`, and `Sources/`
 - [x] Decide whether `rfs research export` should support curated skill/reference bundles
 - [x] Define a read-only registry surface for agent and skill notes
+- [x] Implement `rfs agent list-notes --kind role|skill` as the first read-only registry slice
+- [ ] Add `rfs agent show-note <id>` for single-record inspection
 
 ## MVP execution backlog
 
