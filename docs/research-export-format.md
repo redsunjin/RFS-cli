@@ -3,6 +3,7 @@
 ## Goal
 
 Define a local, predictable bundle format for handing indexed documents off into external research tools such as NotebookLM.
+The same format may also be reused later for curated skill and reference note bundles drawn from indexed personal knowledge sources.
 
 ## Command surface
 
@@ -55,6 +56,20 @@ Each document entry records:
 - If the source file is missing, export falls back to the indexed content snapshot
 - The first slice is local and read-only; it does not add remote sync or NotebookLM automation
 
+## Skill and reference bundle decision
+
+`rfs research export` should also support curated skill and reference bundles when those assets are stored as indexed notes.
+
+In the first version of that expansion:
+
+- reuse the same command surface
+- reuse the same bundle layout
+- reuse the same manifest shape
+- do not add a new skill-specific export command
+- do not add a separate bundle schema only for agent or skill notes
+
+This keeps export behavior consistent across ordinary research documents and curated personal agent knowledge.
+
 ## JSON command payload
 
 The command returns a standard payload with:
@@ -76,3 +91,4 @@ This format is meant for:
 - curating a small search-derived document set
 - preserving source metadata and relative paths
 - handing the bundle to adjacent research workflows without making NotebookLM the system of record
+- packaging curated `Agents/`, `Skills/`, or `Sources/` notes when they are already indexed as local knowledge

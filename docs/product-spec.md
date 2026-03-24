@@ -233,6 +233,7 @@ Examples:
 - `rfs-cli` should help retrieve and inspect these assets before attempting broader execution automation
 - the first operating model is documented in `docs/agent-skill-knowledge-model.md`
 - the first minimal note templates are documented in `docs/agent-note-templates.md`
+- curated skill/reference note bundles should reuse the existing `rfs research export` document bundle format rather than introduce a new export command first
 
 ### `rfs llm`
 

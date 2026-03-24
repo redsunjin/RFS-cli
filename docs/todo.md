@@ -141,7 +141,7 @@ When scope changes, update these files in order:
 
 - [x] Define an agent-skill-knowledge operating model
 - [x] Define minimal note templates for `Agents/`, `Skills/`, and `Sources/`
-- [ ] Decide whether `rfs research export` should support curated skill/reference bundles
+- [x] Decide whether `rfs research export` should support curated skill/reference bundles
 - [ ] Define a read-only registry surface for agent and skill notes
 
 ## MVP execution backlog

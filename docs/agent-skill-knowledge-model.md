@@ -165,3 +165,4 @@ Before implementation starts, this model should satisfy all of these:
 3. Define a small read-only registry surface for agent and skill notes before any execution-oriented registry is considered.
 
 The first note-template slice is documented in `docs/agent-note-templates.md`.
+Curated skill/reference bundles should reuse the existing `rfs research export` format as documented in `docs/research-export-format.md`.
