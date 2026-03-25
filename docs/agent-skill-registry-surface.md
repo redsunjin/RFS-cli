@@ -93,6 +93,70 @@ The first safe shape is:
 
 Do not expose raw private note history, hidden prompts, or execution metadata by default.
 
+### Example: `list-notes`
+
+```json
+{
+  "schema_version": "1",
+  "command": "agent_list_notes",
+  "ok": true,
+  "data": {
+    "kind": "role",
+    "item_count": 1,
+    "items": [
+      {
+        "id": "abc123def456",
+        "name": "Product and Roadmap",
+        "kind": "role",
+        "purpose": "Keep scope aligned",
+        "boundaries": ["Do not change runtime contracts alone"],
+        "related_skills": ["Contract Hardening Review"],
+        "path": "/path/to/Agents/product-roadmap.md"
+      }
+    ]
+  },
+  "error": null
+}
+```
+
+### Example: `show-note`
+
+```json
+{
+  "schema_version": "1",
+  "command": "agent_show_note",
+  "ok": true,
+  "data": {
+    "record": {
+      "id": "def789ghi012",
+      "name": "Release Validation Pass",
+      "kind": "skill",
+      "purpose": "Verify release readiness",
+      "trigger": "Before a release cut",
+      "constraints": ["No scope expansion"],
+      "related_agents": ["QA and Release"],
+      "path": "/path/to/Skills/release-validation-pass.md"
+    }
+  },
+  "error": null
+}
+```
+
+### Example: not found
+
+```json
+{
+  "schema_version": "1",
+  "command": "agent_show_note",
+  "ok": false,
+  "data": {},
+  "error": {
+    "code": "not_found",
+    "message": "No agent or skill note found for id 'missing-id'."
+  }
+}
+```
+
 ## Relationship to existing commands
 
 This surface should come after basic retrieval is already working through:
@@ -102,6 +166,18 @@ This surface should come after basic retrieval is already working through:
 - existing indexed note flows
 
 It is a convenience layer over indexed notes, not a replacement for general search.
+
+## `Sources/` note decision
+
+For the first registry surface, `Sources/` notes should stay behind existing retrieval flows such as `rfs search` and `rfs show`.
+
+Why:
+
+- source notes are more exploratory and less standardized than role or skill notes
+- role and skill notes are the higher-value structured assets for the first registry slice
+- keeping `Sources/` search-only avoids widening the first extracted contract too early
+
+`Sources/` notes can join the registry later if a stable extracted record shape becomes useful.
 
 ## Non-goals
 
@@ -125,6 +201,6 @@ Before implementation starts, this surface should satisfy all of these:
 
 ## Recommended next slices
 
-1. Define one exact JSON payload example for list and show in the docs.
-2. Keep implementation indexing-backed rather than adding a separate registry store.
-3. Decide whether `Sources/` notes should join the same registry surface or stay search-only longer.
+1. Keep implementation indexing-backed rather than adding a separate registry store.
+2. Decide whether `Skills/` records need one short `example` field in the registry output.
+3. Revisit `Sources/` notes only if a stable extracted view becomes necessary.

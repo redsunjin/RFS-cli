@@ -193,7 +193,9 @@ Current slice status:
 - curated skill/reference note bundles should reuse the existing `rfs research export` format
 - the first read-only registry surface for agent and skill notes is now documented and implemented through `rfs agent list-notes --kind role|skill`
 - single-record note inspection is now implemented through `rfs agent show-note <id>`
-- the next slice is documenting exact JSON payload examples for list and show
+- exact JSON payload examples for note-registry list/show are now documented
+- `Sources/` notes stay on search/show flows for now instead of joining the first registry surface
+- the next slice is deciding whether skill records need one short `example` field in registry output
 
 ## Agentification track
 

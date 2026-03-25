@@ -145,7 +145,9 @@ When scope changes, update these files in order:
 - [x] Define a read-only registry surface for agent and skill notes
 - [x] Implement `rfs agent list-notes --kind role|skill` as the first read-only registry slice
 - [x] Add `rfs agent show-note <id>` for single-record inspection
-- [ ] Document exact JSON payload examples for note registry list/show commands
+- [x] Document exact JSON payload examples for note registry list/show commands
+- [x] Decide that `Sources/` notes stay on search/show flows for the first registry version
+- [ ] Decide whether skill records need one short `example` field in registry output
 
 ## MVP execution backlog
 

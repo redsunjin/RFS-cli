@@ -423,6 +423,7 @@ Example response shape:
 - If a registry surface is added, make it an extracted read-only view over indexed notes rather than a new source of truth
 - The first implemented registry slice is `rfs agent list-notes --kind role|skill`
 - The next implemented inspection slice is `rfs agent show-note <id>`
+- Keep `Sources/` notes on general retrieval paths until their extracted record shape is proven useful
 
 ### Developer utility services
 
