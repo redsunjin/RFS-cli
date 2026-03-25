@@ -310,6 +310,7 @@ Examples:
 - `rfs agent list-files ./docs --format json`
 - `rfs agent find-text "TODO" ./src --format json`
 - `rfs agent list-notes --kind role --format json`
+- `rfs agent show-note <document-id> --format json`
 
 ## Functional requirements
 

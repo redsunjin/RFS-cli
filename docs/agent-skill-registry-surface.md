@@ -33,8 +33,7 @@ The first implemented CLI slice should stay narrow:
 
 - `rfs agent list-notes --kind role`
 - `rfs agent list-notes --kind skill`
-
-`show-note` can wait for a later slice.
+- `rfs agent show-note <id>`
 
 ## Minimal record shape
 
@@ -126,6 +125,6 @@ Before implementation starts, this surface should satisfy all of these:
 
 ## Recommended next slices
 
-1. Add `rfs agent show-note <id>` as the first single-record inspection command.
-2. Define one exact JSON payload example for list and show.
-3. Keep implementation indexing-backed rather than adding a separate registry store.
+1. Define one exact JSON payload example for list and show in the docs.
+2. Keep implementation indexing-backed rather than adding a separate registry store.
+3. Decide whether `Sources/` notes should join the same registry surface or stay search-only longer.

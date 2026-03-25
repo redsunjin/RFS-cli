@@ -2245,6 +2245,94 @@ def test_agent_list_notes_skill_json_contract_exact_shape(tmp_path: Path) -> Non
     assert payload["data"]["items"][0]["related_agents"] == ["QA and Release"]
 
 
+def test_agent_show_note_json_contract_exact_shape(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+    root = tmp_path / "knowledge"
+    skills_dir = root / "Skills"
+    skills_dir.mkdir(parents=True)
+    skill_note = skills_dir / "release-validation-pass.md"
+    skill_note.write_text(
+        "\n".join(
+            [
+                "# Release Validation Pass",
+                "",
+                "## Purpose",
+                "- Verify release readiness",
+                "",
+                "## Trigger",
+                "- Before a release cut",
+                "",
+                "## Constraints",
+                "- No scope expansion",
+                "",
+                "## Related Agents",
+                "- [[QA and Release]]",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    build_index_with_source(state_dir, root, "local", source_id="knowledge")
+    rebuild_index(state_dir)
+
+    list_result = runner.invoke(
+        app,
+        [
+            "agent",
+            "list-notes",
+            "--kind",
+            "skill",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+    assert list_result.exit_code == 0
+    list_payload = json.loads(list_result.stdout)
+    document_id = list_payload["data"]["items"][0]["id"]
+
+    result = runner.invoke(
+        app,
+        ["agent", "show-note", document_id, "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "agent_show_note", True)
+    assert set(payload["data"].keys()) == {"record"}
+    assert set(payload["data"]["record"].keys()) == {
+        "id",
+        "name",
+        "kind",
+        "purpose",
+        "trigger",
+        "constraints",
+        "related_agents",
+        "path",
+    }
+    assert payload["data"]["record"]["name"] == "Release Validation Pass"
+
+
+def test_agent_show_note_not_found_returns_structured_error(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+    root = tmp_path / "knowledge"
+    (root / "Skills").mkdir(parents=True)
+    build_index_with_source(state_dir, root, "local", source_id="knowledge")
+    rebuild_index(state_dir)
+
+    result = runner.invoke(
+        app,
+        ["agent", "show-note", "missing-id", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 1
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "agent_show_note", False)
+    assert payload["error"]["code"] == "not_found"
+
+
 def test_shell_rejects_json_format_flag() -> None:
     result = runner.invoke(app, ["shell", "--format", "json"])
 

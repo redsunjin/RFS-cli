@@ -79,7 +79,7 @@ from rfs_cli.models import (
     SourceConfig,
     UserIntent,
 )
-from rfs_cli.registry import list_note_records
+from rfs_cli.registry import get_note_record, list_note_records
 from rfs_cli.research import export_research_bundle
 from rfs_cli.services import (
     find_todo_markers,
@@ -516,6 +516,17 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
                 if item.get("purpose"):
                     typer.echo(f'  purpose: {item["purpose"]}')
                 typer.echo(f'  path: {item["path"]}')
+            return
+
+        if command == "agent_show_note":
+            record = data["record"]
+            typer.echo(record["name"])
+            typer.echo(f'kind: {record["kind"]}')
+            if record.get("purpose"):
+                typer.echo(f'purpose: {record["purpose"]}')
+            if record.get("trigger"):
+                typer.echo(f'trigger: {record["trigger"]}')
+            typer.echo(f'path: {record["path"]}')
             return
 
         if command == "version":
@@ -1589,6 +1600,31 @@ def agent_list_notes(
             "item_count": len(items),
             "items": items,
         },
+    )
+    emit(payload, output)
+
+
+@agent_app.command("show-note")
+def agent_show_note(
+    document_id: str = typer.Argument(...),
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
+    output: OutputMode = typer.Option(OutputMode.json, "--format"),
+) -> None:
+    load_agent_config_or_fail("agent_show_note", state_dir, output)
+    index_store = load_index_or_fail("agent_show_note", state_dir, output)
+    record = get_note_record(index_store, document_id)
+    if record is None:
+        fail(
+            "agent_show_note",
+            f"No agent or skill note found for id '{document_id}'.",
+            output,
+            code="not_found",
+        )
+
+    payload = CommandPayload(
+        command="agent_show_note",
+        ok=True,
+        data={"record": record},
     )
     emit(payload, output)
 

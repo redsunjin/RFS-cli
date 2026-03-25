@@ -192,7 +192,8 @@ Current slice status:
 - the first minimal note templates for `Agents/`, `Skills/`, and `Sources/` are now documented
 - curated skill/reference note bundles should reuse the existing `rfs research export` format
 - the first read-only registry surface for agent and skill notes is now documented and implemented through `rfs agent list-notes --kind role|skill`
-- the next slice is adding one single-record inspection command for note-backed registry items
+- single-record note inspection is now implemented through `rfs agent show-note <id>`
+- the next slice is documenting exact JSON payload examples for list and show
 
 ## Agentification track
 

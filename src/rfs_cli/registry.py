@@ -33,6 +33,17 @@ def list_note_records(
     return records[:limit]
 
 
+def get_note_record(index_store: IndexStore, document_id: str) -> Optional[dict[str, object]]:
+    for document in index_store.documents:
+        kind = classify_note_document(document)
+        if kind is None:
+            continue
+        if document.document_id == document_id:
+            return build_note_record(document, kind)
+
+    return None
+
+
 def classify_note_document(document: IndexDocument) -> Optional[NoteKind]:
     if document.file_type not in {"md", "markdown"}:
         return None

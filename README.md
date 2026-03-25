@@ -116,7 +116,7 @@ The current codebase includes:
 - indexed document lookup with source metadata
 - file preview support
 - project statistics
-- agent-safe file listing, text search, and note listing
+- agent-safe file listing, text search, note listing, and note inspection
 - research export bundles for indexed documents
 - required LLM setup and guided CLI usage with `rfs ask`
 - documented agent contract plus source-aware guidance for `rfs ask`
@@ -144,6 +144,7 @@ uv run rfs index run
 uv run rfs search "agent memory" --format json
 uv run rfs show <document-id> --format json
 uv run rfs agent list-notes --kind role --format json
+uv run rfs agent show-note <document-id> --format json
 uv run rfs dev find-todo --path . --format json
 uv run rfs research export "agent systems" --format json
 ```
