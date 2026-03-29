@@ -39,7 +39,7 @@ def get_note_record(index_store: IndexStore, document_id: str) -> Optional[dict[
         if kind is None:
             continue
         if document.document_id == document_id:
-            return build_note_record(document, kind)
+            return build_note_record(document, kind, include_example=True)
 
     return None
 
@@ -60,7 +60,11 @@ def classify_note_document(document: IndexDocument) -> Optional[NoteKind]:
     return None
 
 
-def build_note_record(document: IndexDocument, kind: NoteKind) -> dict[str, object]:
+def build_note_record(
+    document: IndexDocument,
+    kind: NoteKind,
+    include_example: bool = False,
+) -> dict[str, object]:
     sections = extract_markdown_sections(document.content)
 
     if kind == "role":
@@ -74,7 +78,7 @@ def build_note_record(document: IndexDocument, kind: NoteKind) -> dict[str, obje
             "path": document.path,
         }
 
-    return {
+    record = {
         "id": document.document_id,
         "name": document.title,
         "kind": kind,
@@ -84,6 +88,9 @@ def build_note_record(document: IndexDocument, kind: NoteKind) -> dict[str, obje
         "related_agents": section_items(sections, "related agents"),
         "path": document.path,
     }
+    if include_example:
+        record["example"] = first_section_value(sections, "example")
+    return record
 
 
 def extract_markdown_sections(content: str) -> Dict[str, str]:

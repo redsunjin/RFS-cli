@@ -60,6 +60,8 @@ For skill notes:
 - `related_agents`
 - `path`
 
+For single-record skill inspection, one short `example` field may also be exposed.
+
 The source of these fields should be the note templates, not a new independent registry database.
 
 ## Source of truth
@@ -134,6 +136,7 @@ Do not expose raw private note history, hidden prompts, or execution metadata by
       "purpose": "Verify release readiness",
       "trigger": "Before a release cut",
       "constraints": ["No scope expansion"],
+      "example": "uv run pytest -q",
       "related_agents": ["QA and Release"],
       "path": "/path/to/Skills/release-validation-pass.md"
     }
@@ -202,5 +205,5 @@ Before implementation starts, this surface should satisfy all of these:
 ## Recommended next slices
 
 1. Keep implementation indexing-backed rather than adding a separate registry store.
-2. Decide whether `Skills/` records need one short `example` field in the registry output.
+2. Decide whether role records need an equally small single-record enrichment field.
 3. Revisit `Sources/` notes only if a stable extracted view becomes necessary.

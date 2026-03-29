@@ -195,7 +195,8 @@ Current slice status:
 - single-record note inspection is now implemented through `rfs agent show-note <id>`
 - exact JSON payload examples for note-registry list/show are now documented
 - `Sources/` notes stay on search/show flows for now instead of joining the first registry surface
-- the next slice is deciding whether skill records need one short `example` field in registry output
+- single-record skill inspection now exposes one short `example` field while list output stays narrow
+- the next slice is deciding whether role records need a similarly small single-record enrichment field
 
 ## Agentification track
 

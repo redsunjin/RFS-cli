@@ -2266,6 +2266,9 @@ def test_agent_show_note_json_contract_exact_shape(tmp_path: Path) -> None:
                 "## Constraints",
                 "- No scope expansion",
                 "",
+                "## Example",
+                "- uv run pytest -q",
+                "",
                 "## Related Agents",
                 "- [[QA and Release]]",
             ]
@@ -2308,10 +2311,12 @@ def test_agent_show_note_json_contract_exact_shape(tmp_path: Path) -> None:
         "purpose",
         "trigger",
         "constraints",
+        "example",
         "related_agents",
         "path",
     }
     assert payload["data"]["record"]["name"] == "Release Validation Pass"
+    assert payload["data"]["record"]["example"] == "uv run pytest -q"
 
 
 def test_agent_show_note_not_found_returns_structured_error(tmp_path: Path) -> None:

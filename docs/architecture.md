@@ -424,6 +424,7 @@ Example response shape:
 - The first implemented registry slice is `rfs agent list-notes --kind role|skill`
 - The next implemented inspection slice is `rfs agent show-note <id>`
 - Keep `Sources/` notes on general retrieval paths until their extracted record shape is proven useful
+- Keep list output narrower than show output; the first extra skill field is a short `example` on single-record inspection only
 
 ### Developer utility services
 

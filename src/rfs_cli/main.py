@@ -526,6 +526,8 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
                 typer.echo(f'purpose: {record["purpose"]}')
             if record.get("trigger"):
                 typer.echo(f'trigger: {record["trigger"]}')
+            if record.get("example"):
+                typer.echo(f'example: {record["example"]}')
             typer.echo(f'path: {record["path"]}')
             return
 
