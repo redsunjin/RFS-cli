@@ -68,7 +68,7 @@ def build_note_record(
     sections = extract_markdown_sections(document.content)
 
     if kind == "role":
-        return {
+        record = {
             "id": document.document_id,
             "name": document.title,
             "kind": kind,
@@ -77,6 +77,9 @@ def build_note_record(
             "related_skills": section_items(sections, "related skills"),
             "path": document.path,
         }
+        if include_example:
+            record["responsibilities"] = section_items(sections, "responsibilities")
+        return record
 
     record = {
         "id": document.document_id,

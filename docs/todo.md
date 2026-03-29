@@ -147,8 +147,8 @@ When scope changes, update these files in order:
 - [x] Add `rfs agent show-note <id>` for single-record inspection
 - [x] Document exact JSON payload examples for note registry list/show commands
 - [x] Decide that `Sources/` notes stay on search/show flows for the first registry version
+- [x] Decide that single-record role inspection exposes a short `responsibilities` list
 - [x] Decide that single-record skill inspection exposes one short `example` field
-- [ ] Decide whether role records need a similarly small single-record enrichment field
 
 ## MVP execution backlog
 

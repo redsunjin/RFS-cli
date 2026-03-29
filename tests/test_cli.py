@@ -2319,6 +2319,80 @@ def test_agent_show_note_json_contract_exact_shape(tmp_path: Path) -> None:
     assert payload["data"]["record"]["example"] == "uv run pytest -q"
 
 
+def test_agent_show_note_role_includes_responsibilities(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    save_llm_config(state_dir)
+    root = tmp_path / "knowledge"
+    agents_dir = root / "Agents"
+    agents_dir.mkdir(parents=True)
+    role_note = agents_dir / "product-roadmap.md"
+    role_note.write_text(
+        "\n".join(
+            [
+                "# Product and Roadmap",
+                "",
+                "## Purpose",
+                "- Keep scope aligned",
+                "",
+                "## Responsibilities",
+                "- Prioritize slices",
+                "- Keep roadmap in sync",
+                "",
+                "## Boundaries",
+                "- Do not change runtime contracts alone",
+                "",
+                "## Related Skills",
+                "- [[Contract Hardening Review]]",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    build_index_with_source(state_dir, root, "local", source_id="knowledge")
+    rebuild_index(state_dir)
+
+    list_result = runner.invoke(
+        app,
+        [
+            "agent",
+            "list-notes",
+            "--kind",
+            "role",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+    assert list_result.exit_code == 0
+    list_payload = json.loads(list_result.stdout)
+    document_id = list_payload["data"]["items"][0]["id"]
+
+    result = runner.invoke(
+        app,
+        ["agent", "show-note", document_id, "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "agent_show_note", True)
+    assert set(payload["data"].keys()) == {"record"}
+    assert set(payload["data"]["record"].keys()) == {
+        "id",
+        "name",
+        "kind",
+        "purpose",
+        "boundaries",
+        "responsibilities",
+        "related_skills",
+        "path",
+    }
+    assert payload["data"]["record"]["name"] == "Product and Roadmap"
+    assert payload["data"]["record"]["responsibilities"] == [
+        "Prioritize slices",
+        "Keep roadmap in sync",
+    ]
+
+
 def test_agent_show_note_not_found_returns_structured_error(tmp_path: Path) -> None:
     state_dir = tmp_path / ".rfs"
     save_llm_config(state_dir)

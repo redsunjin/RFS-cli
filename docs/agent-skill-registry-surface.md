@@ -60,6 +60,8 @@ For skill notes:
 - `related_agents`
 - `path`
 
+For single-record role inspection, a short `responsibilities` list may also be exposed.
+
 For single-record skill inspection, one short `example` field may also be exposed.
 
 The source of these fields should be the note templates, not a new independent registry database.
@@ -145,6 +147,29 @@ Do not expose raw private note history, hidden prompts, or execution metadata by
 }
 ```
 
+### Example: `show-note` for a role record
+
+```json
+{
+  "schema_version": "1",
+  "command": "agent_show_note",
+  "ok": true,
+  "data": {
+    "record": {
+      "id": "abc123def456",
+      "name": "Product and Roadmap",
+      "kind": "role",
+      "purpose": "Keep scope aligned",
+      "boundaries": ["Do not change runtime contracts alone"],
+      "responsibilities": ["Prioritize slices", "Keep roadmap in sync"],
+      "related_skills": ["Contract Hardening Review"],
+      "path": "/path/to/Agents/product-roadmap.md"
+    }
+  },
+  "error": null
+}
+```
+
 ### Example: not found
 
 ```json
@@ -205,5 +230,5 @@ Before implementation starts, this surface should satisfy all of these:
 ## Recommended next slices
 
 1. Keep implementation indexing-backed rather than adding a separate registry store.
-2. Decide whether role records need an equally small single-record enrichment field.
+2. Keep role and skill single-record enrichment small instead of widening list payloads.
 3. Revisit `Sources/` notes only if a stable extracted view becomes necessary.

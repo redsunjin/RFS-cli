@@ -524,6 +524,10 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
             typer.echo(f'kind: {record["kind"]}')
             if record.get("purpose"):
                 typer.echo(f'purpose: {record["purpose"]}')
+            if record.get("responsibilities"):
+                typer.echo("responsibilities:")
+                for responsibility in record["responsibilities"]:
+                    typer.echo(f"- {responsibility}")
             if record.get("trigger"):
                 typer.echo(f'trigger: {record["trigger"]}')
             if record.get("example"):
