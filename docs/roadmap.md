@@ -71,6 +71,18 @@ The first MVP spans:
 
 That means the project should not wait for Google Drive integration before declaring an MVP.
 
+## Current official active loop
+
+The official active loop remains post-MVP completion work, not branch-only experimentation.
+
+Current official next tasks:
+
+1. Run a real Google Drive smoke pass when local credentials or token state are available
+2. Design a NestClaw adapter boundary for API or CLI invocation
+3. Design a qa_claw adapter boundary for script execution
+
+Branch tracks such as assistive UX, harbor, and personal agent knowledge may continue, but they should be treated as branch-specific exploratory work unless the official loop is explicitly changed in both `docs/roadmap.md` and `docs/todo.md`.
+
 ## Phase 4: Google Drive integration
 
 Goal:

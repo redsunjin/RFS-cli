@@ -4,6 +4,8 @@ This repository uses a documentation-first workflow. Agents should keep the proj
 
 The repository's formal delivery process is documented in `docs/work-harness.md`. Use that document as the default plan-review-execute-verify harness for non-trivial changes.
 
+Treat `docs/todo.md` and `docs/roadmap.md` together as the control plane for the current official active loop. Branch-only experiments may proceed, but they should not silently replace the official loop unless the docs explicitly say so.
+
 ## Agent group
 
 Use the following specialist roles when planning or implementing work:
@@ -109,6 +111,8 @@ This operating order maps to the four harness stages in `docs/work-harness.md`:
 3. Execute
 4. Verify
 
+For larger slices, multi-workstream changes, or branch-only exploratory tracks, create a worksheet from `docs/harness-worksheet.md` before execution.
+
 ## MVP delivery mode
 
 When the project is in active MVP delivery, agents should work in short loops with explicit review gates.
@@ -173,6 +177,7 @@ Each completed slice should leave behind:
 - tests for the new or changed behavior
 - a brief validation result
 - a clear next slice recommendation
+- roadmap/TODO sync when a track-level next step changed
 
 ## Blockers
 
@@ -207,6 +212,8 @@ When a feature changes scope or behavior, update documents in this order:
 - Do not introduce remote integrations before the local-first model is working
 - Treat AI-safe JSON output as a product feature, not an afterthought
 - Add or update tests for behavior changes
+- Keep `docs/roadmap.md` next-slice notes and `docs/todo.md` open items aligned
+- Use `docs/harness-worksheet.md` when a slice needs a durable execution contract beyond the usual handoff summary
 
 ## Current recommendation
 

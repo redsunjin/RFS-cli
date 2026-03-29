@@ -9,11 +9,92 @@
 
 The purpose of this harness is to keep each slice small, documented, tested, and safe for both human and agent use.
 
+This delivery loop also sits inside a broader harness structure:
+
+- a control plane that says what the current official work loop is
+- a record system that preserves decisions as versioned repository documents
+- evaluator and observability signals that prove a slice actually works
+- guardrails that prevent branch work from silently replacing official priorities
+- a drift-reduction loop that keeps docs, tests, and plans from diverging
+
 ## When to use it
 
 Use this harness for any non-trivial change that affects code, behavior, scope, docs, or command contracts.
 
 For tiny edits such as typo fixes or isolated wording changes, the same stages may be collapsed into one short pass as long as no review gate is skipped.
+
+## Harness layers
+
+### 1. Control plane
+
+The control plane decides what the repository is officially optimizing for right now.
+
+Primary artifacts:
+
+- `docs/roadmap.md`
+- `docs/todo.md`
+- `AGENTS.md`
+
+Rules:
+
+- there should be one official active loop at a time
+- branch experiments may extend the repository, but do not replace the official active loop unless the docs explicitly say so
+- `docs/todo.md` should name the current official next tasks
+- `docs/roadmap.md` should describe the same next slice at the track level
+
+### 2. Record system
+
+The record system preserves durable decisions so a later session can resume without relying on chat history.
+
+Primary artifacts:
+
+- `docs/project-charter.md`
+- `docs/product-spec.md`
+- `docs/architecture.md`
+- `docs/roadmap.md`
+- `docs/todo.md`
+- `docs/harness-worksheet.md` when a slice needs an explicit execution contract
+
+### 3. Evaluator and observability layer
+
+The evaluator layer decides what counts as done, and the observability layer provides enough signal to diagnose failures.
+
+Typical evaluator artifacts:
+
+- `uv run pytest`
+- `uv run ruff check .`
+- JSON contract tests
+- smoke checklists
+- QA notes such as `docs/qa-report.md`
+
+Typical observability signals:
+
+- `rfs doctor`
+- `rfs doctor --verbose`
+- install-flow smoke outcomes
+- real-runtime validation notes
+- environment-specific waivers when a smoke step cannot run locally
+
+### 4. Guardrails
+
+Guardrails prevent unbounded branch drift.
+
+Examples:
+
+- keep local-first scope ahead of remote expansion
+- do not widen machine-readable contracts without AI tooling review
+- do not let branch-only idea work silently replace the documented official loop
+- do not mark a slice complete when docs, tests, and implementation disagree
+
+### 5. Drift and hygiene
+
+The harness should make drift visible and reduce it in small increments.
+
+Current hygiene rules:
+
+- keep roadmap and TODO next-slice notes aligned
+- promote repeated review rules from prose into tests or scripts when possible
+- prefer small cleanup slices over large deferred reconciliation work
 
 ## Stage 1: Plan
 
@@ -45,6 +126,7 @@ Outputs:
 - a short statement of intent
 - the documents likely to change
 - the specialist roles needed for the slice
+- a worksheet reference when the slice is large enough to need a durable execution contract
 
 ## Stage 2: Review
 
@@ -69,6 +151,7 @@ Outputs:
 - design confirmation or a narrowed scope
 - contract notes when JSON or error payloads are touched
 - explicit review gates for the slice
+- confirmation that the slice still belongs to the official active loop, or an explicit note that it is branch-only exploratory work
 
 ## Stage 3: Execute
 
@@ -122,6 +205,7 @@ Required handoff artifacts:
 - tests for the new or changed behavior
 - a brief validation result
 - a clear next slice recommendation
+- roadmap/TODO sync when a track-level “next slice” changed
 
 ## Review gates
 
@@ -141,6 +225,29 @@ When a feature changes scope or behavior, update documents in this order:
 3. `docs/architecture.md`
 4. `docs/roadmap.md`
 5. `docs/todo.md`
+
+## Roadmap and TODO sync rule
+
+When `docs/roadmap.md` names a track-level next slice, `docs/todo.md` should either:
+
+- contain a matching open checklist item, or
+- explicitly mark that track as exploratory and outside the official active loop
+
+Do not leave a roadmap “next slice” without a corresponding TODO interpretation.
+
+## Execution worksheet rule
+
+For larger slices, branch-only tracks, or work that changes more than one workstream, create a worksheet from `docs/harness-worksheet.md`.
+
+A worksheet should capture:
+
+- which track the slice belongs to
+- whether it is official-loop work or branch-only work
+- what documents are the source of truth
+- what validation and runtime signals will be used
+- what drift risks or cleanup follow-ups are expected
+
+Small self-contained slices may skip a separate worksheet if the same information is obvious from the updated docs and handoff summary.
 
 ## Role mapping
 

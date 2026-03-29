@@ -55,6 +55,7 @@ That agent now assumes a configured LLM as part of normal onboarding, and its ru
 - [Smoke checklist](./docs/smoke-checklist.md)
 - [QA report](./docs/qa-report.md)
 - [Work harness](./docs/work-harness.md)
+- [Harness worksheet template](./docs/harness-worksheet.md)
 - [Research export format](./docs/research-export-format.md)
 - [Tool-provider contract](./docs/tool-provider-contract.md)
 - [Harbor concept](./docs/harbor-concept.md)

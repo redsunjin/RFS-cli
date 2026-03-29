@@ -110,6 +110,11 @@ When scope changes, update these files in order:
 - [ ] Design a NestClaw adapter boundary for API or CLI invocation
 - [ ] Design a qa_claw adapter boundary for script execution
 
+## Official active loop
+
+- The official active loop is the same as the current recommended next three tasks above.
+- Branch-only tracks may continue on feature branches, but they do not replace the official active loop unless both this file and `docs/roadmap.md` are updated together.
+
 ## Idea branch recommended next three tasks
 
 - [x] Define `UserIntent`, `CommandSuggestion`, and `GuidanceResponse` internal models
@@ -136,6 +141,7 @@ When scope changes, update these files in order:
 - [x] Define reset-only handling for incomplete first-version `Lantern Pause` sessions
 - [x] Decide that incomplete first-version `Lantern Pause` sessions do not create hidden diagnostic metrics
 - [x] Define the first cosmetic unlock rule for completed `Lantern Pause` sessions
+- [ ] Decide whether the first completed `Lantern Pause` session should also grant a small point bonus
 
 ## Personal agent knowledge track
 
@@ -149,6 +155,7 @@ When scope changes, update these files in order:
 - [x] Decide that `Sources/` notes stay on search/show flows for the first registry version
 - [x] Decide that single-record role inspection exposes a short `responsibilities` list
 - [x] Decide that single-record skill inspection exposes one short `example` field
+- [ ] Decide whether the registry should stay indexing-backed without any separate store
 
 ## MVP execution backlog
 
