@@ -63,6 +63,7 @@ Typical evaluator artifacts:
 
 - `uv run pytest`
 - `uv run ruff check .`
+- `python3 scripts/check_harness_sync.py`
 - JSON contract tests
 - smoke checklists
 - QA notes such as `docs/qa-report.md`
@@ -95,6 +96,7 @@ Current hygiene rules:
 - keep roadmap and TODO next-slice notes aligned
 - promote repeated review rules from prose into tests or scripts when possible
 - prefer small cleanup slices over large deferred reconciliation work
+- use `python3 scripts/check_harness_sync.py` as the first machine check for roadmap/TODO drift
 
 ## Stage 1: Plan
 
