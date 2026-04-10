@@ -73,15 +73,15 @@ That means the project should not wait for Google Drive integration before decla
 
 ## Current official active loop
 
-The official active loop remains post-MVP completion work, not branch-only experimentation.
+The official active loop now moves from the completed personal agent knowledge promotion slice to the next promotion candidate: assistive UX.
 
 Current official next tasks:
 
-1. Run a real Google Drive smoke pass when local credentials or token state are available
-2. Design a NestClaw adapter boundary for API or CLI invocation
-3. Design a qa_claw adapter boundary for script execution
+1. Promote the validated progressive help and recovery guidance rules into the official loop without introducing a public guidance schema v2
+2. Reconfirm that the current `ask` JSON contract stays frozen while assistive UX rules graduate
+3. Record the assistive UX promotion validation and then re-rank the paused post-MVP integration queue
 
-Branch tracks such as assistive UX, harbor, and personal agent knowledge may continue, but they should be treated as branch-specific exploratory work unless the official loop is explicitly changed in both `docs/roadmap.md` and `docs/todo.md`.
+The previous Google Drive smoke, NestClaw boundary, and qa_claw boundary tasks remain paused follow-on work rather than discarded work.
 
 ## Phase 4: Google Drive integration
 
@@ -209,7 +209,8 @@ Current slice status:
 - `Sources/` notes stay on search/show flows for now instead of joining the first registry surface
 - single-record role inspection now exposes a short `responsibilities` list while list output stays narrow
 - single-record skill inspection now exposes one short `example` field while list output stays narrow
-- the next slice is deciding whether the registry should stay indexing-backed without any separate store
+- the registry boundary is now promoted into the official active loop and stays indexing-backed without any separate store
+- promotion validation is now recorded in `docs/personal-agent-knowledge-promotion-validation.md`
 
 ## Agentification track
 
@@ -258,6 +259,7 @@ Current slice status:
 - deterministic suggestions now recognize invalid index and shell-memory state and prefer `rfs doctor --verbose`
 - a guidance-payload contract review now freezes the current `ask` JSON shape before any machine-readable expansion
 - the current review outcome is to avoid a public guidance schema v2 in this phase and keep any future expansion as a separate proposal
+- the next assistive UX slice is promoting the validated progressive help and recovery guidance rules into the official loop without introducing a public guidance schema v2
 
 ## Sequencing rationale
 

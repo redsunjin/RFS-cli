@@ -235,6 +235,7 @@ Examples:
 - the first minimal note templates are documented in `docs/agent-note-templates.md`
 - curated skill/reference note bundles should reuse the existing `rfs research export` document bundle format rather than introduce a new export command first
 - the first registry surface for agent and skill notes should stay read-only and note-backed
+- the first promoted official registry boundary should stay indexing-backed with no separate persistence layer
 - `Sources/` notes should remain search/show-oriented until a stable extracted registry view is justified
 - single-record role inspection may expose a short `responsibilities` list while list output stays narrow
 - single-record skill inspection may expose one short `example` field while list output stays narrow

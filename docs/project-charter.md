@@ -24,6 +24,7 @@ The project is primarily a learning vehicle, but it must also become a real tool
 - Establish a documentation-driven development process from the beginning
 - Keep assistive UX experiments modular so validated ideas can merge back into the stable CLI without destabilizing the core command surface
 - Treat reusable agent roles, skills, and curated personal knowledge as a connected local-first operating model
+- Promote validated personal agent knowledge slices through note-backed, index-backed read-only surfaces before adding separate registry storage
 
 ## Problem statement
 

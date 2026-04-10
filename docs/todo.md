@@ -106,14 +106,16 @@ When scope changes, update these files in order:
 
 ## Current recommended next three tasks
 
-- [ ] Run a real Google Drive smoke pass when client secrets or token state are available
-- [ ] Design a NestClaw adapter boundary for API or CLI invocation
-- [ ] Design a qa_claw adapter boundary for script execution
+- [ ] Promote the validated progressive help and recovery guidance rules into the official loop without introducing a public guidance schema v2
+- [ ] Reconfirm that the current `ask` JSON contract stays frozen while assistive UX rules graduate
+- [ ] Record the assistive UX promotion validation and then re-rank the paused post-MVP integration queue
 
 ## Official active loop
 
 - The official active loop is the same as the current recommended next three tasks above.
-- Branch-only tracks may continue on feature branches, but they do not replace the official active loop unless both this file and `docs/roadmap.md` are updated together.
+- The most recently closed official promotion decision is that the agent and skill note registry stays indexing-backed and read-only without any separate store.
+- The current official promotion target is assistive UX, limited to validated progressive help and recovery behavior.
+- The earlier Google Drive smoke, NestClaw boundary, and qa_claw boundary tasks are paused follow-on work.
 
 ## Idea branch recommended next three tasks
 
@@ -131,6 +133,7 @@ When scope changes, update these files in order:
 - [x] Distinguish read-only suggestions from state-changing suggestions before execution automation
 - [x] Add contract review before exposing any machine-readable guidance payload
 - [x] Decide against introducing a public guidance schema v2 in the current phase
+- [ ] Promote the validated progressive help and recovery guidance rules into the official loop without introducing a public guidance schema v2
 
 ## Post-MVP gamification track
 
@@ -155,7 +158,7 @@ When scope changes, update these files in order:
 - [x] Decide that `Sources/` notes stay on search/show flows for the first registry version
 - [x] Decide that single-record role inspection exposes a short `responsibilities` list
 - [x] Decide that single-record skill inspection exposes one short `example` field
-- [ ] Decide whether the registry should stay indexing-backed without any separate store
+- [x] Decide that the registry stays indexing-backed without any separate store
 
 ## MVP execution backlog
 
