@@ -25,6 +25,7 @@ The project is primarily a learning vehicle, but it must also become a real tool
 - Keep assistive UX experiments modular so validated ideas can merge back into the stable CLI without destabilizing the core command surface
 - Treat reusable agent roles, skills, and curated personal knowledge as a connected local-first operating model
 - Promote validated personal agent knowledge slices through note-backed, index-backed read-only surfaces before adding separate registry storage
+- Allow a later compiled wiki layer that accumulates synthesized knowledge into reviewable Markdown instead of re-deriving it from raw sources every time
 
 ## Problem statement
 
@@ -54,6 +55,7 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - consistent, recognizable interaction
 - a shell mode that keeps context and tool history across turns
 - a personal agent operating layer that can later retrieve reusable skills and curated notes from local knowledge sources
+- a later compiled wiki layer that can synthesize source material into maintained local Markdown pages
 
 ## Target users
 
@@ -115,6 +117,7 @@ Finally, most CLIs expose tools but do not behave like a coherent operator. This
 - Task-first guidance before syntax-first help
 - Experimental assistive UX modules stay decoupled from stable commands until they are validated
 - Personal skill and knowledge capture should stay local-first, searchable, and separate from project-critical repo docs
+- Raw source collections and LLM-maintained wiki pages should remain separate layers with different write permissions
 
 ## Integration strategy
 

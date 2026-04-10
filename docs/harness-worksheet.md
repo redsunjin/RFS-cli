@@ -7,6 +7,7 @@ Use this template for larger slices, branch-only experiments, or work that spans
 - track:
 - branch_scope:
 - official_active_loop:
+- promotion_state:
 - user_visible_change:
 
 ## 2. Scope
@@ -33,9 +34,11 @@ Use this template for larger slices, branch-only experiments, or work that spans
 - do_not_expand_into:
 - escalation_conditions:
 - rollback_or_recovery_path:
+- promotion_gate:
 
 ## 6. Drift and hygiene
 
 - likely_drift_points:
 - scheduled_cleanup_rule:
 - candidate_future_automation:
+- promotion_evidence_artifacts:

@@ -12,6 +12,7 @@ The purpose of this harness is to keep each slice small, documented, tested, and
 This delivery loop also sits inside a broader harness structure:
 
 - a control plane that says what the current official work loop is
+- a promotion path that decides how candidate tracks can graduate into the official loop
 - a record system that preserves decisions as versioned repository documents
 - evaluator and observability signals that prove a slice actually works
 - guardrails that prevent branch work from silently replacing official priorities
@@ -41,6 +42,24 @@ Rules:
 - branch experiments may extend the repository, but do not replace the official active loop unless the docs explicitly say so
 - `docs/todo.md` should name the current official next tasks
 - `docs/roadmap.md` should describe the same next slice at the track level
+
+### 1a. Promotion path
+
+The promotion path governs how branch-only or candidate-track work can graduate into the official loop.
+
+Primary artifacts:
+
+- `docs/roadmap.md`
+- `docs/todo.md`
+- validation notes for the candidate slice
+- review documents that compare candidate tracks or promotion options
+
+Rules:
+
+- candidate tracks may advance outside the official loop, but they must stay explicitly labeled
+- a candidate track should not replace the official loop until a promotion decision is written into both `docs/roadmap.md` and `docs/todo.md`
+- promotion should be based on bounded evidence such as documented scope, contract review, validation notes, and current implementation maturity
+- once a candidate slice is promoted, leave behind a short validation artifact and a clear next recommended slice
 
 ### 2. Record system
 
@@ -97,6 +116,7 @@ Current hygiene rules:
 - promote repeated review rules from prose into tests or scripts when possible
 - prefer small cleanup slices over large deferred reconciliation work
 - use `python3 scripts/check_harness_sync.py` as the first machine check for roadmap/TODO drift
+- keep candidate-track status, promotion decisions, and official-loop status explicit instead of relying on chat memory
 
 ## Stage 1: Plan
 
@@ -122,6 +142,7 @@ Required checks:
 - the change has a clear user-facing or system-facing outcome
 - the slice is small enough to finish with docs, code, and tests in one cycle
 - the change does not pull later-phase scope into the current slice
+- if the slice is candidate-track work, it is labeled as exploratory, promotion-prep, or promotion-validation work explicitly
 
 Outputs:
 - one selected slice
@@ -129,6 +150,7 @@ Outputs:
 - the documents likely to change
 - the specialist roles needed for the slice
 - a worksheet reference when the slice is large enough to need a durable execution contract
+- an explicit statement of whether the slice is official active-loop work, candidate-track incubation, or promotion-validation work
 
 ## Stage 2: Review
 
@@ -154,6 +176,7 @@ Outputs:
 - contract notes when JSON or error payloads are touched
 - explicit review gates for the slice
 - confirmation that the slice still belongs to the official active loop, or an explicit note that it is branch-only exploratory work
+- if the slice may be promoted later, the promotion gate and required evidence should be stated explicitly
 
 ## Stage 3: Execute
 
@@ -208,6 +231,7 @@ Required handoff artifacts:
 - a brief validation result
 - a clear next slice recommendation
 - roadmap/TODO sync when a track-level “next slice” changed
+- if the slice was candidate-track promotion work, a short note stating whether the track remains candidate-only or has entered the official loop
 
 ## Review gates
 
@@ -245,6 +269,7 @@ A worksheet should capture:
 
 - which track the slice belongs to
 - whether it is official-loop work or branch-only work
+- whether it is candidate-track incubation, promotion-prep, or promotion-validation work
 - what documents are the source of truth
 - what validation and runtime signals will be used
 - what drift risks or cleanup follow-ups are expected

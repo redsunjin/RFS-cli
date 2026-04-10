@@ -428,6 +428,17 @@ Example response shape:
 - Single-record role inspection may expose a short `responsibilities` list without widening list output
 - Keep list output narrower than show output; the first extra skill field is a short `example` on single-record inspection only
 
+### Compiled wiki layer
+
+- Keep compiled wiki pages separate from raw source documents and separate from project-critical repository docs
+- Treat raw sources as immutable inputs and the compiled wiki as an LLM-maintained synthesis layer
+- Keep the first wiki workflow reviewable through explicit planning and apply steps rather than silent writes
+- Prefer Markdown files plus a lightweight `index.md` and append-only `log.md` before adding specialized storage
+- Keep compiled wiki content outside `.rfs/` because it is durable content, not runtime state
+- Reuse the existing local index and search capabilities for wiki discovery instead of introducing a separate retrieval engine first
+- Prefer a narrow first command shape such as `rfs wiki plan-ingest`, `rfs wiki apply-ingest`, and `rfs wiki lint`
+- Keep question-answer filing explicit; a useful answer may become a wiki page, but chat history should not mutate the wiki automatically
+
 ### Developer utility services
 
 - Keep `dev` commands separate from knowledge indexing internals

@@ -240,6 +240,17 @@ Examples:
 - single-record role inspection may expose a short `responsibilities` list while list output stays narrow
 - single-record skill inspection may expose one short `example` field while list output stays narrow
 
+### Post-MVP compiled wiki layer
+
+- `rfs-cli` may later maintain a compiled local wiki that sits between raw sources and query-time answers
+- raw sources should remain immutable source-of-truth inputs while the wiki becomes the LLM-maintained synthesis layer
+- the first safe workflow should be reviewable and file-based rather than silent autonomous mutation
+- the wiki should live in ordinary Markdown so Obsidian and git remain usable inspection tools
+- the wiki should live in a user-visible content root rather than inside `.rfs/` runtime state
+- the first workflow should prefer `plan -> review -> apply` for wiki updates instead of direct background write-back
+- good answers, comparisons, and synthesis pages may later be filed back into the wiki as durable artifacts
+- the first implementation slice should focus on ingest planning and wiki linting before broader automated maintenance
+
 ### `rfs llm`
 
 Responsibilities:

@@ -212,6 +212,31 @@ Current slice status:
 - the registry boundary is now promoted into the official active loop and stays indexing-backed without any separate store
 - promotion validation is now recorded in `docs/personal-agent-knowledge-promotion-validation.md`
 
+## Compiled wiki track
+
+Goal:
+
+Add a local compiled wiki layer that lets `rfs-cli` maintain synthesized Markdown knowledge between raw sources and final answers.
+
+Candidate milestones:
+
+- define the wiki maintenance schema and layer boundaries
+- keep raw sources immutable while allowing reviewable wiki updates
+- define a narrow ingest planning workflow before any broader auto-maintenance
+- define a lint workflow for contradiction, staleness, and cross-link checks
+- reuse the current index/search stack for wiki retrieval before adding heavier retrieval infrastructure
+
+Current slice status:
+
+- the high-level model is now documented in `docs/wiki-maintenance-model.md`
+- the intended shape is explicitly post-MVP and local-first
+- the first workflow direction is `plan -> review -> apply`, not silent write-back
+- the model keeps raw sources, compiled wiki pages, and project docs as separate layers
+- the first reviewable ingest plan contract is now documented in `docs/wiki-ingest-plan-contract.md`
+- the first wiki lint report contract is now documented in `docs/wiki-lint-report-contract.md`
+- the first wiki directory and file conventions are now documented in `docs/wiki-directory-conventions.md`
+- the next compiled wiki slice is defining the first small fixture set for wiki lint testing
+
 ## Agentification track
 
 After the current MVP hardening work, the next product-shaping track is turning `rfs-cli` into a stronger CLI-native agent.

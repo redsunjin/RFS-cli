@@ -112,6 +112,7 @@ This operating order maps to the four harness stages in `docs/work-harness.md`:
 4. Verify
 
 For larger slices, multi-workstream changes, or branch-only exploratory tracks, create a worksheet from `docs/harness-worksheet.md` before execution.
+When branch work is intended as a promotion candidate for the official loop, record whether the slice is incubation, promotion-prep, or promotion-validation work before execution starts.
 
 ## MVP delivery mode
 
@@ -221,7 +222,7 @@ For the next implementation cycle, actively emphasize these agents:
 
 - Product and roadmap agent
 - CLI architect agent
-- Knowledge integration agent
 - AI tooling agent
+- QA and release agent
 
-This combination fits the current stage, where the project still needs scope control, command design, indexing design, and machine-readable tool contracts.
+This combination fits the current stage, where the repository is promoting validated assistive UX behavior into the official loop while continuing to incubate compiled-wiki design work under explicit promotion gates.

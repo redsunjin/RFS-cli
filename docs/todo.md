@@ -160,6 +160,14 @@ When scope changes, update these files in order:
 - [x] Decide that single-record skill inspection exposes one short `example` field
 - [x] Decide that the registry stays indexing-backed without any separate store
 
+## Compiled wiki track
+
+- [x] Define the high-level compiled wiki maintenance model
+- [x] Define the first reviewable ingest plan contract
+- [x] Define the first wiki lint report contract
+- [x] Decide the first wiki directory and file conventions
+- [ ] Define the first small fixture set for wiki lint testing
+
 ## MVP execution backlog
 
 ### Workstream 1: Knowledge retrieval
