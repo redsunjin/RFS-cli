@@ -73,13 +73,13 @@ That means the project should not wait for Google Drive integration before decla
 
 ## Current official active loop
 
-The official active loop now moves from the completed personal agent knowledge promotion slice to the next promotion candidate: assistive UX.
+The official active loop now moves from the completed assistive UX promotion slice to selecting the next bounded official slice from the paused post-MVP queue.
 
 Current official next tasks:
 
-1. Promote the validated progressive help and recovery guidance rules into the official loop without introducing a public guidance schema v2
-2. Reconfirm that the current `ask` JSON contract stays frozen while assistive UX rules graduate
-3. Record the assistive UX promotion validation and then re-rank the paused post-MVP integration queue
+1. Re-rank the paused post-MVP queue and decide the next bounded official slice
+2. Record that compiled wiki remains a candidate track rather than the next official loop by default
+3. Create a worksheet if the selected next slice spans more than one workstream
 
 The previous Google Drive smoke, NestClaw boundary, and qa_claw boundary tasks remain paused follow-on work rather than discarded work.
 
@@ -284,7 +284,8 @@ Current slice status:
 - deterministic suggestions now recognize invalid index and shell-memory state and prefer `rfs doctor --verbose`
 - a guidance-payload contract review now freezes the current `ask` JSON shape before any machine-readable expansion
 - the current review outcome is to avoid a public guidance schema v2 in this phase and keep any future expansion as a separate proposal
-- the next assistive UX slice is promoting the validated progressive help and recovery guidance rules into the official loop without introducing a public guidance schema v2
+- the validated progressive help and recovery guidance rules are now promoted into the official loop without introducing a public guidance schema v2
+- promotion validation is now recorded in `docs/assistive-ux-promotion-validation.md`
 
 ## Sequencing rationale
 
