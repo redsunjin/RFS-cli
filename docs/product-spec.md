@@ -212,6 +212,8 @@ Examples:
 - a shared tool-provider contract should exist before any runtime-facing provider command is added
 - provider capabilities must declare read-only versus state-changing behavior explicitly
 - provider execution remains opt-in and local-first rather than becoming a generic plugin marketplace
+- the first NestClaw boundary should be API-first around `task_create`, `task_run`, and `task_status`
+- the local NestClaw interactive CLI should stay a human-debugging fallback rather than the primary adapter contract
 
 ### Post-MVP optional harbor layer
 

@@ -73,13 +73,13 @@ That means the project should not wait for Google Drive integration before decla
 
 ## Current official active loop
 
-The official active loop now moves from the completed assistive UX promotion slice to selecting the next bounded official slice from the paused post-MVP queue.
+The official active loop now moves from the completed NestClaw adapter boundary slice to the next bounded post-MVP official slice: the qa_claw adapter boundary.
 
 Current official next tasks:
 
-1. Re-rank the paused post-MVP queue and decide the next bounded official slice
-2. Record that compiled wiki remains a candidate track rather than the next official loop by default
-3. Create a worksheet if the selected next slice spans more than one workstream
+1. Design the qa_claw adapter boundary for script execution
+2. Keep compiled wiki as a candidate track rather than the current official loop
+3. Revisit runtime provider configuration only after both provider boundaries are documented
 
 The previous Google Drive smoke, NestClaw boundary, and qa_claw boundary tasks remain paused follow-on work rather than discarded work.
 
@@ -138,6 +138,9 @@ Current baseline:
 
 - the shared tool-provider contract is documented
 - provider execution remains deferred until after the current design boundaries are reviewed
+- the 2026-04-11 release pass recommends NestClaw boundary design as the next bounded official slice because Drive real smoke remains environment-blocked
+- the NestClaw adapter boundary is now documented in `docs/nestclaw-adapter-boundary.md`
+- the NestClaw boundary prefers the local HTTP API over the interactive CLI for the first stable adapter path
 
 ## Phase 6: Release readiness
 

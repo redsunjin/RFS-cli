@@ -92,7 +92,7 @@ When scope changes, update these files in order:
 ## Post-MVP external tool providers
 
 - [x] Define a tool-provider contract for local companion projects
-- [ ] Design a NestClaw adapter boundary for API or CLI invocation
+- [x] Design a NestClaw adapter boundary for API or CLI invocation
 - [ ] Design a qa_claw adapter boundary for script execution
 
 ## Phase 6: Release readiness
@@ -106,17 +106,18 @@ When scope changes, update these files in order:
 
 ## Current recommended next three tasks
 
-- [ ] Re-rank the paused post-MVP queue and decide the next bounded official slice
-- [ ] Record that compiled wiki remains a candidate track rather than the next official loop by default
-- [ ] Create a worksheet if the selected next slice spans more than one workstream
+- [ ] Design the qa_claw adapter boundary for script execution
+- [ ] Keep compiled wiki as a candidate track rather than the current official loop
+- [ ] Revisit runtime provider configuration only after both provider boundaries are documented
 
 ## Official active loop
 
 - The official active loop is the same as the current recommended next three tasks above.
 - The most recently closed official promotion decision is that the agent and skill note registry stays indexing-backed and read-only without any separate store.
 - The most recently closed official promotion decision also includes assistive UX, limited to validated progressive help and recovery behavior.
-- The next official decision is selecting the next bounded slice from the paused post-MVP queue.
-- The earlier Google Drive smoke, NestClaw boundary, and qa_claw boundary tasks are paused follow-on work.
+- The most recently closed official design slice is the NestClaw adapter boundary.
+- The next official slice is the qa_claw adapter boundary design.
+- Google Drive real smoke remains paused by environment, and compiled wiki remains a candidate track.
 
 ## Idea branch recommended next three tasks
 

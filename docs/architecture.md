@@ -398,6 +398,8 @@ Example response shape:
 - Define one shared provider descriptor before implementing provider-specific runtimes
 - Keep provider transport, capability metadata, timeout rules, and bounded output expectations explicit
 - Do not add provider config wiring or shell auto-routing until a later runtime slice is approved
+- For NestClaw specifically, prefer a local HTTP API adapter over the interactive CLI for the first stable boundary
+- Keep the first NestClaw capability set limited to create, run, and status before approval or audit operations are considered
 
 ### Optional gamification layer
 
