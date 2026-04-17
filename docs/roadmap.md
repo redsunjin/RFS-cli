@@ -73,13 +73,13 @@ That means the project should not wait for Google Drive integration before decla
 
 ## Current official active loop
 
-The official active loop now moves from the completed NestClaw adapter boundary slice to the next bounded post-MVP official slice: the qa_claw adapter boundary.
+The official active loop now moves from the completed qa_claw adapter boundary slice to comparing both provider boundaries before any runtime provider-config slice begins.
 
 Current official next tasks:
 
-1. Design the qa_claw adapter boundary for script execution
+1. Compare the NestClaw and qa_claw boundaries and decide the smallest shared runtime provider config model
 2. Keep compiled wiki as a candidate track rather than the current official loop
-3. Revisit runtime provider configuration only after both provider boundaries are documented
+3. Revisit Google Drive real smoke only when credentials or token state become available
 
 The previous Google Drive smoke, NestClaw boundary, and qa_claw boundary tasks remain paused follow-on work rather than discarded work.
 
@@ -141,6 +141,8 @@ Current baseline:
 - the 2026-04-11 release pass recommends NestClaw boundary design as the next bounded official slice because Drive real smoke remains environment-blocked
 - the NestClaw adapter boundary is now documented in `docs/nestclaw-adapter-boundary.md`
 - the NestClaw boundary prefers the local HTTP API over the interactive CLI for the first stable adapter path
+- the qa_claw adapter boundary is now documented in `docs/qa-claw-adapter-boundary.md`
+- the qa_claw boundary prefers allowlisted verification scripts over the backend API for the first stable adapter path
 
 ## Phase 6: Release readiness
 

@@ -400,6 +400,8 @@ Example response shape:
 - Do not add provider config wiring or shell auto-routing until a later runtime slice is approved
 - For NestClaw specifically, prefer a local HTTP API adapter over the interactive CLI for the first stable boundary
 - Keep the first NestClaw capability set limited to create, run, and status before approval or audit operations are considered
+- For qa_claw specifically, prefer allowlisted local verification scripts over the backend API for the first stable boundary
+- Keep the first qa_claw capability set read-only and verification-focused before any mutation or service-control actions are considered
 
 ### Optional gamification layer
 

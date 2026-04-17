@@ -93,7 +93,7 @@ When scope changes, update these files in order:
 
 - [x] Define a tool-provider contract for local companion projects
 - [x] Design a NestClaw adapter boundary for API or CLI invocation
-- [ ] Design a qa_claw adapter boundary for script execution
+- [x] Design a qa_claw adapter boundary for script execution
 
 ## Phase 6: Release readiness
 
@@ -106,9 +106,9 @@ When scope changes, update these files in order:
 
 ## Current recommended next three tasks
 
-- [ ] Design the qa_claw adapter boundary for script execution
+- [ ] Compare the NestClaw and qa_claw boundaries and decide the smallest shared runtime provider config model
 - [ ] Keep compiled wiki as a candidate track rather than the current official loop
-- [ ] Revisit runtime provider configuration only after both provider boundaries are documented
+- [ ] Revisit Google Drive real smoke only when credentials or token state become available
 
 ## Official active loop
 
@@ -116,7 +116,8 @@ When scope changes, update these files in order:
 - The most recently closed official promotion decision is that the agent and skill note registry stays indexing-backed and read-only without any separate store.
 - The most recently closed official promotion decision also includes assistive UX, limited to validated progressive help and recovery behavior.
 - The most recently closed official design slice is the NestClaw adapter boundary.
-- The next official slice is the qa_claw adapter boundary design.
+- The most recently closed official design slice also includes the qa_claw adapter boundary.
+- The next official slice is comparing both provider boundaries before runtime provider config work begins.
 - Google Drive real smoke remains paused by environment, and compiled wiki remains a candidate track.
 
 ## Idea branch recommended next three tasks

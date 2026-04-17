@@ -214,6 +214,8 @@ Examples:
 - provider execution remains opt-in and local-first rather than becoming a generic plugin marketplace
 - the first NestClaw boundary should be API-first around `task_create`, `task_run`, and `task_status`
 - the local NestClaw interactive CLI should stay a human-debugging fallback rather than the primary adapter contract
+- the first qa_claw boundary should be script-first around bounded verification commands instead of the service API
+- the first qa_claw capability set should stay read-only and verification-oriented
 
 ### Post-MVP optional harbor layer
 
