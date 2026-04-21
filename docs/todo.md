@@ -94,6 +94,7 @@ When scope changes, update these files in order:
 - [x] Define a tool-provider contract for local companion projects
 - [x] Design a NestClaw adapter boundary for API or CLI invocation
 - [x] Design a qa_claw adapter boundary for script execution
+- [x] Decide the smallest shared runtime provider config model from both provider boundaries
 
 ## Phase 6: Release readiness
 
@@ -106,7 +107,7 @@ When scope changes, update these files in order:
 
 ## Current recommended next three tasks
 
-- [ ] Compare the NestClaw and qa_claw boundaries and decide the smallest shared runtime provider config model
+- [ ] Prototype one read-only provider execution path against the shared runtime provider config model
 - [ ] Keep compiled wiki as a candidate track rather than the current official loop
 - [ ] Revisit Google Drive real smoke only when credentials or token state become available
 
@@ -117,7 +118,8 @@ When scope changes, update these files in order:
 - The most recently closed official promotion decision also includes assistive UX, limited to validated progressive help and recovery behavior.
 - The most recently closed official design slice is the NestClaw adapter boundary.
 - The most recently closed official design slice also includes the qa_claw adapter boundary.
-- The next official slice is comparing both provider boundaries before runtime provider config work begins.
+- The most recently closed official design slice also includes the shared runtime provider config model.
+- The next official slice is prototyping one read-only provider execution path against that shared model.
 - Google Drive real smoke remains paused by environment, and compiled wiki remains a candidate track.
 
 ## Idea branch recommended next three tasks

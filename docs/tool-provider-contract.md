@@ -113,6 +113,8 @@ After that, each provider gets its own boundary document:
 1. shared tool-provider contract
 2. NestClaw adapter boundary
 3. qa_claw adapter boundary
+4. shared runtime provider config model
+5. one bounded runtime prototype
 
 ## Design intent
 

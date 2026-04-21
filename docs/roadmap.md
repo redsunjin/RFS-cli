@@ -73,15 +73,15 @@ That means the project should not wait for Google Drive integration before decla
 
 ## Current official active loop
 
-The official active loop now moves from the completed qa_claw adapter boundary slice to comparing both provider boundaries before any runtime provider-config slice begins.
+The official active loop now moves from boundary comparison into a shared runtime-config model and then toward one bounded read-only provider prototype.
 
 Current official next tasks:
 
-1. Compare the NestClaw and qa_claw boundaries and decide the smallest shared runtime provider config model
+1. Prototype one read-only provider execution path against the shared runtime provider config model
 2. Keep compiled wiki as a candidate track rather than the current official loop
 3. Revisit Google Drive real smoke only when credentials or token state become available
 
-The previous Google Drive smoke, NestClaw boundary, and qa_claw boundary tasks remain paused follow-on work rather than discarded work.
+The earlier Google Drive smoke remains paused by environment, while the NestClaw boundary, qa_claw boundary, and shared runtime config model are now closed design slices.
 
 ## Phase 4: Google Drive integration
 
@@ -126,7 +126,7 @@ Current baseline:
 
 Goal:
 
-Define adapter boundaries for local companion projects such as NestClaw and qa_claw without expanding the MVP surface early.
+Define adapter boundaries and the smallest shared runtime config for local companion projects such as NestClaw and qa_claw without expanding the MVP surface early.
 
 Candidate milestones:
 
@@ -143,6 +143,8 @@ Current baseline:
 - the NestClaw boundary prefers the local HTTP API over the interactive CLI for the first stable adapter path
 - the qa_claw adapter boundary is now documented in `docs/qa-claw-adapter-boundary.md`
 - the qa_claw boundary prefers allowlisted verification scripts over the backend API for the first stable adapter path
+- the shared runtime provider config model is now documented in `docs/provider-runtime-config-model.md`
+- the first runtime prototype should prefer a read-only qa_claw capability before any write-capable NestClaw action is attempted
 
 ## Phase 6: Release readiness
 

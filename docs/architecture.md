@@ -402,6 +402,11 @@ Example response shape:
 - Keep the first NestClaw capability set limited to create, run, and status before approval or audit operations are considered
 - For qa_claw specifically, prefer allowlisted local verification scripts over the backend API for the first stable boundary
 - Keep the first qa_claw capability set read-only and verification-focused before any mutation or service-control actions are considered
+- The smallest shared runtime config should be one base provider record plus a narrow target block and optional auth block
+- Shared runtime fields should stay limited to `enabled`, `capability_allowlist`, `target_kind`, `target`, `timeout_seconds`, `max_output_bytes`, optional `artifact_root`, and optional `auth`
+- `target_kind=http` should map to a `base_url` target for NestClaw
+- `target_kind=repo` should map to a `repo_root` and optional `worktree_root` for qa_claw
+- The first runtime prototype should prefer a read-only qa_claw capability so the shared runtime model is exercised before any write-capable provider path is opened
 
 ### Optional gamification layer
 

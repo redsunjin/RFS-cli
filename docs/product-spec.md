@@ -216,6 +216,10 @@ Examples:
 - the local NestClaw interactive CLI should stay a human-debugging fallback rather than the primary adapter contract
 - the first qa_claw boundary should be script-first around bounded verification commands instead of the service API
 - the first qa_claw capability set should stay read-only and verification-oriented
+- the smallest shared runtime config should stay narrow and consist of provider enablement, explicit capability allowlist, one bounded target block, bounded timeout and output settings, and an optional auth reference
+- the first shared target kinds should be `http` for NestClaw and `repo` for qa_claw
+- the first runtime prototype should prefer a read-only qa_claw capability before any write-capable NestClaw action is attempted
+- no provider auto-discovery, startup management, or shell auto-routing should be implied by the first runtime config model
 
 ### Post-MVP optional harbor layer
 
