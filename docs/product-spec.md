@@ -205,6 +205,23 @@ Examples:
 - `rfs research export "agent systems"`
 - `rfs research export "roadmap" --source-id vault`
 
+### `rfs provider`
+
+Responsibilities:
+
+- run explicitly configured local companion-provider capabilities
+- keep provider execution allowlisted and bounded
+- separate accepted invocation state from provider pass/fail state
+- avoid arbitrary shell strings and provider auto-discovery
+
+Current prototype:
+
+- `rfs provider run qa_claw scan_secrets`
+
+Examples:
+
+- `rfs provider run qa_claw scan_secrets --format json`
+
 ### Post-MVP external tool providers
 
 - NestClaw: API or CLI-backed orchestration tool provider
@@ -220,6 +237,8 @@ Examples:
 - the first shared target kinds should be `http` for NestClaw and `repo` for qa_claw
 - the first runtime prototype should prefer a read-only qa_claw capability before any write-capable NestClaw action is attempted
 - no provider auto-discovery, startup management, or shell auto-routing should be implied by the first runtime config model
+- the first implemented runtime prototype is `rfs provider run qa_claw scan_secrets`
+- the first prototype should require manual local config until setup/status UX is designed
 
 ### Post-MVP optional harbor layer
 

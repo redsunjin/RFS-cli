@@ -4,8 +4,8 @@
 
 Define the smallest shared runtime config model that can support both the NestClaw and qa_claw boundaries without adding a generic plugin system or runtime execution yet.
 
-This slice is still design-only.
-It does not add a new `rfs provider` command and does not execute companion providers from `rfs-cli`.
+This model began as a design-only slice.
+The current baseline now includes a single read-only runtime prototype: `rfs provider run qa_claw scan_secrets`.
 
 ## Source inputs reviewed
 
@@ -180,6 +180,31 @@ The runtime layer should continue to trust the provider boundary documents for:
 
 The runtime config model should only decide whether a provider is enabled and where its bounded target lives.
 
+## Current prototype
+
+The first runtime prototype is intentionally narrow:
+
+- command: `rfs provider run qa_claw scan_secrets`
+- provider: `qa_claw`
+- capability: `scan_secrets`
+- target kind: `repo`
+- side effect: read-only
+- config source: local `tool_providers.qa_claw` config block
+
+The prototype enforces:
+
+- provider must be configured
+- provider must be enabled
+- capability must be in `capability_allowlist`
+- repo root must exist
+- script path must stay inside the repo root
+- stdout and stderr previews must be bounded
+
+The command payload keeps the outer command accepted/failure state separate from the provider result:
+
+- `CommandPayload.ok` says whether the `rfs` invocation was accepted
+- `provider_result.ok` says whether the provider check passed
+
 ## First prototype recommendation
 
 The first runtime prototype should be read-only and should prefer qa_claw over NestClaw.
@@ -198,11 +223,11 @@ The safest first prototype candidates are:
 
 ## Non-goals
 
-- no runtime command implementation yet
-- no config wiring into the current CLI yet
+- no provider runtime beyond the single `qa_claw scan_secrets` prototype
+- no provider setup or status command yet
 - no automatic provider installation or startup
 - no command auto-routing from `rfs shell`
-- no finalized public execution JSON schema
+- no finalized multi-provider execution JSON schema beyond the prototype payload
 - no edge-helper or onboarding-model work in this slice
 
 ## Harness conclusion
@@ -214,6 +239,6 @@ What is needed is only a slice-specific worksheet because this work compares two
 
 ## Recommended next slice
 
-1. prototype one read-only provider execution path against this shared runtime model
-2. prefer a qa_claw verification capability for that prototype
-3. defer any NestClaw write-capable runtime action until the read-only prototype is accepted
+1. define provider setup/status UX for the manual `tool_providers` config block
+2. add stronger config validation messaging before adding more capabilities
+3. defer any NestClaw write-capable runtime action until the read-only provider UX is accepted

@@ -407,6 +407,9 @@ Example response shape:
 - `target_kind=http` should map to a `base_url` target for NestClaw
 - `target_kind=repo` should map to a `repo_root` and optional `worktree_root` for qa_claw
 - The first runtime prototype should prefer a read-only qa_claw capability so the shared runtime model is exercised before any write-capable provider path is opened
+- The first implemented provider runtime is `rfs provider run qa_claw scan_secrets`
+- The runtime implementation should live behind a provider module rather than inside command handlers
+- The first provider command should read `tool_providers` config, reject missing or disabled providers, enforce `capability_allowlist`, and return a bounded provider result
 
 ### Optional gamification layer
 

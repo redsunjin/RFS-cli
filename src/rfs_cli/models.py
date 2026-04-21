@@ -11,6 +11,8 @@ DriveAuthFlow = Literal["oauth-installed-app"]
 DriveCacheMode = Literal["disabled", "metadata-only"]
 IntentGoal = Literal["setup", "search", "inspect", "diagnose", "unknown"]
 SuggestionMode = Literal["read", "write", "follow_up"]
+ProviderTargetKind = Literal["http", "repo"]
+ProviderAuthKind = Literal["none", "bearer_env", "header_env"]
 
 
 class SourceConfig(BaseModel):
@@ -65,6 +67,23 @@ class DriveConfig(BaseModel):
     cache: DriveCacheConfig = Field(default_factory=DriveCacheConfig)
 
 
+class ToolProviderAuthConfig(BaseModel):
+    kind: ProviderAuthKind = "none"
+    env_var: Optional[str] = None
+    header_name: Optional[str] = None
+
+
+class ToolProviderRuntimeConfig(BaseModel):
+    enabled: bool = False
+    capability_allowlist: List[str] = Field(default_factory=list)
+    target_kind: ProviderTargetKind
+    target: Dict[str, Any] = Field(default_factory=dict)
+    timeout_seconds: int = Field(default=30, gt=0)
+    max_output_bytes: int = Field(default=32768, gt=0)
+    artifact_root: Optional[str] = None
+    auth: Optional[ToolProviderAuthConfig] = None
+
+
 class ShellEvent(BaseModel):
     kind: Literal["user", "assistant", "tool", "system"]
     content: str
@@ -86,6 +105,7 @@ class AppConfig(BaseModel):
     sources: List[SourceConfig] = Field(default_factory=list)
     llm: Optional[LLMConfig] = None
     drive: Optional[DriveConfig] = None
+    tool_providers: Dict[str, ToolProviderRuntimeConfig] = Field(default_factory=dict)
 
 
 class ErrorPayload(BaseModel):

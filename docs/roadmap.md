@@ -73,15 +73,15 @@ That means the project should not wait for Google Drive integration before decla
 
 ## Current official active loop
 
-The official active loop now moves from boundary comparison into a shared runtime-config model and then toward one bounded read-only provider prototype.
+The official active loop now moves from the first read-only provider prototype toward provider setup/status UX and stronger config validation before more capabilities are added.
 
 Current official next tasks:
 
-1. Prototype one read-only provider execution path against the shared runtime provider config model
+1. Define provider setup/status UX for the manual `tool_providers` config block
 2. Keep compiled wiki as a candidate track rather than the current official loop
 3. Revisit Google Drive real smoke only when credentials or token state become available
 
-The earlier Google Drive smoke remains paused by environment, while the NestClaw boundary, qa_claw boundary, and shared runtime config model are now closed design slices.
+The earlier Google Drive smoke remains paused by environment, while the NestClaw boundary, qa_claw boundary, shared runtime config model, and first qa_claw provider prototype are now closed slices.
 
 ## Phase 4: Google Drive integration
 
@@ -145,6 +145,8 @@ Current baseline:
 - the qa_claw boundary prefers allowlisted verification scripts over the backend API for the first stable adapter path
 - the shared runtime provider config model is now documented in `docs/provider-runtime-config-model.md`
 - the first runtime prototype should prefer a read-only qa_claw capability before any write-capable NestClaw action is attempted
+- the first runtime prototype is now implemented as `rfs provider run qa_claw scan_secrets`
+- the next provider slice should improve setup/status UX before adding more provider capabilities
 
 ## Phase 6: Release readiness
 

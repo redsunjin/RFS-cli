@@ -77,8 +77,10 @@ from rfs_cli.models import (
     ShellEvent,
     ShellMemory,
     SourceConfig,
+    ToolProviderRuntimeConfig,
     UserIntent,
 )
+from rfs_cli.providers import ProviderExecutionError, run_tool_provider
 from rfs_cli.registry import get_note_record, list_note_records
 from rfs_cli.research import export_research_bundle
 from rfs_cli.services import (
@@ -117,6 +119,7 @@ agent_app = typer.Typer(help="AI-safe commands.")
 drive_app = typer.Typer(help="Google Drive commands.")
 llm_app = typer.Typer(help="LLM setup and guidance commands.")
 research_app = typer.Typer(help="Research workflow commands.")
+provider_app = typer.Typer(help="External tool provider commands.")
 
 app.add_typer(index_app, name="index")
 app.add_typer(dev_app, name="dev")
@@ -124,6 +127,7 @@ app.add_typer(agent_app, name="agent")
 app.add_typer(drive_app, name="drive")
 app.add_typer(llm_app, name="llm")
 app.add_typer(research_app, name="research")
+app.add_typer(provider_app, name="provider")
 
 
 class OutputMode(str, Enum):
@@ -171,6 +175,7 @@ KNOWN_SHELL_COMMANDS = {
     "drive",
     "llm",
     "research",
+    "provider",
 }
 STATEFUL_COMMANDS = {
     "ask",
@@ -183,6 +188,7 @@ STATEFUL_COMMANDS = {
     "drive",
     "llm",
     "research",
+    "provider",
 }
 
 
@@ -674,6 +680,21 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
             typer.echo(f'Manifest: {data["manifest_path"]}')
             return
 
+        if command == "provider_run":
+            result = data["provider_result"]
+            status = "ok" if result["ok"] else "failed"
+            typer.echo(f'{data["provider_id"]}:{data["capability_id"]} {status}')
+            typer.echo(result["summary"])
+            if result.get("stdout_preview"):
+                typer.echo("stdout:")
+                typer.echo(result["stdout_preview"])
+            if result.get("stderr_preview"):
+                typer.echo("stderr:")
+                typer.echo(result["stderr_preview"])
+            if result.get("truncated"):
+                typer.echo("Output truncated.")
+            return
+
         if command == "ask":
             typer.echo(data["answer"])
             return
@@ -763,6 +784,22 @@ def load_agent_config_or_fail(command: str, state_dir: Path, output: OutputMode)
             code="missing_llm",
         )
     return app_config
+
+
+def load_provider_config_or_fail(
+    app_config: AppConfig,
+    provider_id: str,
+    output: OutputMode,
+) -> ToolProviderRuntimeConfig:
+    provider_config = app_config.tool_providers.get(provider_id)
+    if provider_config is None:
+        fail(
+            "provider_run",
+            f'Provider "{provider_id}" is not configured in tool_providers.',
+            output,
+            code="missing_provider_config",
+        )
+    return provider_config
 
 
 def load_index_or_fail(command: str, state_dir: Path, output: OutputMode):
@@ -1289,6 +1326,33 @@ def shell(
     reset_memory: bool = typer.Option(False, "--reset-memory"),
 ) -> None:
     run_shell_session(state_dir=state_dir, reset_memory=reset_memory)
+
+
+@provider_app.command("run")
+def provider_run(
+    provider_id: str = typer.Argument(..., help="Provider id, for example qa_claw."),
+    capability_id: str = typer.Argument(..., help="Capability id, for example scan_secrets."),
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
+    output: OutputMode = typer.Option(OutputMode.text, "--format"),
+) -> None:
+    app_config = load_config_or_fail("provider_run", state_dir, output)
+    provider_config = load_provider_config_or_fail(app_config, provider_id, output)
+
+    try:
+        provider_result = run_tool_provider(provider_id, capability_id, provider_config)
+    except ProviderExecutionError as exc:
+        fail("provider_run", str(exc), output, code=exc.code)
+
+    payload = CommandPayload(
+        command="provider_run",
+        ok=True,
+        data={
+            "provider_id": provider_id,
+            "capability_id": capability_id,
+            "provider_result": provider_result,
+        },
+    )
+    emit(payload, output)
 
 
 @app.command()

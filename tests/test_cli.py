@@ -18,7 +18,7 @@ from rfs_cli.guidance import (
 )
 from rfs_cli.llm import extract_message_content, history_to_messages
 from rfs_cli.main import app, render_banner
-from rfs_cli.models import DriveConfig, DriveFileRecord, LLMConfig
+from rfs_cli.models import DriveConfig, DriveFileRecord, LLMConfig, ToolProviderRuntimeConfig
 
 runner = CliRunner()
 WAVE_LINE = "~" * 76
@@ -32,6 +32,32 @@ def save_llm_config(state_dir: Path) -> None:
         model="qwen2.5:7b-instruct",
     )
     save_config(config, state_dir=state_dir)
+
+
+def save_qa_claw_provider_config(
+    state_dir: Path,
+    repo_root: Path,
+    capability_allowlist: Optional[list[str]] = None,
+) -> None:
+    config = load_config(state_dir=state_dir)
+    config.tool_providers["qa_claw"] = ToolProviderRuntimeConfig(
+        enabled=True,
+        capability_allowlist=(
+            ["scan_secrets"] if capability_allowlist is None else capability_allowlist
+        ),
+        target_kind="repo",
+        target={"repo_root": str(repo_root)},
+        timeout_seconds=5,
+        max_output_bytes=1024,
+    )
+    save_config(config, state_dir=state_dir)
+
+
+def create_qa_claw_fixture(root: Path, script_body: str = "echo secret scan ok") -> Path:
+    script_path = root / "security" / "scan-secrets.sh"
+    script_path.parent.mkdir(parents=True, exist_ok=True)
+    script_path.write_text(f"#!/usr/bin/env bash\n{script_body}\n", encoding="utf-8")
+    return root
 
 
 def assert_command_payload(payload: dict[str, object], command: str, ok: bool) -> None:
@@ -2619,6 +2645,117 @@ def test_show_invalid_index_returns_structured_error(tmp_path: Path) -> None:
     payload = json.loads(result.stdout)
     assert_command_payload(payload, "show", False)
     assert payload["error"]["code"] == "invalid_index"
+
+
+def test_provider_run_qa_claw_scan_secrets_json(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    qa_root = create_qa_claw_fixture(tmp_path / "qa_claw")
+    save_qa_claw_provider_config(state_dir, qa_root)
+
+    result = runner.invoke(
+        app,
+        [
+            "provider",
+            "run",
+            "qa_claw",
+            "scan_secrets",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "provider_run", True)
+    assert payload["data"]["provider_id"] == "qa_claw"
+    assert payload["data"]["capability_id"] == "scan_secrets"
+    provider_result = payload["data"]["provider_result"]
+    assert provider_result["ok"] is True
+    assert provider_result["exit_code"] == 0
+    assert provider_result["error_codes"] == []
+    assert "secret scan ok" in provider_result["stdout_preview"]
+
+
+def test_provider_run_requires_configured_provider(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+
+    result = runner.invoke(
+        app,
+        [
+            "provider",
+            "run",
+            "qa_claw",
+            "scan_secrets",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 1
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "provider_run", False)
+    assert payload["error"]["code"] == "missing_provider_config"
+
+
+def test_provider_run_rejects_non_allowlisted_capability(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    qa_root = create_qa_claw_fixture(tmp_path / "qa_claw")
+    save_qa_claw_provider_config(state_dir, qa_root, capability_allowlist=[])
+
+    result = runner.invoke(
+        app,
+        [
+            "provider",
+            "run",
+            "qa_claw",
+            "scan_secrets",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 1
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "provider_run", False)
+    assert payload["error"]["code"] == "capability_not_allowed"
+
+
+def test_provider_run_surfaces_failed_provider_result(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    qa_root = create_qa_claw_fixture(
+        tmp_path / "qa_claw",
+        script_body="echo leaked secret >&2\nexit 7",
+    )
+    save_qa_claw_provider_config(state_dir, qa_root)
+
+    result = runner.invoke(
+        app,
+        [
+            "provider",
+            "run",
+            "qa_claw",
+            "scan_secrets",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "provider_run", True)
+    provider_result = payload["data"]["provider_result"]
+    assert provider_result["ok"] is False
+    assert provider_result["exit_code"] == 7
+    assert provider_result["error_codes"] == ["SECRET_SCAN_FAILED"]
+    assert "leaked secret" in provider_result["stderr_preview"]
 
 
 def test_drive_search_missing_config_text_guides_drive_auth(tmp_path: Path) -> None:

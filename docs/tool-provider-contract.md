@@ -93,17 +93,24 @@ Expected bounded response metadata:
 - Read-only versus state-changing capabilities must stay distinguishable at the contract level
 - Provider-side side effects must never be hidden behind a read-only looking capability name
 
-## Separation from current CLI runtime
+## Current runtime separation
 
-For now, the provider contract should stay outside the implemented command surface.
-That means:
+The current runtime surface is intentionally narrow.
+Only one prototype command is implemented:
 
-- no `rfs provider` or similar runtime command yet
-- no provider entries in the current config model yet
-- no shell auto-routing into companion providers yet
-- no promise that this document is a finalized public execution schema
-- no finalized auto-discovery or plugin-loading protocol yet
-- no promised transport-specific auth, streaming, or cross-provider orchestration behavior yet
+- `rfs provider run qa_claw scan_secrets`
+
+That still means:
+
+- no generic provider marketplace
+- no provider auto-discovery
+- no provider install or startup manager
+- no shell auto-routing into companion providers
+- no NestClaw runtime execution yet
+- no arbitrary script execution
+- no promise that this document is a finalized multi-provider public execution schema
+- no finalized plugin-loading protocol yet
+- no promised streaming or cross-provider orchestration behavior yet
 
 ## Expected documentation sequence
 
