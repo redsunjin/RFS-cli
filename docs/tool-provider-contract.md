@@ -6,8 +6,8 @@ Define a shared boundary for local companion tool providers without introducing 
 
 ## Current status
 
-This document is design-only.
-It does not imply that `rfs-cli` already loads, installs, or executes external tool providers at runtime.
+This document began as a design-first contract.
+The current baseline now includes a narrow qa_claw runtime path plus setup and status UX, but not a generic provider platform.
 
 ## Scope
 
@@ -24,7 +24,7 @@ The shared contract exists to:
 
 ## Non-goals for this slice
 
-- no new top-level command group
+- no generic provider marketplace command surface
 - no provider auto-discovery
 - no background daemon or long-running service manager
 - no stable public runtime JSON schema for provider execution yet
@@ -96,9 +96,14 @@ Expected bounded response metadata:
 ## Current runtime separation
 
 The current runtime surface is intentionally narrow.
-Only one prototype command is implemented:
+Only one runtime capability is implemented:
 
 - `rfs provider run qa_claw scan_secrets`
+
+The setup/status UX is also intentionally narrow:
+
+- `rfs provider status [qa_claw]`
+- `rfs provider setup-qa-claw <repo_root>`
 
 That still means:
 
@@ -122,6 +127,7 @@ After that, each provider gets its own boundary document:
 3. qa_claw adapter boundary
 4. shared runtime provider config model
 5. one bounded runtime prototype
+6. bounded setup/status UX for that prototype
 
 ## Design intent
 

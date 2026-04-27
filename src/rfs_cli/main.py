@@ -80,7 +80,12 @@ from rfs_cli.models import (
     ToolProviderRuntimeConfig,
     UserIntent,
 )
-from rfs_cli.providers import ProviderExecutionError, run_tool_provider
+from rfs_cli.providers import (
+    ProviderExecutionError,
+    build_provider_status,
+    build_qa_claw_config,
+    run_tool_provider,
+)
 from rfs_cli.registry import get_note_record, list_note_records
 from rfs_cli.research import export_research_bundle
 from rfs_cli.services import (
@@ -693,6 +698,65 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
                 typer.echo(result["stderr_preview"])
             if result.get("truncated"):
                 typer.echo("Output truncated.")
+            return
+
+        if command == "provider_status":
+            if "providers" in data:
+                typer.echo(
+                    f'{data["configured_count"]} configured provider(s), '
+                    f'{data["enabled_count"]} enabled'
+                )
+                for provider in data["providers"]:
+                    status = "configured" if provider["configured"] else "not configured"
+                    typer.echo(f'- {provider["provider_id"]}: {status}')
+                    if provider["configured"]:
+                        typer.echo(
+                            f'  enabled: {"yes" if provider["enabled"] else "no"}, '
+                            f'target: {provider["target_kind"]}'
+                        )
+                        if provider.get("repo_root"):
+                            typer.echo(f'  repo_root: {provider["repo_root"]}')
+                    for issue in (provider.get("issues") or [])[:3]:
+                        typer.echo(f"  issue: {issue}")
+                if not data["configured_count"]:
+                    typer.echo(
+                        "Next step: `rfs provider setup-qa-claw <repo_root>` "
+                        "to configure the first provider."
+                    )
+                return
+
+            typer.echo(data["provider_id"])
+            typer.echo(f'configured: {"yes" if data["configured"] else "no"}')
+            if data["configured"]:
+                typer.echo(f'enabled: {"yes" if data["enabled"] else "no"}')
+                typer.echo(f'target_kind: {data["target_kind"]}')
+                if data.get("repo_root"):
+                    typer.echo(f'repo_root: {data["repo_root"]}')
+                typer.echo(
+                    "capability_allowlist: "
+                    + (
+                        ", ".join(data["capability_allowlist"])
+                        if data["capability_allowlist"]
+                        else "(none)"
+                    )
+                )
+            issues = data.get("issues") or []
+            if issues:
+                typer.echo("issues:")
+                for issue in issues:
+                    typer.echo(f"- {issue}")
+            elif not data["configured"]:
+                typer.echo("Next step: `rfs provider setup-qa-claw <repo_root>`")
+            return
+
+        if command == "provider_setup_qa_claw":
+            typer.echo("Configured qa_claw provider")
+            typer.echo(f'Repo root: {data["repo_root"]}')
+            typer.echo(f'Enabled: {"yes" if data["enabled"] else "no"}')
+            typer.echo(f'Capabilities: {", ".join(data["capability_allowlist"])}')
+            typer.echo(f'Timeout: {data["timeout_seconds"]}s')
+            typer.echo(f'Max output bytes: {data["max_output_bytes"]}')
+            typer.echo(f'Config: {data["config_path"]}')
             return
 
         if command == "ask":
@@ -1350,6 +1414,73 @@ def provider_run(
             "provider_id": provider_id,
             "capability_id": capability_id,
             "provider_result": provider_result,
+        },
+    )
+    emit(payload, output)
+
+
+@provider_app.command("status")
+def provider_status(
+    provider_id: Optional[str] = typer.Argument(
+        None,
+        help="Optional provider id, for example qa_claw.",
+    ),
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
+    output: OutputMode = typer.Option(OutputMode.text, "--format"),
+) -> None:
+    app_config = load_config_or_fail("provider_status", state_dir, output)
+    try:
+        status_data = build_provider_status(provider_id, app_config.tool_providers)
+    except ProviderExecutionError as exc:
+        fail("provider_status", str(exc), output, code=exc.code)
+
+    payload = CommandPayload(
+        command="provider_status",
+        ok=True,
+        data=status_data,
+    )
+    emit(payload, output)
+
+
+@provider_app.command("setup-qa-claw")
+def provider_setup_qa_claw(
+    repo_root: Path = typer.Argument(..., help="Path to the qa_claw repository root."),
+    state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
+    capability: list[str] = typer.Option(
+        ["scan_secrets"],
+        "--capability",
+        help="Allowlisted qa_claw capability to enable.",
+    ),
+    enabled: bool = typer.Option(True, "--enabled/--disabled"),
+    timeout_seconds: int = typer.Option(30, "--timeout-seconds", min=1, max=600),
+    max_output_bytes: int = typer.Option(32768, "--max-output-bytes", min=256, max=1_000_000),
+    output: OutputMode = typer.Option(OutputMode.text, "--format"),
+) -> None:
+    app_config = load_config_or_fail("provider_setup_qa_claw", state_dir, output)
+    try:
+        provider_config = build_qa_claw_config(
+            repo_root=repo_root.expanduser().resolve(),
+            capability_allowlist=capability,
+            enabled=enabled,
+            timeout_seconds=timeout_seconds,
+            max_output_bytes=max_output_bytes,
+        )
+    except ProviderExecutionError as exc:
+        fail("provider_setup_qa_claw", str(exc), output, code=exc.code)
+
+    app_config.tool_providers["qa_claw"] = provider_config
+    config_path = save_config(app_config, state_dir=state_dir)
+    payload = CommandPayload(
+        command="provider_setup_qa_claw",
+        ok=True,
+        data={
+            "provider_id": "qa_claw",
+            "repo_root": provider_config.target["repo_root"],
+            "enabled": provider_config.enabled,
+            "capability_allowlist": provider_config.capability_allowlist,
+            "timeout_seconds": provider_config.timeout_seconds,
+            "max_output_bytes": provider_config.max_output_bytes,
+            "config_path": str(config_path),
         },
     )
     emit(payload, output)

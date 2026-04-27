@@ -4,8 +4,8 @@
 
 Define the first provider-specific adapter boundary for qa_claw under the shared local tool-provider contract.
 
-This slice is design-only.
-It does not add runtime execution to `rfs-cli`.
+This document remains the provider-boundary source of truth.
+The current runtime baseline now implements one bounded capability from this boundary: `scan_secrets`.
 
 ## Source inputs reviewed
 
@@ -204,7 +204,6 @@ Keep this out of the current config model until runtime provider work is explici
 
 ## Non-goals
 
-- no `rfs provider` command yet
 - no automatic service startup
 - no arbitrary script execution
 - no qa_claw API integration

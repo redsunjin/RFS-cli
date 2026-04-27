@@ -2678,6 +2678,102 @@ def test_provider_run_qa_claw_scan_secrets_json(tmp_path: Path) -> None:
     assert "secret scan ok" in provider_result["stdout_preview"]
 
 
+def test_provider_status_json_reports_unconfigured_provider(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+
+    result = runner.invoke(
+        app,
+        ["provider", "status", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "provider_status", True)
+    assert payload["data"]["configured_count"] == 0
+    assert payload["data"]["providers"][0]["provider_id"] == "qa_claw"
+    assert payload["data"]["providers"][0]["configured"] is False
+
+
+def test_provider_status_json_reports_configured_qa_claw(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    qa_root = create_qa_claw_fixture(tmp_path / "qa_claw")
+    save_qa_claw_provider_config(state_dir, qa_root)
+
+    result = runner.invoke(
+        app,
+        ["provider", "status", "qa_claw", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "provider_status", True)
+    assert payload["data"]["provider_id"] == "qa_claw"
+    assert payload["data"]["configured"] is True
+    assert payload["data"]["enabled"] is True
+    assert payload["data"]["repo_root"] == str(qa_root.resolve())
+    assert payload["data"]["capability_allowlist"] == ["scan_secrets"]
+    assert payload["data"]["issues"] == []
+
+
+def test_provider_setup_qa_claw_writes_config_and_status(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    qa_root = create_qa_claw_fixture(tmp_path / "qa_claw")
+
+    setup_result = runner.invoke(
+        app,
+        [
+            "provider",
+            "setup-qa-claw",
+            str(qa_root),
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert setup_result.exit_code == 0
+    setup_payload = json.loads(setup_result.stdout)
+    assert_command_payload(setup_payload, "provider_setup_qa_claw", True)
+    assert setup_payload["data"]["provider_id"] == "qa_claw"
+    assert setup_payload["data"]["repo_root"] == str(qa_root.resolve())
+    assert setup_payload["data"]["capability_allowlist"] == ["scan_secrets"]
+
+    status_result = runner.invoke(
+        app,
+        ["provider", "status", "qa_claw", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert status_result.exit_code == 0
+    status_payload = json.loads(status_result.stdout)
+    assert status_payload["data"]["configured"] is True
+    assert status_payload["data"]["repo_root_exists"] is True
+    assert status_payload["data"]["issues"] == []
+
+
+def test_provider_setup_qa_claw_rejects_missing_repo_root(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    missing_root = tmp_path / "missing-qa-claw"
+
+    result = runner.invoke(
+        app,
+        [
+            "provider",
+            "setup-qa-claw",
+            str(missing_root),
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 1
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "provider_setup_qa_claw", False)
+    assert payload["error"]["code"] == "invalid_provider_target"
+
+
 def test_provider_run_requires_configured_provider(tmp_path: Path) -> None:
     state_dir = tmp_path / ".rfs"
 

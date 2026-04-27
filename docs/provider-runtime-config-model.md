@@ -182,9 +182,11 @@ The runtime config model should only decide whether a provider is enabled and wh
 
 ## Current prototype
 
-The first runtime prototype is intentionally narrow:
+The first runtime prototype and setup surface are intentionally narrow:
 
 - command: `rfs provider run qa_claw scan_secrets`
+- status: `rfs provider status [qa_claw]`
+- setup: `rfs provider setup-qa-claw <repo_root>`
 - provider: `qa_claw`
 - capability: `scan_secrets`
 - target kind: `repo`
@@ -198,6 +200,7 @@ The prototype enforces:
 - capability must be in `capability_allowlist`
 - repo root must exist
 - script path must stay inside the repo root
+- setup validation should reject missing repo roots and missing allowlisted capability scripts
 - stdout and stderr previews must be bounded
 
 The command payload keeps the outer command accepted/failure state separate from the provider result:
@@ -223,8 +226,7 @@ The safest first prototype candidates are:
 
 ## Non-goals
 
-- no provider runtime beyond the single `qa_claw scan_secrets` prototype
-- no provider setup or status command yet
+- no provider runtime beyond the single `qa_claw scan_secrets` capability
 - no automatic provider installation or startup
 - no command auto-routing from `rfs shell`
 - no finalized multi-provider execution JSON schema beyond the prototype payload
@@ -239,6 +241,6 @@ What is needed is only a slice-specific worksheet because this work compares two
 
 ## Recommended next slice
 
-1. define provider setup/status UX for the manual `tool_providers` config block
-2. add stronger config validation messaging before adding more capabilities
-3. defer any NestClaw write-capable runtime action until the read-only provider UX is accepted
+1. add provider diagnostics to `rfs doctor` and tighten invalid-config guidance
+2. only then add a second read-only provider capability
+3. defer any NestClaw write-capable runtime action until the qa_claw provider UX is stable

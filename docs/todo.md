@@ -108,7 +108,7 @@ When scope changes, update these files in order:
 
 ## Current recommended next three tasks
 
-- [ ] Define provider setup/status UX for the manual `tool_providers` config block
+- [ ] Add provider diagnostics to `rfs doctor` and tighten invalid-config guidance
 - [ ] Keep compiled wiki as a candidate track rather than the current official loop
 - [ ] Revisit Google Drive real smoke only when credentials or token state become available
 
@@ -121,7 +121,8 @@ When scope changes, update these files in order:
 - The most recently closed official design slice also includes the qa_claw adapter boundary.
 - The most recently closed official design slice also includes the shared runtime provider config model.
 - The most recently closed official implementation slice is `rfs provider run qa_claw scan_secrets`.
-- The next official slice is defining provider setup/status UX for the manual `tool_providers` config block.
+- The most recently closed official implementation slice also includes `rfs provider status` and `rfs provider setup-qa-claw`.
+- The next official slice is adding provider diagnostics to `rfs doctor` and tightening invalid-config guidance.
 - Google Drive real smoke remains paused by environment, and compiled wiki remains a candidate track.
 
 ## Idea branch recommended next three tasks

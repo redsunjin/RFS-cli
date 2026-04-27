@@ -217,10 +217,14 @@ Responsibilities:
 Current prototype:
 
 - `rfs provider run qa_claw scan_secrets`
+- `rfs provider status [qa_claw]`
+- `rfs provider setup-qa-claw <repo_root>`
 
 Examples:
 
 - `rfs provider run qa_claw scan_secrets --format json`
+- `rfs provider status qa_claw --format json`
+- `rfs provider setup-qa-claw /path/to/qa_claw`
 
 ### Post-MVP external tool providers
 
@@ -238,7 +242,8 @@ Examples:
 - the first runtime prototype should prefer a read-only qa_claw capability before any write-capable NestClaw action is attempted
 - no provider auto-discovery, startup management, or shell auto-routing should be implied by the first runtime config model
 - the first implemented runtime prototype is `rfs provider run qa_claw scan_secrets`
-- the first prototype should require manual local config until setup/status UX is designed
+- the first provider UX now includes `rfs provider status` and `rfs provider setup-qa-claw`
+- setup should validate repo roots and allowlisted capability scripts before runtime use
 
 ### Post-MVP optional harbor layer
 

@@ -73,11 +73,11 @@ That means the project should not wait for Google Drive integration before decla
 
 ## Current official active loop
 
-The official active loop now moves from the first read-only provider prototype toward provider setup/status UX and stronger config validation before more capabilities are added.
+The official active loop now moves from the first read-only provider setup/status UX toward stronger provider diagnostics before more capabilities are added.
 
 Current official next tasks:
 
-1. Define provider setup/status UX for the manual `tool_providers` config block
+1. Add provider diagnostics to `rfs doctor` and tighten invalid-config guidance
 2. Keep compiled wiki as a candidate track rather than the current official loop
 3. Revisit Google Drive real smoke only when credentials or token state become available
 
@@ -146,7 +146,8 @@ Current baseline:
 - the shared runtime provider config model is now documented in `docs/provider-runtime-config-model.md`
 - the first runtime prototype should prefer a read-only qa_claw capability before any write-capable NestClaw action is attempted
 - the first runtime prototype is now implemented as `rfs provider run qa_claw scan_secrets`
-- the next provider slice should improve setup/status UX before adding more provider capabilities
+- the first provider UX now includes `rfs provider status` and `rfs provider setup-qa-claw`
+- the next provider slice should add doctor-visible diagnostics and stronger invalid-config guidance before more provider capabilities are added
 
 ## Phase 6: Release readiness
 

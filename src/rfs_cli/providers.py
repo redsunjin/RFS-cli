@@ -3,7 +3,7 @@ from __future__ import annotations
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from rfs_cli.models import ToolProviderRuntimeConfig
 
@@ -30,6 +30,14 @@ QA_CLAW_SCRIPT_CAPABILITIES: dict[str, ScriptCapability] = {
         failure_summary="qa_claw secret scan failed.",
     ),
 }
+
+
+def supported_provider_ids() -> list[str]:
+    return ["qa_claw"]
+
+
+def supported_qa_claw_capability_ids() -> list[str]:
+    return list(QA_CLAW_SCRIPT_CAPABILITIES.keys())
 
 
 def ensure_supported_provider(provider_id: str) -> None:
@@ -81,6 +89,17 @@ def resolve_repo_root(provider_config: ToolProviderRuntimeConfig) -> Path:
     return repo_root
 
 
+def resolve_repo_root_if_present(provider_config: ToolProviderRuntimeConfig) -> Optional[Path]:
+    if provider_config.target_kind != "repo":
+        return None
+
+    repo_root_value = provider_config.target.get("repo_root")
+    if not isinstance(repo_root_value, str) or not repo_root_value.strip():
+        return None
+
+    return Path(repo_root_value).expanduser().resolve()
+
+
 def validate_capability_files(repo_root: Path, capability: ScriptCapability) -> None:
     script_path = repo_root / capability.command[1]
     try:
@@ -96,6 +115,141 @@ def validate_capability_files(repo_root: Path, capability: ScriptCapability) -> 
             "provider_unavailable",
             f"Required provider script does not exist: {script_path}",
         )
+
+
+def capability_script_path(repo_root: Path, capability: ScriptCapability) -> Path:
+    return (repo_root / capability.command[1]).resolve()
+
+
+def qa_claw_status(provider_config: Optional[ToolProviderRuntimeConfig]) -> dict[str, Any]:
+    supported_capabilities = supported_qa_claw_capability_ids()
+    if provider_config is None:
+        return {
+            "provider_id": "qa_claw",
+            "configured": False,
+            "enabled": False,
+            "provider_kind": "script",
+            "target_kind": None,
+            "repo_root": None,
+            "repo_root_exists": False,
+            "timeout_seconds": None,
+            "max_output_bytes": None,
+            "supported_capabilities": supported_capabilities,
+            "capability_allowlist": [],
+            "capabilities": [],
+            "issues": ["Provider is not configured."],
+        }
+
+    repo_root = resolve_repo_root_if_present(provider_config)
+    repo_root_exists = bool(repo_root and repo_root.exists() and repo_root.is_dir())
+    issues: list[str] = []
+    if provider_config.target_kind != "repo":
+        issues.append('qa_claw requires target_kind="repo".')
+    if repo_root is None:
+        issues.append("qa_claw requires target.repo_root.")
+    elif not repo_root_exists:
+        issues.append(f"Configured repo_root does not exist: {repo_root}")
+
+    unsupported_capabilities = [
+        capability_id
+        for capability_id in provider_config.capability_allowlist
+        if capability_id not in QA_CLAW_SCRIPT_CAPABILITIES
+    ]
+    for capability_id in unsupported_capabilities:
+        issues.append(f"Unsupported capability in allowlist: {capability_id}")
+
+    capabilities: list[dict[str, Any]] = []
+    for capability_id in provider_config.capability_allowlist:
+        capability = QA_CLAW_SCRIPT_CAPABILITIES.get(capability_id)
+        script_path: Optional[Path] = None
+        script_exists = False
+        if capability is not None and repo_root is not None:
+            script_path = capability_script_path(repo_root, capability)
+            script_exists = script_path.exists() and script_path.is_file()
+            if not script_exists:
+                issues.append(f"Missing capability script for {capability_id}: {script_path}")
+        capabilities.append(
+            {
+                "capability_id": capability_id,
+                "supported": capability is not None,
+                "script_path": str(script_path) if script_path is not None else None,
+                "script_exists": script_exists,
+            }
+        )
+
+    return {
+        "provider_id": "qa_claw",
+        "configured": True,
+        "enabled": provider_config.enabled,
+        "provider_kind": "script",
+        "target_kind": provider_config.target_kind,
+        "repo_root": str(repo_root) if repo_root is not None else None,
+        "repo_root_exists": repo_root_exists,
+        "timeout_seconds": provider_config.timeout_seconds,
+        "max_output_bytes": provider_config.max_output_bytes,
+        "supported_capabilities": supported_capabilities,
+        "capability_allowlist": provider_config.capability_allowlist,
+        "capabilities": capabilities,
+        "issues": issues,
+    }
+
+
+def build_provider_status(
+    provider_id: Optional[str],
+    provider_configs: dict[str, ToolProviderRuntimeConfig],
+) -> dict[str, Any]:
+    if provider_id is None:
+        providers = [qa_claw_status(provider_configs.get("qa_claw"))]
+        configured_count = sum(1 for provider in providers if provider["configured"])
+        enabled_count = sum(1 for provider in providers if provider["enabled"])
+        return {
+            "provider_count": len(providers),
+            "configured_count": configured_count,
+            "enabled_count": enabled_count,
+            "supported_provider_ids": supported_provider_ids(),
+            "providers": providers,
+        }
+
+    ensure_supported_provider(provider_id)
+    return qa_claw_status(provider_configs.get(provider_id))
+
+
+def build_qa_claw_config(
+    repo_root: Path,
+    capability_allowlist: list[str],
+    enabled: bool,
+    timeout_seconds: int,
+    max_output_bytes: int,
+) -> ToolProviderRuntimeConfig:
+    unsupported_capabilities = [
+        capability_id
+        for capability_id in capability_allowlist
+        if capability_id not in QA_CLAW_SCRIPT_CAPABILITIES
+    ]
+    if unsupported_capabilities:
+        raise ProviderExecutionError(
+            "invalid_provider_capability",
+            "Unsupported qa_claw capability: " + ", ".join(sorted(unsupported_capabilities)),
+        )
+
+    if not repo_root.exists() or not repo_root.is_dir():
+        raise ProviderExecutionError(
+            "invalid_provider_target",
+            f"qa_claw repo_root does not exist: {repo_root}",
+        )
+
+    config = ToolProviderRuntimeConfig(
+        enabled=enabled,
+        capability_allowlist=capability_allowlist,
+        target_kind="repo",
+        target={"repo_root": str(repo_root)},
+        timeout_seconds=timeout_seconds,
+        max_output_bytes=max_output_bytes,
+    )
+    for capability_id in capability_allowlist:
+        capability = QA_CLAW_SCRIPT_CAPABILITIES[capability_id]
+        validate_capability_files(repo_root, capability)
+    return config
 
 
 def truncate_to_bytes(value: str, max_bytes: int) -> tuple[str, bool]:

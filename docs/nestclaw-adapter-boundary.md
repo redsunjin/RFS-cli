@@ -4,8 +4,8 @@
 
 Define the first provider-specific adapter boundary for NestClaw under the shared local tool-provider contract.
 
-This slice is design-only.
-It does not add runtime execution to `rfs-cli`.
+This document remains design-only for runtime purposes.
+No NestClaw runtime execution is implemented in `rfs-cli` yet.
 
 ## Source inputs reviewed
 
@@ -210,7 +210,6 @@ Keep this out of the current config model until runtime provider work is explici
 
 ## Non-goals
 
-- no `rfs provider` command yet
 - no automatic server startup
 - no auth token generation
 - no approval-queue mutation
