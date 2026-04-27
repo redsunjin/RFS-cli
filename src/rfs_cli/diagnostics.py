@@ -13,6 +13,7 @@ from rfs_cli.config import (
 )
 from rfs_cli.llm import get_llm_status
 from rfs_cli.models import AppConfig
+from rfs_cli.providers import build_provider_status
 
 
 def summarize_doctor_file(path: Path) -> dict[str, object]:
@@ -123,11 +124,25 @@ def collect_llm_runtime_diagnostics(app_config: Optional[AppConfig]) -> dict[str
     return get_llm_status(app_config.llm)
 
 
+def collect_provider_diagnostics(app_config: Optional[AppConfig]) -> dict[str, object]:
+    tool_providers = app_config.tool_providers if app_config is not None else {}
+    status = build_provider_status(None, tool_providers)
+    providers = status["providers"]
+    issue_count = sum(
+        len(provider.get("issues") or [])
+        for provider in providers
+        if provider.get("configured")
+    )
+    status["issue_count"] = issue_count
+    return status
+
+
 def build_doctor_suggestions(
     config: dict[str, object],
     index: dict[str, object],
     shell_memory: dict[str, object],
     llm_runtime: dict[str, object],
+    providers: dict[str, object],
 ) -> list[str]:
     suggestions: list[str] = []
     if config.get("exists") and not config.get("valid"):
@@ -155,6 +170,12 @@ def build_doctor_suggestions(
 
     if shell_memory.get("exists") and not shell_memory.get("valid"):
         suggestions.append("Move or remove `.rfs/shell-memory.json` if shell state needs a reset.")
+
+    if providers.get("issue_count"):
+        suggestions.append(
+            "Run `rfs provider status qa_claw` to inspect provider issues, then rerun "
+            "`rfs provider setup-qa-claw <repo_root>` if the repo root or allowlist is wrong."
+        )
 
     if not suggestions:
         suggestions.append("No immediate release-readiness issues were detected.")

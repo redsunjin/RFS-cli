@@ -38,6 +38,7 @@ from rfs_cli.diagnostics import (
     collect_config_diagnostics,
     collect_index_diagnostics,
     collect_llm_runtime_diagnostics,
+    collect_provider_diagnostics,
     collect_shell_memory_diagnostics,
 )
 from rfs_cli.drive import (
@@ -287,12 +288,26 @@ def format_doctor_llm_text_status(details: dict[str, object]) -> str:
     return f"LLM runtime: configured but unreachable ({error_message})"
 
 
+def format_doctor_provider_text_status(details: dict[str, object]) -> str:
+    configured_count = details["configured_count"]
+    enabled_count = details["enabled_count"]
+    issue_count = details.get("issue_count", 0)
+    if configured_count == 0:
+        return "Providers: none configured"
+
+    status = f"Providers: {configured_count} configured ({enabled_count} enabled)"
+    if issue_count:
+        return f"{status}, issues={issue_count}"
+    return f"{status}, issues=0"
+
+
 def build_doctor_payload(state_dir: Path, verbose: bool) -> CommandPayload:
     resolved_state_dir = resolve_state_dir(state_dir)
     config_details, app_config = collect_config_diagnostics(resolved_state_dir)
     index_details = collect_index_diagnostics(resolved_state_dir)
     shell_memory_details = collect_shell_memory_diagnostics(resolved_state_dir)
     llm_runtime_details = collect_llm_runtime_diagnostics(app_config)
+    provider_details = collect_provider_diagnostics(app_config)
 
     return CommandPayload(
         command="doctor",
@@ -312,11 +327,13 @@ def build_doctor_payload(state_dir: Path, verbose: bool) -> CommandPayload:
             "index": index_details,
             "shell_memory": shell_memory_details,
             "llm_runtime": llm_runtime_details,
+            "providers": provider_details,
             "suggestions": build_doctor_suggestions(
                 config_details,
                 index_details,
                 shell_memory_details,
                 llm_runtime_details,
+                provider_details,
             ),
         },
     )
@@ -561,6 +578,7 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
             typer.echo(format_doctor_text_status("Index", data["index"]))
             typer.echo(format_doctor_text_status("Shell memory", data["shell_memory"]))
             typer.echo(format_doctor_llm_text_status(data["llm_runtime"]))
+            typer.echo(format_doctor_provider_text_status(data["providers"]))
 
             suggestions = data.get("suggestions") or []
             if suggestions:

@@ -9,6 +9,7 @@ from rfs_cli.diagnostics import (
     build_doctor_suggestions,
     collect_index_diagnostics,
     collect_llm_runtime_diagnostics,
+    collect_provider_diagnostics,
     collect_shell_memory_diagnostics,
 )
 from rfs_cli.models import (
@@ -105,6 +106,7 @@ def build_guidance_runtime_context(app_config: AppConfig, state_dir: Path) -> li
             collect_index_diagnostics(resolved_state_dir),
             shell_memory,
             llm_runtime,
+            collect_provider_diagnostics(app_config),
         )[:2]:
             lines.append(f"- doctor_hint: {suggestion}")
         return [{"role": "system", "content": "\n".join(lines)}]

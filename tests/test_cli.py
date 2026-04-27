@@ -151,6 +151,8 @@ def test_doctor_json_reports_workspace_state(tmp_path: Path, monkeypatch) -> Non
     assert payload["data"]["index"]["valid"] is True
     assert payload["data"]["index"]["document_count"] >= 1
     assert payload["data"]["llm_runtime"]["reachable"] is True
+    assert payload["data"]["providers"]["configured_count"] == 0
+    assert payload["data"]["providers"]["issue_count"] == 0
     assert payload["data"]["environment"]["state_dir"] == str(state_dir.resolve())
 
 
@@ -171,6 +173,44 @@ def test_doctor_reports_invalid_state_files_without_failing(tmp_path: Path) -> N
     assert payload["data"]["config"]["valid"] is False
     assert payload["data"]["index"]["valid"] is False
     assert "Inspect `.rfs/config.json`" in payload["data"]["suggestions"][0]
+
+
+def test_doctor_reports_provider_issues_and_guidance(tmp_path: Path, monkeypatch) -> None:
+    state_dir = tmp_path / ".rfs"
+    qa_root = create_qa_claw_fixture(tmp_path / "qa_claw")
+    save_llm_config(state_dir)
+    save_qa_claw_provider_config(state_dir, qa_root)
+    (qa_root / "security" / "scan-secrets.sh").unlink()
+
+    monkeypatch.setattr(
+        "rfs_cli.diagnostics.get_llm_status",
+        lambda config: {
+            "configured": True,
+            "provider": config.provider,
+            "base_url": config.base_url,
+            "model": config.model,
+            "api_key_env": None,
+            "api_key_present": None,
+            "reachable": True,
+            "available_models": [config.model],
+            "default_model_available": True,
+            "error": None,
+        },
+    )
+
+    result = runner.invoke(
+        app,
+        ["doctor", "--state-dir", str(state_dir), "--format", "json"],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "doctor", True)
+    assert payload["data"]["providers"]["configured_count"] == 1
+    assert payload["data"]["providers"]["issue_count"] >= 1
+    issues = payload["data"]["providers"]["providers"][0]["issues"]
+    assert any("Missing capability script" in issue for issue in issues)
+    assert any("rfs provider status qa_claw" in item for item in payload["data"]["suggestions"])
 
 
 def test_root_without_args_shows_banner_and_help_when_non_interactive(monkeypatch) -> None:

@@ -241,6 +241,6 @@ What is needed is only a slice-specific worksheet because this work compares two
 
 ## Recommended next slice
 
-1. add provider diagnostics to `rfs doctor` and tighten invalid-config guidance
-2. only then add a second read-only provider capability
+1. add a second read-only qa_claw capability after the doctor-visible diagnostics baseline
+2. prefer `verify_worktrees` as the next bounded capability
 3. defer any NestClaw write-capable runtime action until the qa_claw provider UX is stable

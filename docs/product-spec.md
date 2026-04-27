@@ -140,6 +140,7 @@ Responsibilities:
 
 - inspect workspace state under the selected `.rfs` directory
 - report config, index, shell-memory, and LLM runtime health
+- report provider configuration and provider issue counts
 - provide one local diagnostic entrypoint before deeper manual inspection
 - support a verbose mode for richer local debugging details
 

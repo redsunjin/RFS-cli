@@ -35,6 +35,7 @@ Responsibilities:
 - enforce agent behavior rules such as style, domain boundaries, and grounding to implemented commands
 - convert task-oriented requests into concrete command suggestions
 - keep help and recovery guidance progressive and state-aware
+- expose doctor-visible diagnostics for provider configuration health
 
 ### Domain layer
 
