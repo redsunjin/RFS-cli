@@ -108,7 +108,7 @@ When scope changes, update these files in order:
 
 ## Current recommended next three tasks
 
-- [ ] Implement the first structural `rfs wiki lint` runtime against the fixture set
+- [ ] Decide whether `wiki/index.md` should require one-line page summaries in a fixed format before `wiki plan-ingest` runtime work
 - [ ] Keep the qa_claw read-only baseline frozen with no broader provider expansion for now
 - [ ] Revisit Google Drive real smoke only when credentials or token state become available
 
@@ -129,7 +129,8 @@ When scope changes, update these files in order:
 - The most recently closed official implementation slice also includes `rfs provider run qa_claw run_backend_regression`.
 - The most recently closed official review slice is the qa_claw read-only baseline review.
 - The most recently closed official compiled-wiki slice is defining the first small fixture set for wiki lint testing.
-- The next official slice is implementing the first structural `rfs wiki lint` runtime against that fixture set.
+- The most recently closed official compiled-wiki slice also includes the first structural `rfs wiki lint` runtime.
+- The next official slice is deciding whether `wiki/index.md` should require one-line page summaries in a fixed format before `wiki plan-ingest` runtime work.
 - Google Drive real smoke remains paused by environment, and compiled wiki remains a candidate track.
 
 ## Idea branch recommended next three tasks

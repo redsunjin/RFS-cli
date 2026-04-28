@@ -77,7 +77,7 @@ The official active loop now moves from the closed qa_claw read-only baseline re
 
 Current official next tasks:
 
-1. Implement the first structural `rfs wiki lint` runtime against the fixture set
+1. Decide whether `wiki/index.md` should require one-line page summaries in a fixed format before `wiki plan-ingest` runtime work
 2. Keep the qa_claw read-only baseline frozen with no broader provider expansion for now
 3. Revisit Google Drive real smoke only when credentials or token state become available
 
@@ -252,7 +252,8 @@ Current slice status:
 - the first wiki lint report contract is now documented in `docs/wiki-lint-report-contract.md`
 - the first wiki directory and file conventions are now documented in `docs/wiki-directory-conventions.md`
 - the first small fixture set for wiki lint testing is now documented in `docs/wiki-lint-fixture-set.md`
-- the next compiled wiki slice is implementing the first structural `rfs wiki lint` runtime against that fixture set
+- the first structural `rfs wiki lint` runtime is now implemented against that fixture set
+- the next compiled wiki slice is deciding whether `wiki/index.md` should require one-line page summaries in a fixed format before `wiki plan-ingest` runtime work
 
 ## Agentification track
 

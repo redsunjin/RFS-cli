@@ -11,6 +11,7 @@ This command is meant to inspect the wiki layer, not to repair it automatically.
 - `rfs wiki lint`
 
 The first version should inspect the wiki directory and return a bounded report.
+The first implemented runtime now follows this command direction and stays structural.
 
 ## Why lint matters
 
@@ -141,8 +142,8 @@ The first error set should stay small:
 
 ## Recommended next slice
 
-After this contract is accepted:
+After the first structural runtime:
 
-1. define the first wiki directory and file conventions
-2. define the first small fixture set for wiki lint testing
-3. only then consider runtime lint implementation
+1. decide whether `wiki/index.md` should require one-line page summaries in a fixed format
+2. keep contradiction and stale-claim categories reserved until a stronger heuristic is accepted
+3. only then consider runtime implementation of `wiki plan-ingest`

@@ -459,6 +459,8 @@ Example response shape:
 - Reuse the existing local index and search capabilities for wiki discovery instead of introducing a separate retrieval engine first
 - Prefer a narrow first command shape such as `rfs wiki plan-ingest`, `rfs wiki apply-ingest`, and `rfs wiki lint`
 - Keep question-answer filing explicit; a useful answer may become a wiki page, but chat history should not mutate the wiki automatically
+- The first implemented wiki runtime is `rfs wiki lint`
+- The first wiki runtime should stay structural and read-only, using required-file validation plus link-graph checks before semantic contradiction or staleness heuristics are added
 
 ### Developer utility services
 

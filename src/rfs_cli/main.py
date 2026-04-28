@@ -97,6 +97,7 @@ from rfs_cli.services import (
     preview_file,
     project_stats,
 )
+from rfs_cli.wiki import WikiLintError, build_wiki_lint_report
 
 APP_HELP_TEXT = """Start here: run `rfs` in an interactive terminal.
 
@@ -126,6 +127,7 @@ drive_app = typer.Typer(help="Google Drive commands.")
 llm_app = typer.Typer(help="LLM setup and guidance commands.")
 research_app = typer.Typer(help="Research workflow commands.")
 provider_app = typer.Typer(help="External tool provider commands.")
+wiki_app = typer.Typer(help="Compiled wiki commands.")
 
 app.add_typer(index_app, name="index")
 app.add_typer(dev_app, name="dev")
@@ -134,6 +136,7 @@ app.add_typer(drive_app, name="drive")
 app.add_typer(llm_app, name="llm")
 app.add_typer(research_app, name="research")
 app.add_typer(provider_app, name="provider")
+app.add_typer(wiki_app, name="wiki")
 
 
 class OutputMode(str, Enum):
@@ -182,6 +185,7 @@ KNOWN_SHELL_COMMANDS = {
     "llm",
     "research",
     "provider",
+    "wiki",
 }
 STATEFUL_COMMANDS = {
     "ask",
@@ -195,6 +199,7 @@ STATEFUL_COMMANDS = {
     "llm",
     "research",
     "provider",
+    "wiki",
 }
 
 
@@ -781,6 +786,22 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
             typer.echo(f'Config: {data["config_path"]}')
             return
 
+        if command == "wiki_lint":
+            report = data["report"]
+            typer.echo(f'Wiki root: {report["wiki_root"]}')
+            typer.echo(f'Pages: {report["page_count"]}')
+            typer.echo(f'Issues: {report["issue_count"]}')
+            typer.echo("Issue counts:")
+            for kind, count in report["issues_by_kind"].items():
+                typer.echo(f"- {kind}: {count}")
+            if report["issues"]:
+                typer.echo("Top issues:")
+                for issue in report["issues"][:5]:
+                    typer.echo(f'- [{issue["severity"]}] {issue["kind"]}: {issue["path"]}')
+                    typer.echo(f'  {issue["summary"]}')
+            typer.echo(f'Recommended action: {report["recommended_action"]}')
+            return
+
         if command == "ask":
             typer.echo(data["answer"])
             return
@@ -807,6 +828,22 @@ def build_recovery_text(command: str, code: str, message: str) -> Optional[str]:
         return (
             "인덱스가 아직 없습니다.\n"
             "다음 단계: `rfs index run`으로 먼저 인덱스를 만드세요."
+        )
+
+    if code == "wiki_missing":
+        return (
+            "위키 디렉터리를 찾을 수 없습니다.\n"
+            "다음 단계: `wiki/`가 있는 knowledge root에서 다시 실행하거나 경로를 지정하세요."
+        )
+
+    if code == "invalid_wiki_state":
+        required_files_hint = (
+            "필수 파일(`wiki/index.md`, `wiki/log.md`, `wiki/overview.md`)을 확인하세요."
+        )
+        return (
+            "위키 구조가 아직 완전하지 않습니다.\n"
+            f"다음 단계: {required_files_hint}\n"
+            f"상세: {message}"
         )
 
     if code == "missing_source":
@@ -1531,6 +1568,27 @@ def provider_setup_qa_claw(
             "max_output_bytes": provider_config.max_output_bytes,
             "config_path": str(config_path),
         },
+    )
+    emit(payload, output)
+
+
+@wiki_app.command("lint")
+def wiki_lint(
+    root: Path = typer.Argument(
+        Path("."),
+        help="Knowledge root or direct wiki directory path.",
+    ),
+    output: OutputMode = typer.Option(OutputMode.text, "--format"),
+) -> None:
+    try:
+        report = build_wiki_lint_report(root)
+    except WikiLintError as exc:
+        fail("wiki_lint", str(exc), output, code=exc.code)
+
+    payload = CommandPayload(
+        command="wiki_lint",
+        ok=True,
+        data={"report": report},
     )
     emit(payload, output)
 

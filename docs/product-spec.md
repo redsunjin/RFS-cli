@@ -296,6 +296,8 @@ Examples:
 - the first workflow should prefer `plan -> review -> apply` for wiki updates instead of direct background write-back
 - good answers, comparisons, and synthesis pages may later be filed back into the wiki as durable artifacts
 - the first implementation slice should focus on ingest planning and wiki linting before broader automated maintenance
+- the first implemented runtime is `rfs wiki lint [knowledge-root-or-wiki-dir]`
+- the first runtime is structural and read-only, surfacing `missing_page`, `orphan_page`, and `missing_crosslink` before broader semantic lint categories
 
 ### `rfs llm`
 
