@@ -62,6 +62,7 @@ def create_qa_claw_fixture(
     scan_script_body: str = "echo secret scan ok",
     verify_script_body: str = "echo verify worktrees ok",
     authz_script_body: str = "print('authz consistency ok')",
+    observability_script_body: str = "echo observability evidence ok",
 ) -> Path:
     scan_script_path = root / "security" / "scan-secrets.sh"
     scan_script_path.parent.mkdir(parents=True, exist_ok=True)
@@ -79,6 +80,13 @@ def create_qa_claw_fixture(
     authz_script_path.write_text(
         "#!/usr/bin/env python3\n"
         f"{authz_script_body}\n",
+        encoding="utf-8",
+    )
+
+    observability_script_path = root / "observability" / "check-telemetry-evidence.sh"
+    observability_script_path.parent.mkdir(parents=True, exist_ok=True)
+    observability_script_path.write_text(
+        f"#!/usr/bin/env bash\n{observability_script_body}\n",
         encoding="utf-8",
     )
     return root
@@ -3118,6 +3126,106 @@ def test_provider_run_authz_consistency_surfaces_failure(tmp_path: Path) -> None
     assert provider_result["ok"] is False
     assert provider_result["error_codes"] == ["AUTHZ_MISMATCH"]
     assert "mismatch" in provider_result["stderr_preview"]
+
+
+def test_provider_setup_qa_claw_supports_observability_evidence(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    qa_root = create_qa_claw_fixture(tmp_path / "qa_claw")
+
+    result = runner.invoke(
+        app,
+        [
+            "provider",
+            "setup-qa-claw",
+            str(qa_root),
+            "--capability",
+            "scan_secrets",
+            "--capability",
+            "check_observability_evidence",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "provider_setup_qa_claw", True)
+    assert payload["data"]["capability_allowlist"] == [
+        "scan_secrets",
+        "check_observability_evidence",
+    ]
+
+
+def test_provider_run_check_observability_evidence_json(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    qa_root = create_qa_claw_fixture(
+        tmp_path / "qa_claw",
+        observability_script_body="echo observability evidence ok",
+    )
+    save_qa_claw_provider_config(
+        state_dir,
+        qa_root,
+        capability_allowlist=["check_observability_evidence"],
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "provider",
+            "run",
+            "qa_claw",
+            "check_observability_evidence",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "provider_run", True)
+    provider_result = payload["data"]["provider_result"]
+    assert provider_result["ok"] is True
+    assert provider_result["error_codes"] == []
+    assert "observability evidence ok" in provider_result["stdout_preview"]
+
+
+def test_provider_run_observability_evidence_surfaces_failure(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    qa_root = create_qa_claw_fixture(
+        tmp_path / "qa_claw",
+        observability_script_body="echo missing telemetry artifact >&2\nexit 1",
+    )
+    save_qa_claw_provider_config(
+        state_dir,
+        qa_root,
+        capability_allowlist=["check_observability_evidence"],
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "provider",
+            "run",
+            "qa_claw",
+            "check_observability_evidence",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "provider_run", True)
+    provider_result = payload["data"]["provider_result"]
+    assert provider_result["ok"] is False
+    assert provider_result["error_codes"] == ["OBSERVABILITY_EVIDENCE_MISSING"]
+    assert "missing telemetry artifact" in provider_result["stderr_preview"]
 
 
 def test_drive_search_missing_config_text_guides_drive_auth(tmp_path: Path) -> None:

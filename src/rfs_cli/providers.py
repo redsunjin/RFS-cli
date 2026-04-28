@@ -35,6 +35,12 @@ QA_CLAW_SCRIPT_CAPABILITIES: dict[str, ScriptCapability] = {
         success_summary="qa_claw authz consistency check passed.",
         failure_summary="qa_claw authz consistency check failed.",
     ),
+    "check_observability_evidence": ScriptCapability(
+        command=["bash", "observability/check-telemetry-evidence.sh", "."],
+        failure_code="OBSERVABILITY_EVIDENCE_MISSING",
+        success_summary="qa_claw observability evidence check passed.",
+        failure_summary="qa_claw observability evidence check failed.",
+    ),
     "scan_secrets": ScriptCapability(
         command=["bash", "security/scan-secrets.sh", "."],
         failure_code="SECRET_SCAN_FAILED",

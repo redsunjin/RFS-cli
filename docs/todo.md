@@ -108,7 +108,7 @@ When scope changes, update these files in order:
 
 ## Current recommended next three tasks
 
-- [ ] Add a fourth read-only qa_claw capability, preferably `check_observability_evidence`
+- [ ] Add a fifth read-only qa_claw capability, preferably `run_backend_regression`
 - [ ] Keep compiled wiki as a candidate track rather than the current official loop
 - [ ] Revisit Google Drive real smoke only when credentials or token state become available
 
@@ -125,7 +125,8 @@ When scope changes, update these files in order:
 - The most recently closed official implementation slice also includes provider diagnostics in `rfs doctor`.
 - The most recently closed official implementation slice also includes `rfs provider run qa_claw verify_worktrees`.
 - The most recently closed official implementation slice also includes `rfs provider run qa_claw check_authz_consistency`.
-- The next official slice is adding a fourth read-only qa_claw capability, preferably `check_observability_evidence`.
+- The most recently closed official implementation slice also includes `rfs provider run qa_claw check_observability_evidence`.
+- The next official slice is adding a fifth read-only qa_claw capability, preferably `run_backend_regression`.
 - Google Drive real smoke remains paused by environment, and compiled wiki remains a candidate track.
 
 ## Idea branch recommended next three tasks

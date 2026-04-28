@@ -5,11 +5,12 @@
 Define the first provider-specific adapter boundary for qa_claw under the shared local tool-provider contract.
 
 This document remains the provider-boundary source of truth.
-The current runtime baseline now implements two bounded capabilities from this boundary:
+The current runtime baseline now implements four bounded capabilities from this boundary:
 
 - `scan_secrets`
 - `verify_worktrees`
 - `check_authz_consistency`
+- `check_observability_evidence`
 
 ## Source inputs reviewed
 
