@@ -63,6 +63,14 @@ def create_qa_claw_fixture(
     verify_script_body: str = "echo verify worktrees ok",
     authz_script_body: str = "print('authz consistency ok')",
     observability_script_body: str = "echo observability evidence ok",
+    backend_test_body: str = (
+        "import unittest\n\n"
+        "class BackendSmokeTests(unittest.TestCase):\n"
+        "    def test_backend_ok(self):\n"
+        "        self.assertTrue(True)\n\n"
+        "if __name__ == '__main__':\n"
+        "    unittest.main()\n"
+    ),
 ) -> Path:
     scan_script_path = root / "security" / "scan-secrets.sh"
     scan_script_path.parent.mkdir(parents=True, exist_ok=True)
@@ -89,6 +97,10 @@ def create_qa_claw_fixture(
         f"#!/usr/bin/env bash\n{observability_script_body}\n",
         encoding="utf-8",
     )
+
+    backend_test_path = root / "backend" / "tests" / "test_service.py"
+    backend_test_path.parent.mkdir(parents=True, exist_ok=True)
+    backend_test_path.write_text(backend_test_body, encoding="utf-8")
     return root
 
 
@@ -3226,6 +3238,110 @@ def test_provider_run_observability_evidence_surfaces_failure(tmp_path: Path) ->
     assert provider_result["ok"] is False
     assert provider_result["error_codes"] == ["OBSERVABILITY_EVIDENCE_MISSING"]
     assert "missing telemetry artifact" in provider_result["stderr_preview"]
+
+
+def test_provider_setup_qa_claw_supports_backend_regression(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    qa_root = create_qa_claw_fixture(tmp_path / "qa_claw")
+
+    result = runner.invoke(
+        app,
+        [
+            "provider",
+            "setup-qa-claw",
+            str(qa_root),
+            "--capability",
+            "scan_secrets",
+            "--capability",
+            "run_backend_regression",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "provider_setup_qa_claw", True)
+    assert payload["data"]["capability_allowlist"] == [
+        "scan_secrets",
+        "run_backend_regression",
+    ]
+
+
+def test_provider_run_backend_regression_json(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    qa_root = create_qa_claw_fixture(tmp_path / "qa_claw")
+    save_qa_claw_provider_config(
+        state_dir,
+        qa_root,
+        capability_allowlist=["run_backend_regression"],
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "provider",
+            "run",
+            "qa_claw",
+            "run_backend_regression",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "provider_run", True)
+    provider_result = payload["data"]["provider_result"]
+    assert provider_result["ok"] is True
+    assert provider_result["error_codes"] == []
+    assert "OK" in provider_result["stderr_preview"]
+
+
+def test_provider_run_backend_regression_surfaces_failure(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    qa_root = create_qa_claw_fixture(
+        tmp_path / "qa_claw",
+        backend_test_body=(
+            "import unittest\n\n"
+            "class BackendSmokeTests(unittest.TestCase):\n"
+            "    def test_backend_failure(self):\n"
+            "        self.fail('backend regression failed')\n\n"
+            "if __name__ == '__main__':\n"
+            "    unittest.main()\n"
+        ),
+    )
+    save_qa_claw_provider_config(
+        state_dir,
+        qa_root,
+        capability_allowlist=["run_backend_regression"],
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "provider",
+            "run",
+            "qa_claw",
+            "run_backend_regression",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "provider_run", True)
+    provider_result = payload["data"]["provider_result"]
+    assert provider_result["ok"] is False
+    assert provider_result["error_codes"] == ["TEST_FAILURE"]
+    assert "backend regression failed" in provider_result["stderr_preview"]
 
 
 def test_drive_search_missing_config_text_guides_drive_auth(tmp_path: Path) -> None:

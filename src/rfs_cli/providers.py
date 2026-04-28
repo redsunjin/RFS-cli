@@ -17,6 +17,7 @@ class ProviderExecutionError(ValueError):
 @dataclass(frozen=True)
 class ScriptCapability:
     command: list[str]
+    probe_path: str
     failure_code: str
     success_summary: str
     failure_summary: str
@@ -25,24 +26,35 @@ class ScriptCapability:
 QA_CLAW_SCRIPT_CAPABILITIES: dict[str, ScriptCapability] = {
     "verify_worktrees": ScriptCapability(
         command=["bash", "scripts/verify-worktrees.sh"],
+        probe_path="scripts/verify-worktrees.sh",
         failure_code="VERIFY_FAILED",
         success_summary="qa_claw worktree verification passed.",
         failure_summary="qa_claw worktree verification failed.",
     ),
     "check_authz_consistency": ScriptCapability(
         command=["python3", "security/check-authz-matrix-consistency.py", "."],
+        probe_path="security/check-authz-matrix-consistency.py",
         failure_code="AUTHZ_MISMATCH",
         success_summary="qa_claw authz consistency check passed.",
         failure_summary="qa_claw authz consistency check failed.",
     ),
     "check_observability_evidence": ScriptCapability(
         command=["bash", "observability/check-telemetry-evidence.sh", "."],
+        probe_path="observability/check-telemetry-evidence.sh",
         failure_code="OBSERVABILITY_EVIDENCE_MISSING",
         success_summary="qa_claw observability evidence check passed.",
         failure_summary="qa_claw observability evidence check failed.",
     ),
+    "run_backend_regression": ScriptCapability(
+        command=["python3", "-m", "unittest", "discover", "-s", "backend/tests", "-p", "test_*.py"],
+        probe_path="backend/tests",
+        failure_code="TEST_FAILURE",
+        success_summary="qa_claw backend regression passed.",
+        failure_summary="qa_claw backend regression failed.",
+    ),
     "scan_secrets": ScriptCapability(
         command=["bash", "security/scan-secrets.sh", "."],
+        probe_path="security/scan-secrets.sh",
         failure_code="SECRET_SCAN_FAILED",
         success_summary="qa_claw secret scan passed.",
         failure_summary="qa_claw secret scan failed.",
@@ -119,7 +131,7 @@ def resolve_repo_root_if_present(provider_config: ToolProviderRuntimeConfig) -> 
 
 
 def validate_capability_files(repo_root: Path, capability: ScriptCapability) -> None:
-    script_path = repo_root / capability.command[1]
+    script_path = repo_root / capability.probe_path
     try:
         script_path.resolve().relative_to(repo_root)
     except ValueError as exc:
@@ -128,7 +140,7 @@ def validate_capability_files(repo_root: Path, capability: ScriptCapability) -> 
             "Capability script escapes the configured repo root.",
         ) from exc
 
-    if not script_path.exists() or not script_path.is_file():
+    if not script_path.exists() or (not script_path.is_file() and not script_path.is_dir()):
         raise ProviderExecutionError(
             "provider_unavailable",
             f"Required provider script does not exist: {script_path}",
@@ -136,7 +148,7 @@ def validate_capability_files(repo_root: Path, capability: ScriptCapability) -> 
 
 
 def capability_script_path(repo_root: Path, capability: ScriptCapability) -> Path:
-    return (repo_root / capability.command[1]).resolve()
+    return (repo_root / capability.probe_path).resolve()
 
 
 def qa_claw_status(provider_config: Optional[ToolProviderRuntimeConfig]) -> dict[str, Any]:
@@ -192,7 +204,7 @@ def qa_claw_status(provider_config: Optional[ToolProviderRuntimeConfig]) -> dict
         script_exists = False
         if capability is not None and repo_root is not None:
             script_path = capability_script_path(repo_root, capability)
-            script_exists = script_path.exists() and script_path.is_file()
+            script_exists = script_path.exists() and (script_path.is_file() or script_path.is_dir())
             if not script_exists:
                 issues.append(f"Missing capability script for {capability_id}: {script_path}")
         capabilities.append(

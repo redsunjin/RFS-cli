@@ -96,12 +96,13 @@ Expected bounded response metadata:
 ## Current runtime separation
 
 The current runtime surface is intentionally narrow.
-Four read-only runtime capabilities are implemented:
+Five read-only runtime capabilities are implemented:
 
 - `rfs provider run qa_claw scan_secrets`
 - `rfs provider run qa_claw verify_worktrees`
 - `rfs provider run qa_claw check_authz_consistency`
 - `rfs provider run qa_claw check_observability_evidence`
+- `rfs provider run qa_claw run_backend_regression`
 
 The setup/status UX is also intentionally narrow:
 

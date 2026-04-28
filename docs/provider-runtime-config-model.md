@@ -5,12 +5,13 @@
 Define the smallest shared runtime config model that can support both the NestClaw and qa_claw boundaries without adding a generic plugin system or runtime execution yet.
 
 This model began as a design-only slice.
-The current baseline now includes four read-only qa_claw runtime capabilities:
+The current baseline now includes five read-only qa_claw runtime capabilities:
 
 - `rfs provider run qa_claw scan_secrets`
 - `rfs provider run qa_claw verify_worktrees`
 - `rfs provider run qa_claw check_authz_consistency`
 - `rfs provider run qa_claw check_observability_evidence`
+- `rfs provider run qa_claw run_backend_regression`
 
 ## Source inputs reviewed
 
@@ -42,6 +43,7 @@ The current baseline now includes four read-only qa_claw runtime capabilities:
   - `scan_secrets`
   - `check_authz_consistency`
   - `check_observability_evidence`
+  - `run_backend_regression`
   - `run_backend_regression`
 - side effects: read-only in the first boundary
 - transport-specific needs:
@@ -193,6 +195,7 @@ The first runtime prototype and setup surface are intentionally narrow:
 - command: `rfs provider run qa_claw verify_worktrees`
 - command: `rfs provider run qa_claw check_authz_consistency`
 - command: `rfs provider run qa_claw check_observability_evidence`
+- command: `rfs provider run qa_claw run_backend_regression`
 - status: `rfs provider status [qa_claw]`
 - setup: `rfs provider setup-qa-claw <repo_root>`
 - provider: `qa_claw`
@@ -201,6 +204,7 @@ The first runtime prototype and setup surface are intentionally narrow:
   - `verify_worktrees`
   - `check_authz_consistency`
   - `check_observability_evidence`
+  - `run_backend_regression`
 - target kind: `repo`
 - side effect: read-only
 - config source: local `tool_providers.qa_claw` config block
@@ -215,6 +219,7 @@ The prototype enforces:
 - `verify_worktrees` accepts only bounded assignment inputs
 - `check_authz_consistency` stays argument-free
 - `check_observability_evidence` stays argument-free
+- `run_backend_regression` stays argument-free
 - setup validation should reject missing repo roots and missing allowlisted capability scripts
 - stdout and stderr previews must be bounded
 
@@ -241,7 +246,7 @@ The safest first prototype candidates are:
 
 ## Non-goals
 
-- no provider runtime beyond the bounded qa_claw `scan_secrets`, `verify_worktrees`, `check_authz_consistency`, and `check_observability_evidence` capabilities
+- no provider runtime beyond the bounded qa_claw `scan_secrets`, `verify_worktrees`, `check_authz_consistency`, `check_observability_evidence`, and `run_backend_regression` capabilities
 - no automatic provider installation or startup
 - no command auto-routing from `rfs shell`
 - no finalized multi-provider execution JSON schema beyond the prototype payload
@@ -256,6 +261,6 @@ What is needed is only a slice-specific worksheet because this work compares two
 
 ## Recommended next slice
 
-1. add a fifth read-only qa_claw capability after the observability-evidence pass is accepted
-2. prefer `run_backend_regression` as the next bounded capability
-3. defer any NestClaw write-capable runtime action until the qa_claw provider UX is stable
+1. review whether the completed qa_claw read-only runtime set is sufficient before any broader provider expansion
+2. defer any NestClaw write-capable runtime action until the qa_claw provider UX is stable
+3. keep provider result boundaries bounded before considering artifacts or richer status output

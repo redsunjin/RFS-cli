@@ -73,11 +73,11 @@ That means the project should not wait for Google Drive integration before decla
 
 ## Current official active loop
 
-The official active loop now moves from the fourth bounded read-only qa_claw capability toward a fifth bounded read-only capability.
+The official active loop now moves from the fifth bounded read-only qa_claw capability toward a baseline review before broader provider expansion.
 
 Current official next tasks:
 
-1. Add a fifth read-only qa_claw capability, preferably `run_backend_regression`
+1. Review whether the completed qa_claw read-only capability set is sufficient before broader provider expansion
 2. Keep compiled wiki as a candidate track rather than the current official loop
 3. Revisit Google Drive real smoke only when credentials or token state become available
 
@@ -151,7 +151,8 @@ Current baseline:
 - the second bounded read-only qa_claw capability is now implemented as `rfs provider run qa_claw verify_worktrees`
 - the third bounded read-only qa_claw capability is now implemented as `rfs provider run qa_claw check_authz_consistency`
 - the fourth bounded read-only qa_claw capability is now implemented as `rfs provider run qa_claw check_observability_evidence`
-- the next provider slice should add a fifth bounded read-only qa_claw capability before broader provider expansion
+- the fifth bounded read-only qa_claw capability is now implemented as `rfs provider run qa_claw run_backend_regression`
+- the next provider slice should review whether the current bounded qa_claw runtime set is sufficient before broader provider expansion
 
 ## Phase 6: Release readiness
 

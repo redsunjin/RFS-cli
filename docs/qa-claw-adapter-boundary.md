@@ -5,12 +5,13 @@
 Define the first provider-specific adapter boundary for qa_claw under the shared local tool-provider contract.
 
 This document remains the provider-boundary source of truth.
-The current runtime baseline now implements four bounded capabilities from this boundary:
+The current runtime baseline now implements five bounded capabilities from this boundary:
 
 - `scan_secrets`
 - `verify_worktrees`
 - `check_authz_consistency`
 - `check_observability_evidence`
+- `run_backend_regression`
 
 ## Source inputs reviewed
 
@@ -217,6 +218,6 @@ Keep this out of the current config model until runtime provider work is explici
 
 ## Recommended next slice
 
-1. compare NestClaw and qa_claw boundaries before any runtime provider config work begins
+1. review whether the completed qa_claw read-only capability set is sufficient before any broader provider expansion
 2. define the smallest shared runtime config model only after both provider boundaries are accepted
 3. prototype one read-only provider execution path before considering write-capable provider actions
