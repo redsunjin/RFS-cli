@@ -23,6 +23,12 @@ class ScriptCapability:
 
 
 QA_CLAW_SCRIPT_CAPABILITIES: dict[str, ScriptCapability] = {
+    "verify_worktrees": ScriptCapability(
+        command=["bash", "scripts/verify-worktrees.sh"],
+        failure_code="VERIFY_FAILED",
+        success_summary="qa_claw worktree verification passed.",
+        failure_summary="qa_claw worktree verification failed.",
+    ),
     "scan_secrets": ScriptCapability(
         command=["bash", "security/scan-secrets.sh", "."],
         failure_code="SECRET_SCAN_FAILED",
@@ -132,6 +138,8 @@ def qa_claw_status(provider_config: Optional[ToolProviderRuntimeConfig]) -> dict
             "target_kind": None,
             "repo_root": None,
             "repo_root_exists": False,
+            "worktree_root": None,
+            "worktree_root_exists": False,
             "timeout_seconds": None,
             "max_output_bytes": None,
             "supported_capabilities": supported_capabilities,
@@ -142,6 +150,11 @@ def qa_claw_status(provider_config: Optional[ToolProviderRuntimeConfig]) -> dict
 
     repo_root = resolve_repo_root_if_present(provider_config)
     repo_root_exists = bool(repo_root and repo_root.exists() and repo_root.is_dir())
+    worktree_root_value = provider_config.target.get("worktree_root")
+    worktree_root = None
+    if isinstance(worktree_root_value, str) and worktree_root_value.strip():
+        worktree_root = Path(worktree_root_value).expanduser().resolve()
+    worktree_root_exists = bool(worktree_root and worktree_root.exists() and worktree_root.is_dir())
     issues: list[str] = []
     if provider_config.target_kind != "repo":
         issues.append('qa_claw requires target_kind="repo".')
@@ -149,6 +162,8 @@ def qa_claw_status(provider_config: Optional[ToolProviderRuntimeConfig]) -> dict
         issues.append("qa_claw requires target.repo_root.")
     elif not repo_root_exists:
         issues.append(f"Configured repo_root does not exist: {repo_root}")
+    if worktree_root is not None and not worktree_root_exists:
+        issues.append(f"Configured worktree_root does not exist: {worktree_root}")
 
     unsupported_capabilities = [
         capability_id
@@ -185,6 +200,8 @@ def qa_claw_status(provider_config: Optional[ToolProviderRuntimeConfig]) -> dict
         "target_kind": provider_config.target_kind,
         "repo_root": str(repo_root) if repo_root is not None else None,
         "repo_root_exists": repo_root_exists,
+        "worktree_root": str(worktree_root) if worktree_root is not None else None,
+        "worktree_root_exists": worktree_root_exists,
         "timeout_seconds": provider_config.timeout_seconds,
         "max_output_bytes": provider_config.max_output_bytes,
         "supported_capabilities": supported_capabilities,
@@ -216,6 +233,7 @@ def build_provider_status(
 
 def build_qa_claw_config(
     repo_root: Path,
+    worktree_root: Optional[Path],
     capability_allowlist: list[str],
     enabled: bool,
     timeout_seconds: int,
@@ -237,12 +255,20 @@ def build_qa_claw_config(
             "invalid_provider_target",
             f"qa_claw repo_root does not exist: {repo_root}",
         )
+    if worktree_root is not None and (not worktree_root.exists() or not worktree_root.is_dir()):
+        raise ProviderExecutionError(
+            "invalid_provider_target",
+            f"qa_claw worktree_root does not exist: {worktree_root}",
+        )
 
+    target = {"repo_root": str(repo_root)}
+    if worktree_root is not None:
+        target["worktree_root"] = str(worktree_root)
     config = ToolProviderRuntimeConfig(
         enabled=enabled,
         capability_allowlist=capability_allowlist,
         target_kind="repo",
-        target={"repo_root": str(repo_root)},
+        target=target,
         timeout_seconds=timeout_seconds,
         max_output_bytes=max_output_bytes,
     )
@@ -250,6 +276,48 @@ def build_qa_claw_config(
         capability = QA_CLAW_SCRIPT_CAPABILITIES[capability_id]
         validate_capability_files(repo_root, capability)
     return config
+
+
+def build_qa_claw_command(
+    capability_id: str,
+    capability: ScriptCapability,
+    repo_root: Path,
+    provider_config: ToolProviderRuntimeConfig,
+    arguments: Optional[dict[str, Any]] = None,
+) -> list[str]:
+    if capability_id != "verify_worktrees":
+        return capability.command
+
+    resolved_arguments = arguments or {}
+    assignments = resolved_arguments.get("assignments") or []
+    assignments_file = resolved_arguments.get("assignments_file")
+    check_remote = bool(resolved_arguments.get("check_remote"))
+    if not assignments and assignments_file is None:
+        raise ProviderExecutionError(
+            "invalid_provider_arguments",
+            "verify_worktrees requires at least one --assignment or --assignments-file.",
+        )
+
+    command = [*capability.command, "--repo-root", str(repo_root)]
+    worktree_root_value = provider_config.target.get("worktree_root")
+    if isinstance(worktree_root_value, str) and worktree_root_value.strip():
+        command.extend(["--worktree-root", worktree_root_value])
+
+    for assignment in assignments:
+        command.extend(["--assignment", assignment])
+
+    if assignments_file is not None:
+        assignments_path = Path(assignments_file).expanduser().resolve()
+        if not assignments_path.exists() or not assignments_path.is_file():
+            raise ProviderExecutionError(
+                "invalid_provider_arguments",
+                f"Assignments file does not exist: {assignments_path}",
+            )
+        command.extend(["--assignments-file", str(assignments_path)])
+
+    if check_remote:
+        command.append("--check-remote")
+    return command
 
 
 def truncate_to_bytes(value: str, max_bytes: int) -> tuple[str, bool]:
@@ -275,6 +343,7 @@ def run_tool_provider(
     provider_id: str,
     capability_id: str,
     provider_config: ToolProviderRuntimeConfig,
+    arguments: Optional[dict[str, Any]] = None,
 ) -> dict[str, Any]:
     ensure_supported_provider(provider_id)
     if not provider_config.enabled:
@@ -286,10 +355,17 @@ def run_tool_provider(
     capability = ensure_allowed_capability(capability_id, provider_config)
     repo_root = resolve_repo_root(provider_config)
     validate_capability_files(repo_root, capability)
+    command = build_qa_claw_command(
+        capability_id,
+        capability,
+        repo_root,
+        provider_config,
+        arguments=arguments,
+    )
 
     try:
         completed = subprocess.run(
-            capability.command,
+            command,
             cwd=repo_root,
             capture_output=True,
             text=True,

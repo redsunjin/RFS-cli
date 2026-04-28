@@ -750,6 +750,8 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
                 typer.echo(f'target_kind: {data["target_kind"]}')
                 if data.get("repo_root"):
                     typer.echo(f'repo_root: {data["repo_root"]}')
+                if data.get("worktree_root"):
+                    typer.echo(f'worktree_root: {data["worktree_root"]}')
                 typer.echo(
                     "capability_allowlist: "
                     + (
@@ -770,6 +772,8 @@ def emit(payload: CommandPayload, output: OutputMode) -> None:
         if command == "provider_setup_qa_claw":
             typer.echo("Configured qa_claw provider")
             typer.echo(f'Repo root: {data["repo_root"]}')
+            if data.get("worktree_root"):
+                typer.echo(f'Worktree root: {data["worktree_root"]}')
             typer.echo(f'Enabled: {"yes" if data["enabled"] else "no"}')
             typer.echo(f'Capabilities: {", ".join(data["capability_allowlist"])}')
             typer.echo(f'Timeout: {data["timeout_seconds"]}s')
@@ -1415,13 +1419,33 @@ def provider_run(
     provider_id: str = typer.Argument(..., help="Provider id, for example qa_claw."),
     capability_id: str = typer.Argument(..., help="Capability id, for example scan_secrets."),
     state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
+    assignment: list[str] = typer.Option(
+        [],
+        "--assignment",
+        help="Assignment for verify_worktrees in agent,domain,ticket format.",
+    ),
+    assignments_file: Optional[Path] = typer.Option(
+        None,
+        "--assignments-file",
+        help="Assignments file for verify_worktrees.",
+    ),
+    check_remote: bool = typer.Option(False, "--check-remote"),
     output: OutputMode = typer.Option(OutputMode.text, "--format"),
 ) -> None:
     app_config = load_config_or_fail("provider_run", state_dir, output)
     provider_config = load_provider_config_or_fail(app_config, provider_id, output)
 
     try:
-        provider_result = run_tool_provider(provider_id, capability_id, provider_config)
+        provider_result = run_tool_provider(
+            provider_id,
+            capability_id,
+            provider_config,
+            arguments={
+                "assignments": assignment,
+                "assignments_file": assignments_file,
+                "check_remote": check_remote,
+            },
+        )
     except ProviderExecutionError as exc:
         fail("provider_run", str(exc), output, code=exc.code)
 
@@ -1464,6 +1488,11 @@ def provider_status(
 def provider_setup_qa_claw(
     repo_root: Path = typer.Argument(..., help="Path to the qa_claw repository root."),
     state_dir: Path = typer.Option(Path(".rfs"), "--state-dir"),
+    worktree_root: Optional[Path] = typer.Option(
+        None,
+        "--worktree-root",
+        help="Optional qa_claw worktree root for verify_worktrees.",
+    ),
     capability: list[str] = typer.Option(
         ["scan_secrets"],
         "--capability",
@@ -1478,6 +1507,7 @@ def provider_setup_qa_claw(
     try:
         provider_config = build_qa_claw_config(
             repo_root=repo_root.expanduser().resolve(),
+            worktree_root=worktree_root.expanduser().resolve() if worktree_root else None,
             capability_allowlist=capability,
             enabled=enabled,
             timeout_seconds=timeout_seconds,
@@ -1494,6 +1524,7 @@ def provider_setup_qa_claw(
         data={
             "provider_id": "qa_claw",
             "repo_root": provider_config.target["repo_root"],
+            "worktree_root": provider_config.target.get("worktree_root"),
             "enabled": provider_config.enabled,
             "capability_allowlist": provider_config.capability_allowlist,
             "timeout_seconds": provider_config.timeout_seconds,

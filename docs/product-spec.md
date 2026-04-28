@@ -218,14 +218,16 @@ Responsibilities:
 Current prototype:
 
 - `rfs provider run qa_claw scan_secrets`
+- `rfs provider run qa_claw verify_worktrees --assignment <agent,domain,ticket>`
 - `rfs provider status [qa_claw]`
 - `rfs provider setup-qa-claw <repo_root>`
 
 Examples:
 
 - `rfs provider run qa_claw scan_secrets --format json`
+- `rfs provider run qa_claw verify_worktrees --assignment nest,core,TASK-1 --format json`
 - `rfs provider status qa_claw --format json`
-- `rfs provider setup-qa-claw /path/to/qa_claw`
+- `rfs provider setup-qa-claw /path/to/qa_claw --worktree-root /path/to/qa_claw_worktrees`
 
 ### Post-MVP external tool providers
 
@@ -243,6 +245,7 @@ Examples:
 - the first runtime prototype should prefer a read-only qa_claw capability before any write-capable NestClaw action is attempted
 - no provider auto-discovery, startup management, or shell auto-routing should be implied by the first runtime config model
 - the first implemented runtime prototype is `rfs provider run qa_claw scan_secrets`
+- the second implemented read-only capability is `rfs provider run qa_claw verify_worktrees`
 - the first provider UX now includes `rfs provider status` and `rfs provider setup-qa-claw`
 - setup should validate repo roots and allowlisted capability scripts before runtime use
 

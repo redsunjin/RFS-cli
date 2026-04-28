@@ -73,11 +73,11 @@ That means the project should not wait for Google Drive integration before decla
 
 ## Current official active loop
 
-The official active loop now moves from doctor-visible provider diagnostics toward a second bounded read-only qa_claw capability.
+The official active loop now moves from the second bounded read-only qa_claw capability toward a third bounded read-only capability.
 
 Current official next tasks:
 
-1. Add a second read-only qa_claw capability, preferably `verify_worktrees`
+1. Add a third read-only qa_claw capability, preferably `check_authz_consistency`
 2. Keep compiled wiki as a candidate track rather than the current official loop
 3. Revisit Google Drive real smoke only when credentials or token state become available
 
@@ -148,7 +148,8 @@ Current baseline:
 - the first runtime prototype is now implemented as `rfs provider run qa_claw scan_secrets`
 - the first provider UX now includes `rfs provider status` and `rfs provider setup-qa-claw`
 - `rfs doctor` now includes provider diagnostics and invalid-config recovery guidance
-- the next provider slice should add a second bounded read-only qa_claw capability before broader provider expansion
+- the second bounded read-only qa_claw capability is now implemented as `rfs provider run qa_claw verify_worktrees`
+- the next provider slice should add a third bounded read-only qa_claw capability before broader provider expansion
 
 ## Phase 6: Release readiness
 

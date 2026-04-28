@@ -108,7 +108,7 @@ When scope changes, update these files in order:
 
 ## Current recommended next three tasks
 
-- [ ] Add a second read-only qa_claw capability, preferably `verify_worktrees`
+- [ ] Add a third read-only qa_claw capability, preferably `check_authz_consistency`
 - [ ] Keep compiled wiki as a candidate track rather than the current official loop
 - [ ] Revisit Google Drive real smoke only when credentials or token state become available
 
@@ -123,7 +123,8 @@ When scope changes, update these files in order:
 - The most recently closed official implementation slice is `rfs provider run qa_claw scan_secrets`.
 - The most recently closed official implementation slice also includes `rfs provider status` and `rfs provider setup-qa-claw`.
 - The most recently closed official implementation slice also includes provider diagnostics in `rfs doctor`.
-- The next official slice is adding a second read-only qa_claw capability, preferably `verify_worktrees`.
+- The most recently closed official implementation slice also includes `rfs provider run qa_claw verify_worktrees`.
+- The next official slice is adding a third read-only qa_claw capability, preferably `check_authz_consistency`.
 - Google Drive real smoke remains paused by environment, and compiled wiki remains a candidate track.
 
 ## Idea branch recommended next three tasks

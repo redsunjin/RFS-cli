@@ -38,25 +38,40 @@ def save_qa_claw_provider_config(
     state_dir: Path,
     repo_root: Path,
     capability_allowlist: Optional[list[str]] = None,
+    worktree_root: Optional[Path] = None,
 ) -> None:
     config = load_config(state_dir=state_dir)
+    target = {"repo_root": str(repo_root)}
+    if worktree_root is not None:
+        target["worktree_root"] = str(worktree_root)
     config.tool_providers["qa_claw"] = ToolProviderRuntimeConfig(
         enabled=True,
         capability_allowlist=(
             ["scan_secrets"] if capability_allowlist is None else capability_allowlist
         ),
         target_kind="repo",
-        target={"repo_root": str(repo_root)},
+        target=target,
         timeout_seconds=5,
         max_output_bytes=1024,
     )
     save_config(config, state_dir=state_dir)
 
 
-def create_qa_claw_fixture(root: Path, script_body: str = "echo secret scan ok") -> Path:
-    script_path = root / "security" / "scan-secrets.sh"
-    script_path.parent.mkdir(parents=True, exist_ok=True)
-    script_path.write_text(f"#!/usr/bin/env bash\n{script_body}\n", encoding="utf-8")
+def create_qa_claw_fixture(
+    root: Path,
+    scan_script_body: str = "echo secret scan ok",
+    verify_script_body: str = "echo verify worktrees ok",
+) -> Path:
+    scan_script_path = root / "security" / "scan-secrets.sh"
+    scan_script_path.parent.mkdir(parents=True, exist_ok=True)
+    scan_script_path.write_text(f"#!/usr/bin/env bash\n{scan_script_body}\n", encoding="utf-8")
+
+    verify_script_path = root / "scripts" / "verify-worktrees.sh"
+    verify_script_path.parent.mkdir(parents=True, exist_ok=True)
+    verify_script_path.write_text(
+        f"#!/usr/bin/env bash\n{verify_script_body}\n",
+        encoding="utf-8",
+    )
     return root
 
 
@@ -2866,7 +2881,7 @@ def test_provider_run_surfaces_failed_provider_result(tmp_path: Path) -> None:
     state_dir = tmp_path / ".rfs"
     qa_root = create_qa_claw_fixture(
         tmp_path / "qa_claw",
-        script_body="echo leaked secret >&2\nexit 7",
+        scan_script_body="echo leaked secret >&2\nexit 7",
     )
     save_qa_claw_provider_config(state_dir, qa_root)
 
@@ -2892,6 +2907,108 @@ def test_provider_run_surfaces_failed_provider_result(tmp_path: Path) -> None:
     assert provider_result["exit_code"] == 7
     assert provider_result["error_codes"] == ["SECRET_SCAN_FAILED"]
     assert "leaked secret" in provider_result["stderr_preview"]
+
+
+def test_provider_setup_qa_claw_supports_verify_worktrees(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    qa_root = create_qa_claw_fixture(tmp_path / "qa_claw")
+    worktree_root = tmp_path / "qa_claw_worktrees"
+    worktree_root.mkdir()
+
+    result = runner.invoke(
+        app,
+        [
+            "provider",
+            "setup-qa-claw",
+            str(qa_root),
+            "--worktree-root",
+            str(worktree_root),
+            "--capability",
+            "scan_secrets",
+            "--capability",
+            "verify_worktrees",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "provider_setup_qa_claw", True)
+    assert payload["data"]["worktree_root"] == str(worktree_root.resolve())
+    assert payload["data"]["capability_allowlist"] == ["scan_secrets", "verify_worktrees"]
+
+
+def test_provider_run_verify_worktrees_json(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    worktree_root = tmp_path / "qa_claw_worktrees"
+    worktree_root.mkdir()
+    qa_root = create_qa_claw_fixture(
+        tmp_path / "qa_claw",
+        verify_script_body='echo "verify:$*"',
+    )
+    save_qa_claw_provider_config(
+        state_dir,
+        qa_root,
+        capability_allowlist=["verify_worktrees"],
+        worktree_root=worktree_root,
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "provider",
+            "run",
+            "qa_claw",
+            "verify_worktrees",
+            "--assignment",
+            "nest,core,TASK-1",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "provider_run", True)
+    provider_result = payload["data"]["provider_result"]
+    assert provider_result["ok"] is True
+    assert provider_result["error_codes"] == []
+    assert "--assignment nest,core,TASK-1" in provider_result["stdout_preview"]
+    assert f"--worktree-root {worktree_root.resolve()}" in provider_result["stdout_preview"]
+
+
+def test_provider_run_verify_worktrees_requires_assignment(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    qa_root = create_qa_claw_fixture(tmp_path / "qa_claw")
+    save_qa_claw_provider_config(
+        state_dir,
+        qa_root,
+        capability_allowlist=["verify_worktrees"],
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "provider",
+            "run",
+            "qa_claw",
+            "verify_worktrees",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 1
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "provider_run", False)
+    assert payload["error"]["code"] == "invalid_provider_arguments"
 
 
 def test_drive_search_missing_config_text_guides_drive_auth(tmp_path: Path) -> None:

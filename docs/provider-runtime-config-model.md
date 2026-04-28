@@ -5,7 +5,10 @@
 Define the smallest shared runtime config model that can support both the NestClaw and qa_claw boundaries without adding a generic plugin system or runtime execution yet.
 
 This model began as a design-only slice.
-The current baseline now includes a single read-only runtime prototype: `rfs provider run qa_claw scan_secrets`.
+The current baseline now includes two read-only qa_claw runtime capabilities:
+
+- `rfs provider run qa_claw scan_secrets`
+- `rfs provider run qa_claw verify_worktrees`
 
 ## Source inputs reviewed
 
@@ -185,10 +188,13 @@ The runtime config model should only decide whether a provider is enabled and wh
 The first runtime prototype and setup surface are intentionally narrow:
 
 - command: `rfs provider run qa_claw scan_secrets`
+- command: `rfs provider run qa_claw verify_worktrees`
 - status: `rfs provider status [qa_claw]`
 - setup: `rfs provider setup-qa-claw <repo_root>`
 - provider: `qa_claw`
-- capability: `scan_secrets`
+- capabilities:
+  - `scan_secrets`
+  - `verify_worktrees`
 - target kind: `repo`
 - side effect: read-only
 - config source: local `tool_providers.qa_claw` config block
@@ -200,6 +206,7 @@ The prototype enforces:
 - capability must be in `capability_allowlist`
 - repo root must exist
 - script path must stay inside the repo root
+- `verify_worktrees` accepts only bounded assignment inputs
 - setup validation should reject missing repo roots and missing allowlisted capability scripts
 - stdout and stderr previews must be bounded
 
@@ -226,7 +233,7 @@ The safest first prototype candidates are:
 
 ## Non-goals
 
-- no provider runtime beyond the single `qa_claw scan_secrets` capability
+- no provider runtime beyond the bounded qa_claw `scan_secrets` and `verify_worktrees` capabilities
 - no automatic provider installation or startup
 - no command auto-routing from `rfs shell`
 - no finalized multi-provider execution JSON schema beyond the prototype payload
@@ -241,6 +248,6 @@ What is needed is only a slice-specific worksheet because this work compares two
 
 ## Recommended next slice
 
-1. add a second read-only qa_claw capability after the doctor-visible diagnostics baseline
-2. prefer `verify_worktrees` as the next bounded capability
+1. add a third read-only qa_claw capability after the bounded verify-worktrees contract is accepted
+2. prefer `check_authz_consistency` as the next bounded capability
 3. defer any NestClaw write-capable runtime action until the qa_claw provider UX is stable
