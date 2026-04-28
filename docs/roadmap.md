@@ -77,7 +77,7 @@ The official active loop now moves from the closed qa_claw read-only baseline re
 
 Current official next tasks:
 
-1. Define the first small fixture set for wiki lint testing
+1. Implement the first structural `rfs wiki lint` runtime against the fixture set
 2. Keep the qa_claw read-only baseline frozen with no broader provider expansion for now
 3. Revisit Google Drive real smoke only when credentials or token state become available
 
@@ -251,7 +251,8 @@ Current slice status:
 - the first reviewable ingest plan contract is now documented in `docs/wiki-ingest-plan-contract.md`
 - the first wiki lint report contract is now documented in `docs/wiki-lint-report-contract.md`
 - the first wiki directory and file conventions are now documented in `docs/wiki-directory-conventions.md`
-- the next compiled wiki slice is defining the first small fixture set for wiki lint testing
+- the first small fixture set for wiki lint testing is now documented in `docs/wiki-lint-fixture-set.md`
+- the next compiled wiki slice is implementing the first structural `rfs wiki lint` runtime against that fixture set
 
 ## Agentification track
 
