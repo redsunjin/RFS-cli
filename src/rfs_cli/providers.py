@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import shutil
 import subprocess
+import sys
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 from typing import Any, Optional
 
@@ -21,6 +24,9 @@ class ScriptCapability:
     failure_code: str
     success_summary: str
     failure_summary: str
+
+
+MIN_PROVIDER_PYTHON = (3, 10)
 
 
 QA_CLAW_SCRIPT_CAPABILITIES: dict[str, ScriptCapability] = {
@@ -149,6 +155,57 @@ def validate_capability_files(repo_root: Path, capability: ScriptCapability) -> 
 
 def capability_script_path(repo_root: Path, capability: ScriptCapability) -> Path:
     return (repo_root / capability.probe_path).resolve()
+
+
+def parse_major_minor(version_text: str) -> Optional[tuple[int, int]]:
+    parts = version_text.strip().split(".")
+    if len(parts) < 2:
+        return None
+    try:
+        return int(parts[0]), int(parts[1])
+    except ValueError:
+        return None
+
+
+def candidate_python_executables() -> list[str]:
+    candidates: list[str] = [sys.executable]
+    for name in ("python3.14", "python3.13", "python3.12", "python3.11", "python3.10", "python3"):
+        resolved = shutil.which(name)
+        if resolved is not None:
+            candidates.append(resolved)
+
+    unique_candidates: list[str] = []
+    for candidate in candidates:
+        if candidate not in unique_candidates:
+            unique_candidates.append(candidate)
+    return unique_candidates
+
+
+@lru_cache(maxsize=1)
+def resolve_provider_python_executable() -> str:
+    for candidate in candidate_python_executables():
+        try:
+            version_probe = (
+                "import sys; "
+                "print(f'{sys.version_info[0]}.{sys.version_info[1]}')"
+            )
+            completed = subprocess.run(
+                [candidate, "-c", version_probe],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        except OSError:
+            continue
+
+        if completed.returncode != 0:
+            continue
+
+        version = parse_major_minor(completed.stdout)
+        if version is not None and version >= MIN_PROVIDER_PYTHON:
+            return candidate
+
+    return sys.executable
 
 
 def qa_claw_status(provider_config: Optional[ToolProviderRuntimeConfig]) -> dict[str, Any]:
@@ -309,8 +366,12 @@ def build_qa_claw_command(
     provider_config: ToolProviderRuntimeConfig,
     arguments: Optional[dict[str, Any]] = None,
 ) -> list[str]:
+    command = list(capability.command)
+    if command and command[0] == "python3":
+        command[0] = resolve_provider_python_executable()
+
     if capability_id != "verify_worktrees":
-        return capability.command
+        return command
 
     resolved_arguments = arguments or {}
     assignments = resolved_arguments.get("assignments") or []
@@ -322,7 +383,7 @@ def build_qa_claw_command(
             "verify_worktrees requires at least one --assignment or --assignments-file.",
         )
 
-    command = [*capability.command, "--repo-root", str(repo_root)]
+    command.extend(["--repo-root", str(repo_root)])
     worktree_root_value = provider_config.target.get("worktree_root")
     if isinstance(worktree_root_value, str) and worktree_root_value.strip():
         command.extend(["--worktree-root", worktree_root_value])

@@ -73,12 +73,12 @@ That means the project should not wait for Google Drive integration before decla
 
 ## Current official active loop
 
-The official active loop now moves from the fifth bounded read-only qa_claw capability toward a baseline review before broader provider expansion.
+The official active loop now moves from the closed qa_claw read-only baseline review back to compiled-wiki promotion-prep.
 
 Current official next tasks:
 
-1. Review whether the completed qa_claw read-only capability set is sufficient before broader provider expansion
-2. Keep compiled wiki as a candidate track rather than the current official loop
+1. Define the first small fixture set for wiki lint testing
+2. Keep the qa_claw read-only baseline frozen with no broader provider expansion for now
 3. Revisit Google Drive real smoke only when credentials or token state become available
 
 The earlier Google Drive smoke remains paused by environment, while the NestClaw boundary, qa_claw boundary, shared runtime config model, and first qa_claw provider prototype are now closed slices.
@@ -152,7 +152,8 @@ Current baseline:
 - the third bounded read-only qa_claw capability is now implemented as `rfs provider run qa_claw check_authz_consistency`
 - the fourth bounded read-only qa_claw capability is now implemented as `rfs provider run qa_claw check_observability_evidence`
 - the fifth bounded read-only qa_claw capability is now implemented as `rfs provider run qa_claw run_backend_regression`
-- the next provider slice should review whether the current bounded qa_claw runtime set is sufficient before broader provider expansion
+- the qa_claw read-only baseline review is now closed in `docs/qa-claw-read-only-baseline-review.md`
+- broader provider expansion remains deferred until a new explicit official slice is chosen
 
 ## Phase 6: Release readiness
 

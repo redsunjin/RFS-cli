@@ -104,6 +104,8 @@ Five read-only runtime capabilities are implemented:
 - `rfs provider run qa_claw check_observability_evidence`
 - `rfs provider run qa_claw run_backend_regression`
 
+For Python-based qa_claw capabilities, the runtime may resolve a provider-compatible local interpreter before execution so that caller-venv version drift does not create false provider failures.
+
 The setup/status UX is also intentionally narrow:
 
 - `rfs provider status [qa_claw]`

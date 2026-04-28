@@ -414,6 +414,7 @@ Example response shape:
 - The fourth implemented provider runtime is `rfs provider run qa_claw check_observability_evidence`
 - The fifth implemented provider runtime is `rfs provider run qa_claw run_backend_regression`
 - The runtime implementation should live behind a provider module rather than inside command handlers
+- Python-based qa_claw capabilities should resolve a compatible local interpreter before execution rather than assuming the active `rfs-cli` venv matches provider runtime requirements
 - The first provider command should read `tool_providers` config, reject missing or disabled providers, enforce `capability_allowlist`, and return a bounded provider result
 - The first provider UX should also expose status and setup commands so users are not forced to hand-edit the config file
 - Setup should perform provider-specific validation before persisting the config block

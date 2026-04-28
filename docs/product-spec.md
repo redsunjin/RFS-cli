@@ -257,6 +257,7 @@ Examples:
 - the fifth implemented read-only capability is `rfs provider run qa_claw run_backend_regression`
 - the first provider UX now includes `rfs provider status` and `rfs provider setup-qa-claw`
 - setup should validate repo roots and allowlisted capability scripts before runtime use
+- Python-based qa_claw capabilities should prefer a provider-compatible local interpreter when the active `rfs-cli` venv is too old for the provider codebase
 
 ### Post-MVP optional harbor layer
 

@@ -44,7 +44,6 @@ The current baseline now includes five read-only qa_claw runtime capabilities:
   - `check_authz_consistency`
   - `check_observability_evidence`
   - `run_backend_regression`
-  - `run_backend_regression`
 - side effects: read-only in the first boundary
 - transport-specific needs:
   - `repo_root`
@@ -220,6 +219,7 @@ The prototype enforces:
 - `check_authz_consistency` stays argument-free
 - `check_observability_evidence` stays argument-free
 - `run_backend_regression` stays argument-free
+- Python-based qa_claw capabilities should prefer a compatible local interpreter when the active `rfs-cli` venv is older than the provider runtime requirement
 - setup validation should reject missing repo roots and missing allowlisted capability scripts
 - stdout and stderr previews must be bounded
 
@@ -258,6 +258,8 @@ The current work harness is sufficient for this slice.
 No harness-structure change is required.
 
 What is needed is only a slice-specific worksheet because this work compares two completed design boundaries before setting the next official runtime direction.
+
+The qa_claw read-only baseline review is now closed in `docs/qa-claw-read-only-baseline-review.md`.
 
 ## Recommended next slice
 
