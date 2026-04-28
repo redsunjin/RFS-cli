@@ -61,6 +61,7 @@ def create_qa_claw_fixture(
     root: Path,
     scan_script_body: str = "echo secret scan ok",
     verify_script_body: str = "echo verify worktrees ok",
+    authz_script_body: str = "print('authz consistency ok')",
 ) -> Path:
     scan_script_path = root / "security" / "scan-secrets.sh"
     scan_script_path.parent.mkdir(parents=True, exist_ok=True)
@@ -70,6 +71,14 @@ def create_qa_claw_fixture(
     verify_script_path.parent.mkdir(parents=True, exist_ok=True)
     verify_script_path.write_text(
         f"#!/usr/bin/env bash\n{verify_script_body}\n",
+        encoding="utf-8",
+    )
+
+    authz_script_path = root / "security" / "check-authz-matrix-consistency.py"
+    authz_script_path.parent.mkdir(parents=True, exist_ok=True)
+    authz_script_path.write_text(
+        "#!/usr/bin/env python3\n"
+        f"{authz_script_body}\n",
         encoding="utf-8",
     )
     return root
@@ -3009,6 +3018,106 @@ def test_provider_run_verify_worktrees_requires_assignment(tmp_path: Path) -> No
     payload = json.loads(result.stdout)
     assert_command_payload(payload, "provider_run", False)
     assert payload["error"]["code"] == "invalid_provider_arguments"
+
+
+def test_provider_setup_qa_claw_supports_authz_consistency(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    qa_root = create_qa_claw_fixture(tmp_path / "qa_claw")
+
+    result = runner.invoke(
+        app,
+        [
+            "provider",
+            "setup-qa-claw",
+            str(qa_root),
+            "--capability",
+            "scan_secrets",
+            "--capability",
+            "check_authz_consistency",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "provider_setup_qa_claw", True)
+    assert payload["data"]["capability_allowlist"] == [
+        "scan_secrets",
+        "check_authz_consistency",
+    ]
+
+
+def test_provider_run_check_authz_consistency_json(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    qa_root = create_qa_claw_fixture(
+        tmp_path / "qa_claw",
+        authz_script_body="print('authz consistency ok')",
+    )
+    save_qa_claw_provider_config(
+        state_dir,
+        qa_root,
+        capability_allowlist=["check_authz_consistency"],
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "provider",
+            "run",
+            "qa_claw",
+            "check_authz_consistency",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "provider_run", True)
+    provider_result = payload["data"]["provider_result"]
+    assert provider_result["ok"] is True
+    assert provider_result["error_codes"] == []
+    assert "authz consistency ok" in provider_result["stdout_preview"]
+
+
+def test_provider_run_authz_consistency_surfaces_failure(tmp_path: Path) -> None:
+    state_dir = tmp_path / ".rfs"
+    qa_root = create_qa_claw_fixture(
+        tmp_path / "qa_claw",
+        authz_script_body="import sys\nprint('mismatch', file=sys.stderr)\nraise SystemExit(1)",
+    )
+    save_qa_claw_provider_config(
+        state_dir,
+        qa_root,
+        capability_allowlist=["check_authz_consistency"],
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "provider",
+            "run",
+            "qa_claw",
+            "check_authz_consistency",
+            "--state-dir",
+            str(state_dir),
+            "--format",
+            "json",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert_command_payload(payload, "provider_run", True)
+    provider_result = payload["data"]["provider_result"]
+    assert provider_result["ok"] is False
+    assert provider_result["error_codes"] == ["AUTHZ_MISMATCH"]
+    assert "mismatch" in provider_result["stderr_preview"]
 
 
 def test_drive_search_missing_config_text_guides_drive_auth(tmp_path: Path) -> None:

@@ -29,6 +29,12 @@ QA_CLAW_SCRIPT_CAPABILITIES: dict[str, ScriptCapability] = {
         success_summary="qa_claw worktree verification passed.",
         failure_summary="qa_claw worktree verification failed.",
     ),
+    "check_authz_consistency": ScriptCapability(
+        command=["python3", "security/check-authz-matrix-consistency.py", "."],
+        failure_code="AUTHZ_MISMATCH",
+        success_summary="qa_claw authz consistency check passed.",
+        failure_summary="qa_claw authz consistency check failed.",
+    ),
     "scan_secrets": ScriptCapability(
         command=["bash", "security/scan-secrets.sh", "."],
         failure_code="SECRET_SCAN_FAILED",

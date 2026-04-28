@@ -410,6 +410,7 @@ Example response shape:
 - The first runtime prototype should prefer a read-only qa_claw capability so the shared runtime model is exercised before any write-capable provider path is opened
 - The first implemented provider runtime is `rfs provider run qa_claw scan_secrets`
 - The second implemented provider runtime is `rfs provider run qa_claw verify_worktrees`
+- The third implemented provider runtime is `rfs provider run qa_claw check_authz_consistency`
 - The runtime implementation should live behind a provider module rather than inside command handlers
 - The first provider command should read `tool_providers` config, reject missing or disabled providers, enforce `capability_allowlist`, and return a bounded provider result
 - The first provider UX should also expose status and setup commands so users are not forced to hand-edit the config file

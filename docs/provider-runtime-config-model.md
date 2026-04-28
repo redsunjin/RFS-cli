@@ -5,10 +5,11 @@
 Define the smallest shared runtime config model that can support both the NestClaw and qa_claw boundaries without adding a generic plugin system or runtime execution yet.
 
 This model began as a design-only slice.
-The current baseline now includes two read-only qa_claw runtime capabilities:
+The current baseline now includes three read-only qa_claw runtime capabilities:
 
 - `rfs provider run qa_claw scan_secrets`
 - `rfs provider run qa_claw verify_worktrees`
+- `rfs provider run qa_claw check_authz_consistency`
 
 ## Source inputs reviewed
 
@@ -189,12 +190,14 @@ The first runtime prototype and setup surface are intentionally narrow:
 
 - command: `rfs provider run qa_claw scan_secrets`
 - command: `rfs provider run qa_claw verify_worktrees`
+- command: `rfs provider run qa_claw check_authz_consistency`
 - status: `rfs provider status [qa_claw]`
 - setup: `rfs provider setup-qa-claw <repo_root>`
 - provider: `qa_claw`
 - capabilities:
   - `scan_secrets`
   - `verify_worktrees`
+  - `check_authz_consistency`
 - target kind: `repo`
 - side effect: read-only
 - config source: local `tool_providers.qa_claw` config block
@@ -207,6 +210,7 @@ The prototype enforces:
 - repo root must exist
 - script path must stay inside the repo root
 - `verify_worktrees` accepts only bounded assignment inputs
+- `check_authz_consistency` stays argument-free
 - setup validation should reject missing repo roots and missing allowlisted capability scripts
 - stdout and stderr previews must be bounded
 
@@ -233,7 +237,7 @@ The safest first prototype candidates are:
 
 ## Non-goals
 
-- no provider runtime beyond the bounded qa_claw `scan_secrets` and `verify_worktrees` capabilities
+- no provider runtime beyond the bounded qa_claw `scan_secrets`, `verify_worktrees`, and `check_authz_consistency` capabilities
 - no automatic provider installation or startup
 - no command auto-routing from `rfs shell`
 - no finalized multi-provider execution JSON schema beyond the prototype payload
@@ -248,6 +252,6 @@ What is needed is only a slice-specific worksheet because this work compares two
 
 ## Recommended next slice
 
-1. add a third read-only qa_claw capability after the bounded verify-worktrees contract is accepted
-2. prefer `check_authz_consistency` as the next bounded capability
+1. add a fourth read-only qa_claw capability after the bounded authz-consistency pass is accepted
+2. prefer `check_observability_evidence` as the next bounded capability
 3. defer any NestClaw write-capable runtime action until the qa_claw provider UX is stable

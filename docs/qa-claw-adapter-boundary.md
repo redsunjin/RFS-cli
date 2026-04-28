@@ -9,6 +9,7 @@ The current runtime baseline now implements two bounded capabilities from this b
 
 - `scan_secrets`
 - `verify_worktrees`
+- `check_authz_consistency`
 
 ## Source inputs reviewed
 
